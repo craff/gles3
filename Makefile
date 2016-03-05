@@ -67,9 +67,11 @@ install:
 
 doc:
 	ocamldoc -t "OCaml GLES3 bindings" -keep-code -html -d html *.mli
+	mv html/index.html html/main.html
 
 distrib: all clean
 	scp -r html/* lama.univ-savoie.fr:~raffalli/WWW/gles3/
+	scp -r README.html lama.univ-savoie.fr:~raffalli/WWW/gles3/index.html
 	darcs push lama.univ-savoie.fr:WWW/gles3/repos
 
 %.o: %.c

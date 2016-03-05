@@ -1,22 +1,22 @@
 /****************************************************************************/
-/* MLGles2: OpenGL ES2 interface for Objective Caml                         */
+/* MLGles3: OpenGL ES3 interface for Objective Caml                         */
 /*                                                                          */
 /* Copyright (C) 2014   Alexandre Miquel <amiquel@fing.edu.uy>              */
 /*                                                                          */
-/* MLGles2 is free software: you can redistribute it and/or modify it under */
+/* MLGles3 is free software: you can redistribute it and/or modify it under */
 /* the terms of the  GNU Lesser General Public License  as published by the */
 /* Free Software Foundation,  either version 3 of the License,  or (at your */
 /* option) any later version.                                               */
 /*                                                                          */
-/* MLGles2 is distributed  in the hope that it will be useful,  but WITHOUT */
+/* MLGles3 is distributed  in the hope that it will be useful,  but WITHOUT */
 /* ANY WARRANTY;  without even  the implied warranty of MERCHANTABILITY  or */
 /* FITNESS  FOR  A PARTICULAR PURPOSE.  See the  GNU  Lesser General Public */
 /* License for more details.                                                */
 /*                                                                          */
 /* You should have received a copy of the GNU Lesser General Public License */
-/* along with MLGles2.  If not, see <http://www.gnu.org/licenses/>.         */
+/* along with MLGles3.  If not, see <http://www.gnu.org/licenses/>.         */
 /****************************************************************************/
-/* ml_gles2x.c: ML stubs for Gles2x companion library                       */
+/* ml_gles3x.c: ML stubs for Gles3x companion library                       */
 /****************************************************************************/
 
 #include <stdlib.h>
@@ -60,14 +60,14 @@ static value motion_notify_callback = (value)NULL ;
 static void protect_callback(char *name, value f, value v1)
 {
   if(Is_exception_result(caml_callback_exn(f, v1)))
-    fprintf(stderr, "Gles2x.main_loop: "
+    fprintf(stderr, "Egl.main_loop: "
 	    "WARNING: %s raised an exception\n", name) ;
 }
 
 static void protect_callback2(char *name, value f, value v1, value v2)
 {
   if(Is_exception_result(caml_callback2_exn(f, v1, v2)))
-    fprintf(stderr, "Gles2x.main_loop: "
+    fprintf(stderr, "Egl.main_loop: "
 	    "WARNING: %s raised an exception\n", name) ;
 }
 
@@ -75,7 +75,7 @@ static void protect_callback3(char *name, value f, value v1,
 			      value v2, value v3)
 {
   if(Is_exception_result(caml_callback3_exn(f, v1, v2, v3)))
-    fprintf(stderr, "Gles2x.main_loop: "
+    fprintf(stderr, "Egl.main_loop: "
 	    "WARNING: %s raised an exception\n", name) ;
 }
 
@@ -84,7 +84,7 @@ static void protect_callback4(char *name, value f, value v1,
 {
   value tmp[4] = { v1, v2, v3, v4 } ;
   if(Is_exception_result(caml_callbackN_exn(f, 4, tmp)))
-    fprintf(stderr, "Gles2x.main_loop: "
+    fprintf(stderr, "Egl.main_loop: "
 	    "WARNING: %s raised an exception\n", name) ;
 }
 
@@ -178,11 +178,11 @@ static void free_resources()
   initialized = 0 ;
 }
 
-value ml_gles2x_terminate(value v)
+value ml_egl_terminate(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Gles2x.terminate: not initialized") ;
+    failwith("Egl.terminate: not initialized") ;
   free_resources() ;
   initialized = 0 ; /* already done above */
   CAMLreturn0 ;
@@ -192,9 +192,9 @@ value ml_gles2x_terminate(value v)
 /*   INITIALIZATION                                                         */
 /****************************************************************************/
 
-#define init_fail(s)  (free_resources(), failwith("Gles2x.initialize: " s))
+#define init_fail(s)  (free_resources(), failwith("Egl.initialize: " s))
 
-value ml_gles2x_initialize(value vc, value vw, value vh, value vn)
+value ml_egl_initialize(value vc, value vw, value vh, value vn)
 {
   CAMLparam3(vw, vh, vn) ;
 
@@ -226,7 +226,7 @@ value ml_gles2x_initialize(value vc, value vw, value vh, value vn)
 
   /* Initialize EGL Display */
   if(!eglInitialize(display, NULL, NULL))
-    init_fail("Gles2x.initialize: cannot initialize EGL display") ;
+    init_fail("Egl.initialize: cannot initialize EGL display") ;
 
   /* Choose EGL Config */
   attribs[0] = EGL_COLOR_BUFFER_TYPE ;
@@ -294,74 +294,74 @@ value ml_gles2x_initialize(value vc, value vw, value vh, value vn)
 /*   SETTING CALLBACKS                                                      */
 /****************************************************************************/
 
-CAMLprim value ml_gles2x_set_idle_callback(value v)
+CAMLprim value ml_egl_set_idle_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Gles2x.set_idle_callback: not initialized") ;
+    failwith("Egl.set_idle_callback: not initialized") ;
   idle_callback = v ;
   CAMLreturn0 ;
 }
 
-CAMLprim value ml_gles2x_set_reshape_callback(value v)
+CAMLprim value ml_egl_set_reshape_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Gles2x.set_reshape_callback: not initialized") ;
+    failwith("Egl.set_reshape_callback: not initialized") ;
   reshape_callback = v ;
   CAMLreturn0 ;
 }
 
-CAMLprim value ml_gles2x_set_delete_callback(value v)
+CAMLprim value ml_egl_set_delete_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Gles2x.set_delete_callback: not initialized") ;
+    failwith("Egl.set_delete_callback: not initialized") ;
   delete_callback = v ;
   CAMLreturn0 ;
 }
 
-CAMLprim value ml_gles2x_set_key_press_callback(value v)
+CAMLprim value ml_egl_set_key_press_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Gles2x.set_key_press_callback: not initialized") ;
+    failwith("Egl.set_key_press_callback: not initialized") ;
   key_press_callback = v ;
   CAMLreturn0 ;
 }
 
-CAMLprim value ml_gles2x_set_key_release_callback(value v)
+CAMLprim value ml_egl_set_key_release_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Gles2x.set_key_release_callback: not initialized") ;
+    failwith("Egl.set_key_release_callback: not initialized") ;
   key_release_callback = v ;
   CAMLreturn0 ;
 }
 
-CAMLprim value ml_gles2x_set_button_press_callback(value v)
+CAMLprim value ml_egl_set_button_press_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Gles2x.set_button_press_callback: not initialized") ;
+    failwith("Egl.set_button_press_callback: not initialized") ;
   button_press_callback = v ;
   CAMLreturn0 ;
 }
 
-CAMLprim value ml_gles2x_set_button_release_callback(value v)
+CAMLprim value ml_egl_set_button_release_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Gles2x.set_button_release_callback: not initialized") ;
+    failwith("Egl.set_button_release_callback: not initialized") ;
   button_release_callback = v ;
   CAMLreturn0 ;
 }
 
-CAMLprim value ml_gles2x_set_motion_notify_callback(value v)
+CAMLprim value ml_egl_set_motion_notify_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Gles2x.set_motion_notify_callback: not initialized") ;
+    failwith("Egl.set_motion_notify_callback: not initialized") ;
   motion_notify_callback = v ;
   CAMLreturn0 ;
 }
@@ -370,17 +370,17 @@ CAMLprim value ml_gles2x_set_motion_notify_callback(value v)
 /*   MAIN LOOP                                                              */
 /****************************************************************************/
 
-value ml_gles2x_main_loop(value v)
+value ml_egl_main_loop(value v)
 {
   CAMLparam1(v) ;
   CAMLlocal1(res) ;
   XEvent event ;
 
   if(!initialized)
-    failwith("Gles2x.main_loop: not initialized") ;
+    failwith("Egl.main_loop: not initialized") ;
 
   if(main_loop_reentrant)
-    failwith("Gles2x.main_loop: forbidden reentrant call") ;
+    failwith("Egl.main_loop: forbidden reentrant call") ;
 
   main_loop_reentrant = 1 ;
 
@@ -495,11 +495,11 @@ value ml_gles2x_main_loop(value v)
   CAMLreturn0 ;
 }
 
-value ml_gles2x_exit_loop(value v)
+value ml_egl_exit_loop(value v)
 {
   CAMLparam1(v) ;
   if(!main_loop_reentrant)
-    failwith("Gles2x.exit_loop: can only be called inside main_loop\n") ;
+    failwith("Egl.exit_loop: can only be called inside main_loop\n") ;
   main_loop_continue = 0 ;
   CAMLreturn0 ;
 }
@@ -508,57 +508,57 @@ value ml_gles2x_exit_loop(value v)
 /*   MISCELLANEOUS                                                          */
 /****************************************************************************/
 
-value ml_gles2x_swap_buffers(value v)
+value ml_egl_swap_buffers(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Gles2x.swap_buffers: not initialized") ;
+    failwith("Egl.swap_buffers: not initialized") ;
   eglSwapBuffers(display, surface) ;
   CAMLreturn0 ;
 }
 
-value ml_gles2x_query_version(value v)
+value ml_egl_query_version(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Gles2x.query_version: not initialized") ;
+    failwith("Egl.query_version: not initialized") ;
   const char *s = eglQueryString(display, EGL_VERSION) ;
   CAMLreturn(caml_copy_string(s));
 }
 
-value ml_gles2x_query_vendor(value v)
+value ml_egl_query_vendor(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Gles2x.query_vendor: not initialized") ;
+    failwith("Egl.query_vendor: not initialized") ;
   const char *s = eglQueryString(display, EGL_VENDOR) ;
   CAMLreturn(caml_copy_string(s));
 }
 
-value ml_gles2x_query_extensions(value v)
+value ml_egl_query_extensions(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Gles2x.query_extensions: not initialized") ;
+    failwith("Egl.query_extensions: not initialized") ;
   const char *s = eglQueryString(display, EGL_EXTENSIONS) ;
   CAMLreturn(caml_copy_string(s));
 }
 
-value ml_gles2x_query_client_apis(value v)
+value ml_egl_query_client_apis(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Gles2x.query_client_apis: not initialized") ;
+    failwith("Egl.query_client_apis: not initialized") ;
   const char *s = eglQueryString(display, EGL_CLIENT_APIS) ;
   CAMLreturn(caml_copy_string(s));
 }
 
-value ml_gles2x_query_config(value v)
+value ml_egl_query_config(value v)
 {
   CAMLparam1(v) ;
   CAMLlocal1(ret) ;
   if(!initialized)
-    failwith("Gles2x.query_config: not initialized") ;
+    failwith("Egl.query_config: not initialized") ;
   EGLint red_size, green_size, blue_size, alpha_size ;
   EGLint depth_size, stencil_size, samples ;
   eglGetConfigAttrib(display, config, EGL_RED_SIZE, &red_size) ;
