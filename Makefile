@@ -65,7 +65,10 @@ install:
 	- $(REMOVE) gles3
 	$(INSTALL) gles3 gles3.cma gles3.cmxa egl.cma egl.cmxa META *.so *.a *.cmi *.mli
 
-doc:
+README: README.html
+	lynx $< -dump > $@
+
+doc: README
 	ocamldoc -t "OCaml GLES3 bindings" -keep-code -html -d html *.mli
 	mv html/index.html html/main.html
 
