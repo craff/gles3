@@ -1,0 +1,10 @@
+version="1.00"
+requires = "unix,str,bigarray"
+archive(byte) = "gles3.cma"
+archive(native) = "gles3.cmxa"
+
+package "egl" (
+  requires = "gles3"
+  archive(byte) = "egl.cma"
+  archive(native) = "egl.cmxa"
+)

@@ -1,0 +1,84 @@
+open Gles3
+open Buffers
+open Textures
+
+(** High-level functions to manage shaders *)
+
+(** A record type to hold a shader *)
+type shader = { name : string; ty : shader_type; src : string; }
+
+val load_shader : shader_type -> string -> shader
+
+type 'a program
+
+val compile : ?version:string -> ?precision:string ->string * shader list -> unit program
+(** [compile (name, shaders)] compile the givens shaders,
+    the [name] is just for clear error messages. *)
+
+(** Functions to call a shader, after instanciating all its variables
+    It produces a Failure exception giving the undefined variable if
+    it is not the case. *)
+val draw_arrays : 'a program -> shape -> ?first:int -> int -> 'a
+val draw_ushort_elements : 'a program -> shape -> ushort_bigarray -> 'a
+val draw_ubyte_elements : 'a program -> shape -> ubyte_bigarray -> 'a
+val draw_uint_elements : 'a program -> shape -> uint_bigarray -> 'a
+val draw_buffer_elements : 'a program -> shape -> 'b element_buffer -> 'a
+
+(** Functions to parametrize a shader by an attribute variable, the
+    [norm] and [stride] parameters are still fixied. No version is
+    provided for buffer as you should probably use dynamic buffers
+    ?  *)
+val byte_attr : 'a program -> ?norm:bool -> ?stride:int -> string -> (byte_bigarray -> 'a) program
+val ubyte_attr : 'a program -> ?norm:bool -> ?stride:int -> string -> (ubyte_bigarray -> 'a) program
+val short_attr : 'a program -> ?norm:bool -> ?stride:int -> string -> (short_bigarray -> 'a) program
+val ushort_attr : 'a program -> ?norm:bool -> ?stride:int -> string -> (ushort_bigarray -> 'a) program
+val uint_attr : 'a program -> ?norm:bool -> ?stride:int -> string -> (uint_bigarray -> 'a) program
+val float_attr : 'a program -> ?norm:bool -> ?stride:int -> string -> (float_bigarray -> 'a) program
+
+(** Functions to give a fixed value to an attribute variable *)
+val byte_cst_attr : 'a program -> ?norm:bool -> ?stride:int -> string -> byte_bigarray -> 'a program
+val ubyte_cst_attr : 'a program -> ?norm:bool -> ?stride:int -> string -> ubyte_bigarray -> 'a program
+val short_cst_attr : 'a program -> ?norm:bool -> ?stride:int -> string -> short_bigarray -> 'a program
+val ushort_cst_attr : 'a program -> ?norm:bool -> ?stride:int -> string -> ushort_bigarray -> 'a program
+val uint_cst_attr : 'a program -> ?norm:bool -> ?stride:int -> string -> uint_bigarray -> 'a program
+val float_cst_attr : 'a program -> ?norm:bool -> ?stride:int -> string -> float_bigarray -> 'a program
+val buffer_cst_attr : 'a program -> ?norm:bool -> ?stride:int -> string -> 'b array_buffer -> 'a program
+
+(** Functions to parametrize a shader by a uniform variable.*)
+val int_uniform : 'a program -> string -> (int array -> 'a) program
+val int2_uniform : 'a program -> string -> (int array -> 'a) program
+val int3_uniform : 'a program -> string -> (int array -> 'a) program
+val int4_uniform : 'a program -> string -> (int array -> 'a) program
+val bool_uniform : 'a program -> string -> (bool array -> 'a) program
+val bool2_uniform : 'a program -> string -> (bool array -> 'a) program
+val bool3_uniform : 'a program -> string -> (bool array -> 'a) program
+val bool4_uniform : 'a program -> string -> (bool array -> 'a) program
+val float_uniform : 'a program -> string -> (float array -> 'a) program
+val float2_uniform : 'a program -> string -> (float array -> 'a) program
+val float3_uniform : 'a program -> string -> (float array -> 'a) program
+val float4_uniform : 'a program -> string -> (float array -> 'a) program
+val float_mat2_uniform : 'a program -> string -> (float array -> 'a) program
+val float_mat3_uniform : 'a program -> string -> (float array -> 'a) program
+val float_mat4_uniform : 'a program -> string -> (float array -> 'a) program
+val texture_2d_uniform : 'a program -> string -> (ntexture -> 'a) program
+
+(** Functions to give a fixed value to a uniform variable *)
+val int_cst_uniform : 'a program -> string -> int array -> 'a program
+val int2_cst_uniform : 'a program -> string -> int array -> 'a program
+val int3_cst_uniform : 'a program -> string -> int array -> 'a program
+val int4_cst_uniform : 'a program -> string -> int array -> 'a program
+val bool_cst_uniform : 'a program -> string -> bool array -> 'a program
+val bool2_cst_uniform : 'a program -> string -> bool array -> 'a program
+val bool3_cst_uniform : 'a program -> string -> bool array -> 'a program
+val bool4_cst_uniform : 'a program -> string -> bool array -> 'a program
+val float_cst_uniform : 'a program -> string -> float array -> 'a program
+val float2_cst_uniform : 'a program -> string -> float array -> 'a program
+val float3_cst_uniform : 'a program -> string -> float array -> 'a program
+val float4_cst_uniform : 'a program -> string -> float array -> 'a program
+val float_mat2_cst_uniform :
+  'a program -> string -> float array -> 'a program
+val float_mat3_cst_uniform :
+  'a program -> string -> float array -> 'a program
+val float_mat4_cst_uniform :
+  'a program -> string -> float array -> 'a program
+val texture_2d_cst_uniform : 'a program -> string -> ntexture -> 'a program
