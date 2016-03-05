@@ -1,0 +1,20 @@
+opam-version: "1.2"
+name: "gles3"
+version: "1.0"
+maintainer: "Christophe Raffalli <raffalli@univ-savoie.fr>"
+authors: "Christophe Raffalli <raffalli@univ-savoie.fr>"
+homepage: "http://lama.univ-savoie.fr:~raffalli/gles3"
+bug-reports: "raffalli@univ-savoie.fr"
+license: "LGPL"
+dev-repo: "darcs://lama.univ-savoie.fr:~raffalli/gles3/darcs"
+build: [
+  [make]
+]
+install: [make "install"]
+remove: ["ocamlfind" "remove" "gles3"]
+depends: [
+  "ocamlfind" {build}
+  "str"
+  "unix"
+  "bigarray"
+]
