@@ -47,7 +47,7 @@ let error_replace (shaders:shader list) msg =
     let templ = Printf.sprintf "file: %s, line \\1, column \\2" filename in
     Str.global_replace r templ
   in
-  snd (List.fold_left (fun (i,s) sh -> (i+1, fn i (sh:shader).name s)) (1,msg) shaders)
+  snd (List.fold_left (fun (i,s) sh -> (i+1, try fn i (sh:shader).name s with _ -> s)) (1,msg) shaders)
 
 exception Compile_error
 let compile : ?version:string -> ?precision:string -> string * shader list -> unit program =

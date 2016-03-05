@@ -638,7 +638,12 @@ type error =
   [ `no_error | `invalid_enum | `invalid_framebuffer_operation
   | `invalid_value | `invalid_operation | `out_of_memory ]
 
+val error_to_string : error -> string
 external get_error : unit -> error = "ml_glGetError"
+
+(** show all erros (in a loop) and therefore really reset the error flag
+    error code is printed together with the given message *)
+val show_errors : string -> unit
 
 external get_vendor : unit -> string = "ml_glGetVendor"
 external get_renderer : unit -> string = "ml_glGetRenderer"

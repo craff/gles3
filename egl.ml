@@ -16,7 +16,7 @@
 (* You should have received a copy of the GNU Lesser General Public License *)
 (* along with MLGles2.  If not, see <http://www.gnu.org/licenses/>.         *)
 (****************************************************************************)
-(* gles2x.ml: implementation of Gles2x companion library                    *)
+(* egl.ml: implementation of Egl companion library                          *)
 (****************************************************************************)
 
 type config = {

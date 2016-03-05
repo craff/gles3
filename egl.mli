@@ -16,12 +16,12 @@
 (* You should have received a copy of the GNU Lesser General Public License *)
 (* along with MLGles2.  If not, see <http://www.gnu.org/licenses/>.         *)
 (****************************************************************************)
-(* gles2x.mli: interface of Gles2x companion library                        *)
+(* egl.mli: interface of Egl companion library                              *)
 (****************************************************************************)
 
-(** Gles2x = EGL + X11.
-
-    It constists of functions to open a window, read mouse and keyboard, ... *)
+(** EGL + X11.
+    It constists of functions to open a window, read mouse and keyboard, ...
+    should be ported to other platforms ... *)
 
 type config = {
     red_size : int ;

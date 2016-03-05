@@ -34,15 +34,15 @@
 
 #define ML_0(cname)			\
   CAMLprim value ml_##cname (value v)	\
-  { cname() ; return Val_unit ; }
+  { cname() ; return(Val_unit) ;}
 
 #define ML_1(cname, conv1)		    \
   CAMLprim value ml_##cname (value v1)	    \
-  { cname(conv1(v1)) ; return Val_unit ; }
+  { cname(conv1(v1)) ; return(Val_unit); }
 
 #define ML_2(cname, conv1, conv2)		       \
   CAMLprim value ml_##cname (value v1, value v2)       \
-  { cname(conv1(v1), conv2(v2)) ; return Val_unit ; }
+  { cname(conv1(v1), conv2(v2)) ; return(Val_unit); }
 
 #define ML_3(cname, conv1, conv2, conv3)			  \
   CAMLprim value ml_##cname (value v1, value v2, value v3)	  \
@@ -316,8 +316,9 @@ CAMLprim value ml_glVertexAttribBufferPointer(value vi, value vs, value vt,
 
 CAMLprim value ml_glVertexAttribBufferPointer_bc(value *argv, int argn)
 {
-  return ml_glVertexAttribBufferPointer(argv[0], argv[1], argv[2],
-					argv[3], argv[4], argv[5]) ;
+  CAMLparamN(argv,argn);
+  CAMLreturn(ml_glVertexAttribBufferPointer(argv[0], argv[1], argv[2],
+					    argv[3], argv[4], argv[5])) ;
 }
 
 ML_3(glDrawArrays, Enum_val, Int_val, Int_val) ;
@@ -1255,7 +1256,13 @@ ML_5(glFramebufferTexture2D, Enum_val, Enum_val, Enum_val, Int_val, Int_val) ;
 /*   MISCELLANEOUS                                                          */
 /****************************************************************************/
 
-ML_0R(glGetError, Val_enum) ;
+CAMLprim value ml_glGetError(value v)
+{
+  CAMLparam1(v) ;
+  GLenum r = glGetError() ;
+  if (r == GL_NO_ERROR) CAMLreturn(Val_int(176986634)); /* GL_NO_ERROR = GL_FALSE = GL_ZERO !!! */
+  CAMLreturn(Val_enum(r)) ;
+}
 
 CAMLprim value ml_glGetVendor(value v)
 {

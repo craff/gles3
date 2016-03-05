@@ -845,7 +845,21 @@ type error =
   [ `no_error | `invalid_enum | `invalid_framebuffer_operation
   | `invalid_value | `invalid_operation | `out_of_memory ]
 
+let error_to_string = function
+  | `no_error -> "no_error"
+  | `invalid_enum -> "invalid_enum"
+  | `invalid_framebuffer_operation -> "invalid_framebuffer_operation"
+  | `invalid_value -> "invalid_value"
+  | `invalid_operation -> "invalid_operation"
+  | `out_of_memory -> "out_of_memory"
+
 external get_error : unit -> error = "ml_glGetError"
+
+let rec show_errors msg =
+  let error = get_error () in
+  if error <> `no_error then (
+    Printf.eprintf "error %s during draw %s\n%!" (error_to_string error) msg;
+    show_errors msg)
 
 external get_vendor : unit -> string = "ml_glGetVendor"
 external get_renderer : unit -> string = "ml_glGetRenderer"

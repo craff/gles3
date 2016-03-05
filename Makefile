@@ -55,6 +55,7 @@ clean:
 	- rm -rf examples/_build
 
 distclean: clean
+	- rm -rf html/*
 
 tar: all doc clean
 	cd ..; tar cvzf gles3.tar.gz gles3
@@ -65,7 +66,11 @@ install:
 	$(INSTALL) gles3 gles3.cma gles3.cmxa egl.cma egl.cmxa META *.so *.a *.cmi *.mli
 
 doc:
-	ocamldoc -keep-code -html -d html *.mli
+	ocamldoc -t "OCaml GLES3 bindings" -keep-code -html -d html *.mli
+
+distrib: all clean
+	scp -r html/* lama.univ-savoie.fr:~raffalli/WWW/gles3/
+	darcs push lama.univ-savoie.fr:WWW/gles3/repos
 
 %.o: %.c
 	$(CC) -c $<
