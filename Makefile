@@ -82,7 +82,7 @@ distrib: all clean tar
 	scp -r README.html $(URL)/index.html
 	scp -r cubes.png $(URL)/
 	darcs push lama.univ-savoie.fr:WWW/gles3/repos
-	scp gles3-`date +%d%m%y`.tar.gz $(URL)/
+	scp ../gles3-`date +%d%m%y`.tar.gz $(URL)/
 
 %.o: %.c
 	$(CC) -c $<
