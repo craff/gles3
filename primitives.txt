@@ -1,0 +1,164 @@
+  List of all                           Corresponding
+  GLES2 C-primitives                    Gles2 ML-functions
+  ==================                    ==================
++ glActiveTexture			active_texture
++ glAttachShader			attach_shader
++ glBindAttribLocation			bind_attrib_location
++ glBindBuffer				bind_buffer
++ glBindFramebuffer			bind_framebuffer
++ glBindRenderbuffer			bind_renderbuffer
++ glBindTexture				bind_texture
++ glBlendColor				blend_color
++ glBlendEquation			blend_equation
++ glBlendEquationSeparate		blend_equation_separate
++ glBlendFunc				blend_func
++ glBlendFuncSeparate			blend_func_separate
++ glBufferData				buffer_size   # case: data == NULL
+  					buffer_data
++ glBufferSubData			buffer_sub_data
++ glCheckFramebufferStatus		check_framebuffer_status
++ glClear				clear
++ glClearColor				clear_color
++ glClearDepthf				clear_depth
++ glClearStencil			clear_stencil
++ glColorMask				color_mask
++ glCompileShader			compile_shader
+- glCompressedTexImage2D		[not implemented]
+- glCompressedTexSubImage2D		[not implemented]
++ glCopyTexImage2D			copy_tex_image_2d
++ glCopyTexSubImage2D			copy_tex_sub_image_2d
++ glCreateProgram			create_program
++ glCreateShader			create_shader
++ glCullFace				cull_face
++ glDeleteBuffers			delete_buffer
+					delete_buffers
++ glDeleteFramebuffers			delete_framebuffer
+  					delete_framebuffers
++ glDeleteProgram			delete_program
++ glDeleteRenderbuffers			delete_renderbuffer
+  					delete_renderbuffers
++ glDeleteShader			delete_shader
++ glDeleteTextures			delete_texture
+					delete_textures
++ glDepthFunc				depth_func
++ glDepthMask				depth_mask
++ glDepthRangef				depth_range
++ glDetachShader			detach_shader
++ glDisable				disable
++ glDisableVertexAttribArray		disable_vertex_array
++ glDrawArrays				draw_arrays
++ glDrawElements			draw_ubyte_elements
+  					draw_ushort_elements
+  					draw_uint_elements
+					draw_buffer_elements
++ glEnable				enable
++ glEnableVertexAttribArray		enable_vertex_array
++ glFinish				finish
++ glFlush				flush
++ glFramebufferRenderbuffer		framebuffer_renderbuffer
++ glFramebufferTexture2D		framebuffer_texture_2d
++ glFrontFace				front_face
++ glGenBuffers				gen_buffer
+					gen_buffers
++ glGenFramebuffers			gen_framebuffer
+  					gen_framebuffers
++ glGenRenderbuffers			gen_renderbuffer
+  					gen_renderbuffers
++ glGenTextures				gen_texture
+  					gen_textures
++ glGenerateMipmap			generate_mipmap
+- glGetBooleanv				[not implemented]
+- glGetFloatv				[not implemented]
+- glGetIntegerv				[not implemented]
++ glGetActiveAttrib			get_active_attribs
++ glGetActiveUniform			get_active_uniforms
++ glGetAttachedShaders			get_attached_shaders
++ glGetAttribLocation			get_attrib_location
++ glGetBufferParameteriv		get_buffer_size
+					get_buffer_usage
++ glGetError				get_error
+- glGetFramebufferAttachmentParameteriv	[not implemented]
++ glGetProgramInfoLog			get_program_info_log
++ glGetProgramiv			get_program_delete_status
+					get_program_link_status
+- glGetRenderbufferParameteriv		[not implemented]
++ glGetShaderInfoLog			get_shader_info_log
+- glGetShaderPrecisionFormat		[not implemented]
++ glGetShaderSource			get_shader_source
++ glGetShaderiv				get_shader_type
+				        get_shader_delete_status
+				        get_shader_compile_status
++ glGetString				get_vendor
+					get_version
+					get_shading_language_version
+					get_extensions
+- glGetTexParameter			[not implemented]
+- glGetUniform				[not implemented]
++ glGetUniformLocation			get_uniform_location
+- glGetVertexAttrib			[not implemented]
+- glGetVertexAttribPointerv		[not implemented]
+- glHint				[not implemented]
++ glIsBuffer				is_buffer
++ glIsEnabled				is_enabled
++ glIsFramebuffer			is_framebuffer
++ glIsProgram				is_program
++ glIsRenderbuffer			is_renderbuffer
++ glIsShader				is_shader
++ glIsTexture				is_texture
++ glLineWidth				line_width
++ glLinkProgram				link_program
+- glPixelStorei				[not implemented]
++ glPolygonOffset			polygon_offset
++ glReadPixels				read_pixels
++ glReleaseShaderCompiler		release_shader_compiler
++ glRenderbufferStorage			renderbuffer_storage
++ glSampleCoverage			sample_coverage
++ glScissor				scissor
+- glShaderBinary			[not implemented]
++ glShaderSource			shader_source
++ glStencilFunc				stencil_func
++ glStencilFuncSeparate			stencil_func_separate
++ glStencilMask				stencil_mask
++ glStencilMaskSeparate			stencil_mask_separate
++ glStencilOp				stencil_op
++ glStencilOpSeparate			stencil_op_separate
++ glTexImage2D				tex_image_2d
++ glTexParameter			tex_parameter
++ glTexSubImage2D			tex_sub_image_2d
++ glUniform1i				uniform_1i
++ glUniform1iv				uniform_1iv
++ glUniform1f				uniform_1f
++ glUniform1fv				uniform_1fv
++ glUniform2i				uniform_2i
++ glUniform2iv				uniform_2iv
++ glUniform2f				uniform_2f
++ glUniform2fv				uniform_2fv
++ glUniform3i				uniform_3i
++ glUniform3iv				uniform_3iv
++ glUniform3f				uniform_3f
++ glUniform3fv				uniform_3fv
++ glUniform4i				uniform_4i
++ glUniform4iv				uniform_4iv
++ glUniform4f				uniform_4f
++ glUniform4fv				uniform_4fv
++ glUniformMatrix2fv			uniform_matrix_2fv
++ glUniformMatrix3fv			uniform_matrix_3fv
++ glUniformMatrix4fv			uniform_matrix_4fv
++ glUseProgram				use_program
++ glValidateProgram			validate_program
++ glVertexAttrib1f			vertex_attrib_1f
++ glVertexAttrib1fv			vertex_attrib_fv
++ glVertexAttrib2f			vertex_attrib_2f
++ glVertexAttrib2fv			vertex_attrib_fv
++ glVertexAttrib3f			vertex_attrib_3f
++ glVertexAttrib3fv			vertex_attrib_fv
++ glVertexAttrib4f			vertex_attrib_4f
++ glVertexAttrib4fv			vertex_attrib_4fv
++ glVertexAttribPointer			vertex_attrib_byte_pointer
+  					vertex_attrib_ubyte_pointer
+  					vertex_attrib_short_pointer
+  					vertex_attrib_ushort_pointer
+  					vertex_attrib_uint_pointer
+  					vertex_attrib_float_pointer
+  					vertex_attrib_buffer_pointer
++ glViewport				viewport

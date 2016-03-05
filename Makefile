@@ -74,11 +74,15 @@ doc: README
 
 URL=lama.univ-savoie.fr:~raffalli/WWW/gles3
 
-distrib: all clean
+tar: all clean
+	cd ..; tar cvzf gles3-`date +%d%m%y`.tar.gz --exclude=_darcs gles3
+
+distrib: all clean tar
 	scp -r html/* $(URL)/
 	scp -r README.html $(URL)/index.html
 	scp -r cubes.png $(URL)/
 	darcs push lama.univ-savoie.fr:WWW/gles3/repos
+	scp gles3-`date +%d%m%y`.tar.gz $(URL)/
 
 %.o: %.c
 	$(CC) -c $<
