@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <header>
+    <meta charset="utf-8" />
+    <title>OCaml GLES 3.0 bindings</title>
+    <link rel="stylesheet" href="style.css" />
+  </header>
+  <body>
+    <h1><a href="http://caml.inria.fr/">OCaml</a> <a href="https://www.khronos.org/registry/gles">GLES
+	3.0 bindings</a></h1>
+    <img src="cubes.png" alt="examples with shadows">
+    <h2>Introduction</h2>
+
+    This project aims at providing a portable way to do OpenGL (precisely GLES) application
+    using OCaml. It comes in three parts:
+
+    <ul>
+      <li>
+	Low level bindings which allow to call directly GLES functions. This binding tries to be
+	reasonably type-safe using polymorphic variants to encode Glenum type.
+	The low level bindings also provide some sanity checks for the size of bigarrays which
+	allow to capture quite a lot of errors with clear messages.</li>
+
+      <li> High level bindings: to provide some auxiliary functions like matrix inversion and
+	ease the development. For instance, to use shaders, with the high level bindings, you use
+	compile_shader with the sources code, get a value of type unit program. Then, you can
+	set the variables of the shaders (uniform or attributes), either as constant or function and
+	get a function to finally run the shaders.</li>
+
+      <li> A way to open a window, start the main loop and interact.
+	Currently only EGL under X11 is supported but it would be nice
+	to have support for other platforms (windows, OSX, android,
+	ios, wayland, ...) with exactly the same interface.</li>
+      </ul>
+
+    <h2>Authors</h2>
+
+    <ul>
+      <li><a href="https://www.fing.edu.uy/~amiquel/">Alexandre Miquel</a> (initial low level bindings for GLES 2)</li>
+      <li><a href="/~raffalli">Christophe Raffalli</a> (partial port to GLES 3.0, high-level bindings and examples)</li>
+    </ul>
+
+    <h2>Documentation</h2>
+
+    <ul>
+      <li><a href="main.html">Generated html from the MLI files</a></li>
+      <li>the examples:
+	<p><a href="repos/examples/testa_gles.ml">examples/testa_gles.ml</a>: a rotating cube</p>
+	<p><a href="repos/examples/testa_gles.ml">examples/testb_gles.ml</a>: a rotating cube with a texture</p>
+	<p><a href="repos/examples/testa_gles.ml">examples/testc_gles.ml</a>: 7 rotating cubes with simple shadow mapping</p>
+	<p><a href="repos/examples/testa_gles.ml">examples/testd_gles.ml</a>: 7 rotating cubes and 8 implicit
+	surfaces with simple shadow mapping</p>
+      </li>
+    </ul>
+
+    <h2>TODO (please contribute !)</h2>
+
+    <ul>
+      <li>test and fix bugs !</li>
+      <li>documentation</li>
+      <li>complete the low-level bindings</li>
+      <li>develop the high-level bindings guided by more examples</li>
+      <li>provide support for more platforms (see introduction)</li>
+      <li>find a way to support multiple version of GLES (at least
+  2.0, 3.0, 3.1) with only one OCaml library, and possibly in a
+  transparent way when using the high-level bindings (i.e., the high
+  lebel bindings should test the version and make the best
+  choice)</li>
+      <li>collect regexp for error message in GLSL for most GLES
+  vendors to give good error messages in all cases (only one vendor,
+  nouveau/mesa supported currently). This is a pity that GLES does no
+	define a standard at least for position in error messages.</li>
+      <li>...</li>
+    </ul>
+
+    <h2>Known bugs</h2>
+
+    <ul>
+      <li>Mixing vertex arrays and buffer seems not to work (but no error flag are positionned),
+	for instance, vertex in a buffer and normal in an array result in wrong normals.
+	One shoud check this on a C program...</li>
+      <li>Textures are not yet garbage collected ... should be fixed
+	soon</li>
+    </ul>
+  </body>
+</html>
