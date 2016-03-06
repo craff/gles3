@@ -57,9 +57,6 @@ clean:
 distclean: clean
 	- rm -rf html/*
 
-tar: all doc clean
-	cd ..; tar cvzf gles3.tar.gz gles3
-
 install:
 	mkdir -p $(DESTDIR)
 	- $(REMOVE) gles3
@@ -72,17 +69,24 @@ doc: README
 	ocamldoc -t "OCaml GLES3 bindings" -keep-code -html -d html *.mli
 	mv html/index.html html/main.html
 
-URL=lama.univ-savoie.fr:~raffalli/WWW/gles3
+URLSSH=lama.univ-savoie.fr:WWW/gles3
+URL=https://lama.univ-savoie.fr/~raffalli/gles3
 
 tar: all clean
 	cd ..; tar cvzf gles3-`date +%Y%m%d`.tar.gz --exclude=_darcs gles3
 
 distrib: all clean tar
-	scp -r html/* $(URL)/
-	scp -r README.html $(URL)/index.html
-	scp -r cubes.png $(URL)/
+	scp -r html/* $(URLSSH)/
+	scp -r README.html $(URLSSH)/index.html
+	scp -r cubes.png $(URLSSH)/
 	darcs push lama.univ-savoie.fr:WWW/gles3/repos
-	scp ../gles3-`date +%Y%m%d`.tar.gz $(URL)/
+	scp ../gles3-`date +%Y%m%d`.tar.gz $(URLSSH)/
+	ssh lama.univ-savoie.fr cd WWW/gles3; ln -sf gles3-`date +%Y%m%d`.tar.gz gles3-latest.tar.gz
+
+opam: distrib
+	cd ..; opam-publish prepare $(URL)/gles3-`date +%Y%m%d`.tar.gz
+	cp description.txt ../gles3.`date +%Y%m%d`.alpha/desc
+	cd ..; opam publish submit ./gles3.`date +%Y%m%d`.alpha
 
 %.o: %.c
 	$(CC) -c $<
