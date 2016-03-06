@@ -85,7 +85,7 @@ distrib: all clean tar
 
 opam: distrib
 	cd ..; opam-publish prepare $(URL)/gles3-`date +%Y%m%d`.tar.gz
-	cp description.txt ../gles3.`date +%Y%m%d`.alpha/desc
+	cp description.txt ../gles3.`date +%Y%m%d`.alpha/descr
 	cd ..; opam publish submit ./gles3.`date +%Y%m%d`.alpha
 
 %.o: %.c
