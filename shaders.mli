@@ -65,37 +65,63 @@ val uint_cst_attr : 'a program -> ?norm:bool -> ?stride:int -> string -> uint_bi
 val float_cst_attr : 'a program -> ?norm:bool -> ?stride:int -> string -> float_bigarray -> 'a program
 val buffer_cst_attr : 'a program -> ?norm:bool -> ?stride:int -> string -> 'b array_buffer -> 'a program
 
-(** Functions to parametrize a shader by a uniform variable.*)
-val int_uniform : 'a program -> string -> (int array -> 'a) program
-val int2_uniform : 'a program -> string -> (int array -> 'a) program
-val int3_uniform : 'a program -> string -> (int array -> 'a) program
-val int4_uniform : 'a program -> string -> (int array -> 'a) program
-val bool_uniform : 'a program -> string -> (bool array -> 'a) program
-val bool2_uniform : 'a program -> string -> (bool array -> 'a) program
-val bool3_uniform : 'a program -> string -> (bool array -> 'a) program
-val bool4_uniform : 'a program -> string -> (bool array -> 'a) program
-val float_uniform : 'a program -> string -> (float array -> 'a) program
-val float2_uniform : 'a program -> string -> (float array -> 'a) program
-val float3_uniform : 'a program -> string -> (float array -> 'a) program
-val float4_uniform : 'a program -> string -> (float array -> 'a) program
+val int1_uniform : 'a program -> string -> (int -> 'a) program
+val bool1_uniform : 'a program -> string -> (bool -> 'a) program
+val float1_uniform : 'a program -> string -> (float -> 'a) program
+val int2_uniform : 'a program -> string -> (int -> int -> 'a) program
+val bool2_uniform : 'a program -> string -> (bool -> bool -> 'a) program
+val float2_uniform : 'a program -> string -> (float -> float -> 'a) program
+val int3_uniform : 'a program -> string -> (int -> int -> int -> 'a) program
+val bool3_uniform : 'a program -> string -> (bool -> bool -> bool -> 'a) program
+val float3_uniform : 'a program -> string -> (float -> float -> float -> 'a) program
+val int4_uniform : 'a program -> string -> (int -> int -> int -> int -> 'a) program
+val bool4_uniform : 'a program -> string -> (bool -> bool -> bool -> bool -> 'a) program
+val float4_uniform : 'a program -> string -> (float -> float -> float -> float -> 'a) program
+
+val int1_cst_uniform : 'a program -> string -> int -> 'a program
+val bool1_cst_uniform : 'a program -> string -> bool -> 'a program
+val float1_cst_uniform : 'a program -> string -> float -> 'a program
+val int2_cst_uniform : 'a program -> string -> int -> int -> 'a program
+val bool2_cst_uniform : 'a program -> string -> bool -> bool -> 'a program
+val float2_cst_uniform : 'a program -> string -> float -> float -> 'a program
+val int3_cst_uniform : 'a program -> string -> int -> int -> int -> 'a program
+val bool3_cst_uniform : 'a program -> string -> bool -> bool -> bool -> 'a program
+val float3_cst_uniform : 'a program -> string -> float -> float -> float -> 'a program
+val int4_cst_uniform : 'a program -> string -> int -> int -> int -> int -> 'a program
+val bool4_cst_uniform : 'a program -> string -> bool -> bool -> bool -> bool -> 'a program
+val float4_cst_uniform : 'a program -> string -> float -> float -> float -> float -> 'a program
+
+(** Functions to parametrize a shader by a uniform variable, using array. *)
+val int1v_uniform : 'a program -> string -> (int array -> 'a) program
+val int2v_uniform : 'a program -> string -> (int array -> 'a) program
+val int3v_uniform : 'a program -> string -> (int array -> 'a) program
+val int4v_uniform : 'a program -> string -> (int array -> 'a) program
+val bool1v_uniform : 'a program -> string -> (bool array -> 'a) program
+val bool2v_uniform : 'a program -> string -> (bool array -> 'a) program
+val bool3v_uniform : 'a program -> string -> (bool array -> 'a) program
+val bool4v_uniform : 'a program -> string -> (bool array -> 'a) program
+val float1v_uniform : 'a program -> string -> (float array -> 'a) program
+val float2v_uniform : 'a program -> string -> (float array -> 'a) program
+val float3v_uniform : 'a program -> string -> (float array -> 'a) program
+val float4v_uniform : 'a program -> string -> (float array -> 'a) program
 val float_mat2_uniform : 'a program -> string -> (float array -> 'a) program
 val float_mat3_uniform : 'a program -> string -> (float array -> 'a) program
 val float_mat4_uniform : 'a program -> string -> (float array -> 'a) program
 val texture_2d_uniform : 'a program -> string -> (ntexture -> 'a) program
 
-(** Functions to give a fixed value to a uniform variable *)
-val int_cst_uniform : 'a program -> string -> int array -> 'a program
-val int2_cst_uniform : 'a program -> string -> int array -> 'a program
-val int3_cst_uniform : 'a program -> string -> int array -> 'a program
-val int4_cst_uniform : 'a program -> string -> int array -> 'a program
-val bool_cst_uniform : 'a program -> string -> bool array -> 'a program
-val bool2_cst_uniform : 'a program -> string -> bool array -> 'a program
-val bool3_cst_uniform : 'a program -> string -> bool array -> 'a program
-val bool4_cst_uniform : 'a program -> string -> bool array -> 'a program
-val float_cst_uniform : 'a program -> string -> float array -> 'a program
-val float2_cst_uniform : 'a program -> string -> float array -> 'a program
-val float3_cst_uniform : 'a program -> string -> float array -> 'a program
-val float4_cst_uniform : 'a program -> string -> float array -> 'a program
+(** Functions to give a fixed value to a uniform variable, using array. *)
+val int1v_cst_uniform : 'a program -> string -> int array -> 'a program
+val int2v_cst_uniform : 'a program -> string -> int array -> 'a program
+val int3v_cst_uniform : 'a program -> string -> int array -> 'a program
+val int4v_cst_uniform : 'a program -> string -> int array -> 'a program
+val bool1v_cst_uniform : 'a program -> string -> bool array -> 'a program
+val bool2v_cst_uniform : 'a program -> string -> bool array -> 'a program
+val bool3v_cst_uniform : 'a program -> string -> bool array -> 'a program
+val bool4v_cst_uniform : 'a program -> string -> bool array -> 'a program
+val float1v_cst_uniform : 'a program -> string -> float array -> 'a program
+val float2v_cst_uniform : 'a program -> string -> float array -> 'a program
+val float3v_cst_uniform : 'a program -> string -> float array -> 'a program
+val float4v_cst_uniform : 'a program -> string -> float array -> 'a program
 val float_mat2_cst_uniform :
   'a program -> string -> float array -> 'a program
 val float_mat3_cst_uniform :

@@ -202,12 +202,12 @@ let prg : (float array -> float array -> unit) program = float_mat4_uniform prg 
    the projection matrix comes before the modelView *)
 
 (** we se all the remaning uniform variables about lighting *)
-let prg = float4_cst_uniform prg "color" [|0.0;0.0;1.0;1.0|]
-let prg = float_cst_uniform prg "specular" [|0.5|]
-let prg = float_cst_uniform prg "shininess" [|10.|]
-let prg = float3_cst_uniform prg "lightPos" lightPos
-let prg = float4_cst_uniform prg "lightDiffuse" [|0.7;0.7;0.7;1.0|]
-let prg = float4_cst_uniform prg "lightAmbient" [|0.2;0.2;0.2;1.0|]
+let prg = float4v_cst_uniform prg "color" [|0.0;0.0;1.0;1.0|]
+let prg = float1_cst_uniform prg "specular" 0.5
+let prg = float1_cst_uniform prg "shininess" 10.
+let prg = float3v_cst_uniform prg "lightPos" lightPos
+let prg = float4v_cst_uniform prg "lightDiffuse" [|0.7;0.7;0.7;1.0|]
+let prg = float4v_cst_uniform prg "lightAmbient" [|0.2;0.2;0.2;1.0|]
 
 (** we can now define a function drawing the cube using
    Shaders.draw_uint_elements *)

@@ -285,21 +285,21 @@ let ishade : (float array -> float array -> unit) program = float_mat4_uniform i
 let ishade : (float array -> float array -> unit) program = float_mat4_cst_uniform ishade "Projection" shadow_projection
 
 (** we se all the remaning uniform variables about lighting *)
-let prg = float4_cst_uniform prg "color" [|0.0;0.0;1.0;1.0|]
-let prg = float_cst_uniform prg "specular" [|0.5|]
-let prg = float_cst_uniform prg "shininess" [|15.|]
-let prg = float3_cst_uniform prg "lightPos" lightPos
-let prg = float4_cst_uniform prg "lightDiffuse" [|0.7;0.7;0.7;1.0|]
-let prg = float4_cst_uniform prg "lightAmbient" [|0.2;0.2;0.2;1.0|]
+let prg = float4v_cst_uniform prg "color" [|0.0;0.0;1.0;1.0|]
+let prg = float1_cst_uniform prg "specular" 0.5
+let prg = float1_cst_uniform prg "shininess" 15.
+let prg = float3v_cst_uniform prg "lightPos" lightPos
+let prg = float4v_cst_uniform prg "lightDiffuse" [|0.7;0.7;0.7;1.0|]
+let prg = float4v_cst_uniform prg "lightAmbient" [|0.2;0.2;0.2;1.0|]
 
-let iprg = float4_cst_uniform iprg "color" [|0.6;0.6;0.2;1.0|]
-let iprg = float_cst_uniform iprg "specular" [|0.5|]
-let iprg = float_cst_uniform iprg "shininess" [|15.|]
-let iprg = float3_cst_uniform iprg "lightPos" lightPos
-let ishade = float3_cst_uniform ishade "lightPos" lightPos
-let iprg = float4_cst_uniform iprg "lightDiffuse" [|0.7;0.7;0.7;1.0|]
-let iprg = float4_cst_uniform iprg "lightAmbient" [|0.2;0.2;0.2;1.0|]
-let iprg = float3_cst_uniform iprg "eyePos" eyePos
+let iprg = float4v_cst_uniform iprg "color" [|0.6;0.6;0.2;1.0|]
+let iprg = float1_cst_uniform iprg "specular" 0.5
+let iprg = float1_cst_uniform iprg "shininess" 15.
+let iprg = float3v_cst_uniform iprg "lightPos" lightPos
+let ishade = float3v_cst_uniform ishade "lightPos" lightPos
+let iprg = float4v_cst_uniform iprg "lightDiffuse" [|0.7;0.7;0.7;1.0|]
+let iprg = float4v_cst_uniform iprg "lightAmbient" [|0.2;0.2;0.2;1.0|]
+let iprg = float3v_cst_uniform iprg "eyePos" eyePos
 
 let (maptex, mapbuf) = frame_buffer_depth_texture 1024 1024 `depth_component24
   [`texture_min_filter `linear;

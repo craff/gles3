@@ -223,12 +223,12 @@ let shade : (float array -> unit) program = float_mat4_uniform shade "ModelView"
 let shade : (float array -> unit) program = float_mat4_cst_uniform shade "Projection" shadow_projection
 
 (** we se all the remaning uniform variables about lighting *)
-let prg = float4_cst_uniform prg "color" [|0.0;0.0;1.0;1.0|]
-let prg = float_cst_uniform prg "specular" [|0.5|]
-let prg = float_cst_uniform prg "shininess" [|15.|]
-let prg = float3_cst_uniform prg "lightPos" lightPos
-let prg = float4_cst_uniform prg "lightDiffuse" [|0.7;0.7;0.7;1.0|]
-let prg = float4_cst_uniform prg "lightAmbient" [|0.2;0.2;0.2;1.0|]
+let prg = float4v_cst_uniform prg "color" [|0.0;0.0;1.0;1.0|]
+let prg = float1_cst_uniform prg "specular" 0.5
+let prg = float1_cst_uniform prg "shininess" 15.
+let prg = float3v_cst_uniform prg "lightPos" lightPos
+let prg = float4v_cst_uniform prg "lightDiffuse" [|0.7;0.7;0.7;1.0|]
+let prg = float4v_cst_uniform prg "lightAmbient" [|0.2;0.2;0.2;1.0|]
 
 
 let (maptex, mapbuf) = frame_buffer_depth_texture 512 512 `depth_component24

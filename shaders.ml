@@ -232,6 +232,141 @@ let buffer_cst_attr = fun prg ?(norm=false) ?(stride=0) name buffer ->
     vertex_attrib_buffer_pointer ~index ~size ~typ:buffer.Buffers.ty ~norm ~stride 0)
     prg name ~norm ~stride buffer.index
 
+let gen_uniform1 = fun ty (fn: loc:int -> 'a -> unit) prg name ->
+  try
+    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if ty <> ty' then (
+      Printf.eprintf "ERROR: bad type for uniforms %s for %s\n%!" name prg.name;
+      failwith "Bad type");
+    let value cont a = fn ~loc:index a; prg.value cont in
+    { prg with uniforms; value }
+  with
+    Not_found ->
+      Printf.eprintf "ERROR: Useless uniforms %s for %s\n%!" name prg.name;
+      let value cont a = prg.value cont in
+      { prg with value }
+
+let gen_cst_uniform1 = fun ty (fn: loc:int -> 'a -> unit) prg name a ->
+  try
+    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if ty <> ty' then (
+      Printf.eprintf "ERROR: bad type for uniforms %s for %s" name prg.name;
+      failwith "Bad type");
+    let value cont = fn ~loc:index a; prg.value cont in
+    { prg with uniforms; value }
+  with
+    Not_found ->
+      Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
+      prg
+
+let gen_uniform2 = fun ty (fn: loc:int -> 'a -> 'a -> unit) prg name ->
+  try
+    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if ty <> ty' then (
+      Printf.eprintf "ERROR: bad type for uniforms %s for %s\n%!" name prg.name;
+      failwith "Bad type");
+    let value cont a b = fn ~loc:index a b; prg.value cont in
+    { prg with uniforms; value }
+  with
+    Not_found ->
+      Printf.eprintf "ERROR: Useless uniforms %s for %s\n%!" name prg.name;
+      let value cont a b = prg.value cont in
+      { prg with value }
+
+let gen_cst_uniform2 = fun ty (fn: loc:int -> 'a -> 'a -> unit) prg name a b ->
+  try
+    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if ty <> ty' then (
+      Printf.eprintf "ERROR: bad type for uniforms %s for %s" name prg.name;
+      failwith "Bad type");
+    let value cont = fn ~loc:index a b; prg.value cont in
+    { prg with uniforms; value }
+  with
+    Not_found ->
+      Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
+      prg
+
+let gen_uniform3 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> unit) prg name ->
+  try
+    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if ty <> ty' then (
+      Printf.eprintf "ERROR: bad type for uniforms %s for %s\n%!" name prg.name;
+      failwith "Bad type");
+    let value cont a b c = fn ~loc:index a b c; prg.value cont in
+    { prg with uniforms; value }
+  with
+    Not_found ->
+      Printf.eprintf "ERROR: Useless uniforms %s for %s\n%!" name prg.name;
+      let value cont a b c = prg.value cont in
+      { prg with value }
+
+let gen_cst_uniform3 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> unit) prg name a b c ->
+  try
+    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if ty <> ty' then (
+      Printf.eprintf "ERROR: bad type for uniforms %s for %s" name prg.name;
+      failwith "Bad type");
+    let value cont = fn ~loc:index a b c; prg.value cont in
+    { prg with uniforms; value }
+  with
+    Not_found ->
+      Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
+      prg
+
+let gen_uniform4 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> 'a -> unit) prg name ->
+  try
+    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if ty <> ty' then (
+      Printf.eprintf "ERROR: bad type for uniforms %s for %s\n%!" name prg.name;
+      failwith "Bad type");
+    let value cont a b c d = fn ~loc:index a b c d; prg.value cont in
+    { prg with uniforms; value }
+  with
+    Not_found ->
+      Printf.eprintf "ERROR: Useless uniforms %s for %s\n%!" name prg.name;
+      let value cont a b c d = prg.value cont in
+      { prg with value }
+
+let gen_cst_uniform4 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> 'a -> unit) prg name a b c d ->
+  try
+    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if ty <> ty' then (
+      Printf.eprintf "ERROR: bad type for uniforms %s for %s" name prg.name;
+      failwith "Bad type");
+    let value cont = fn ~loc:index a b c d; prg.value cont in
+    { prg with uniforms; value }
+  with
+    Not_found ->
+      Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
+      prg
+
+let int1_uniform prg name = gen_uniform1 `int uniform_1i prg name
+let bool1_uniform prg name = gen_uniform1 `bool uniform_1b prg name
+let float1_uniform prg name = gen_uniform1 `float uniform_1f prg name
+let int2_uniform prg name = gen_uniform2 `int uniform_2i prg name
+let bool2_uniform prg name = gen_uniform2 `bool uniform_2b prg name
+let float2_uniform prg name = gen_uniform2 `float uniform_2f prg name
+let int3_uniform prg name = gen_uniform3 `int uniform_3i prg name
+let bool3_uniform prg name = gen_uniform3 `bool uniform_3b prg name
+let float3_uniform prg name = gen_uniform3 `float uniform_3f prg name
+let int4_uniform prg name = gen_uniform4 `int uniform_4i prg name
+let bool4_uniform prg name = gen_uniform4 `bool uniform_4b prg name
+let float4_uniform prg name = gen_uniform4 `float uniform_4f prg name
+
+let int1_cst_uniform prg name a = gen_cst_uniform1 `int uniform_1i prg name a
+let bool1_cst_uniform prg name a = gen_cst_uniform1 `bool uniform_1b prg name a
+let float1_cst_uniform prg name a = gen_cst_uniform1 `float uniform_1f prg name a
+let int2_cst_uniform prg name a b = gen_cst_uniform2 `int uniform_2i prg name a b
+let bool2_cst_uniform prg name a b = gen_cst_uniform2 `bool uniform_2b prg name a b
+let float2_cst_uniform prg name a b = gen_cst_uniform2 `float uniform_2f prg name a b
+let int3_cst_uniform prg name a b c = gen_cst_uniform3 `int uniform_3i prg name a b c
+let bool3_cst_uniform prg name a b c = gen_cst_uniform3 `bool uniform_3b prg name a b c
+let float3_cst_uniform prg name a b c = gen_cst_uniform3 `float uniform_3f prg name a b c
+let int4_cst_uniform prg name a b c d = gen_cst_uniform4 `int uniform_4i prg name a b c d
+let bool4_cst_uniform prg name a b c d = gen_cst_uniform4 `bool uniform_4b prg name a b c d
+let float4_cst_uniform prg name a b c d = gen_cst_uniform4 `float uniform_4f prg name a b c d
+
+
 let gen_uniform = fun ty (fn: loc:int -> ?count:int -> 'a array -> unit) prg name ->
   try
     let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
@@ -271,31 +406,31 @@ let gen_cst_uniform = fun ty (fn: loc:int -> ?count:int -> 'a array -> unit) prg
       Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
       prg
 
-let int_uniform = fun prg name -> gen_uniform `int uniform_1iv prg name
-let int2_uniform = fun prg name -> gen_uniform `int_vec2 uniform_2iv prg name
-let int3_uniform = fun prg name -> gen_uniform `int_vec3 uniform_3iv prg name
-let int4_uniform = fun prg name -> gen_uniform `int_vec4 uniform_4iv prg name
-let bool_uniform = fun prg name -> gen_uniform `bool uniform_1bv prg name
-let bool2_uniform = fun prg name -> gen_uniform `bool_vec2 uniform_2bv prg name
-let bool3_uniform = fun prg name -> gen_uniform `bool_vec3 uniform_3bv prg name
-let bool4_uniform = fun prg name -> gen_uniform `bool_vec4 uniform_4bv prg name
-let float_uniform = fun prg name -> gen_uniform `float uniform_1fv prg name
-let float2_uniform = fun prg name -> gen_uniform `float_vec2 uniform_2fv prg name
-let float3_uniform = fun prg name -> gen_uniform `float_vec3 uniform_3fv prg name
-let float4_uniform = fun prg name -> gen_uniform `float_vec4 uniform_4fv prg name
+let int1v_uniform = fun prg name -> gen_uniform `int uniform_1iv prg name
+let int2v_uniform = fun prg name -> gen_uniform `int_vec2 uniform_2iv prg name
+let int3v_uniform = fun prg name -> gen_uniform `int_vec3 uniform_3iv prg name
+let int4v_uniform = fun prg name -> gen_uniform `int_vec4 uniform_4iv prg name
+let bool1v_uniform = fun prg name -> gen_uniform `bool uniform_1bv prg name
+let bool2v_uniform = fun prg name -> gen_uniform `bool_vec2 uniform_2bv prg name
+let bool3v_uniform = fun prg name -> gen_uniform `bool_vec3 uniform_3bv prg name
+let bool4v_uniform = fun prg name -> gen_uniform `bool_vec4 uniform_4bv prg name
+let float1v_uniform = fun prg name -> gen_uniform `float uniform_1fv prg name
+let float2v_uniform = fun prg name -> gen_uniform `float_vec2 uniform_2fv prg name
+let float3v_uniform = fun prg name -> gen_uniform `float_vec3 uniform_3fv prg name
+let float4v_uniform = fun prg name -> gen_uniform `float_vec4 uniform_4fv prg name
 
-let int_cst_uniform = fun prg name -> gen_cst_uniform `int uniform_1iv prg name
-let int2_cst_uniform = fun prg name -> gen_cst_uniform `int_vec2 uniform_2iv prg name
-let int3_cst_uniform = fun prg name -> gen_cst_uniform `int_vec3 uniform_3iv prg name
-let int4_cst_uniform = fun prg name -> gen_cst_uniform `int_vec4 uniform_4iv prg name
-let bool_cst_uniform = fun prg name -> gen_cst_uniform `bool uniform_1bv prg name
-let bool2_cst_uniform = fun prg name -> gen_cst_uniform `bool_vec2 uniform_2bv prg name
-let bool3_cst_uniform = fun prg name -> gen_cst_uniform `bool_vec3 uniform_3bv prg name
-let bool4_cst_uniform = fun prg name -> gen_cst_uniform `bool_vec4 uniform_4bv prg name
-let float_cst_uniform = fun prg name -> gen_cst_uniform `float uniform_1fv prg name
-let float2_cst_uniform = fun prg name -> gen_cst_uniform `float_vec2 uniform_2fv prg name
-let float3_cst_uniform = fun prg name -> gen_cst_uniform `float_vec3 uniform_3fv prg name
-let float4_cst_uniform = fun prg name -> gen_cst_uniform `float_vec4 uniform_4fv prg name
+let int1v_cst_uniform = fun prg name -> gen_cst_uniform `int uniform_1iv prg name
+let int2v_cst_uniform = fun prg name -> gen_cst_uniform `int_vec2 uniform_2iv prg name
+let int3v_cst_uniform = fun prg name -> gen_cst_uniform `int_vec3 uniform_3iv prg name
+let int4v_cst_uniform = fun prg name -> gen_cst_uniform `int_vec4 uniform_4iv prg name
+let bool1v_cst_uniform = fun prg name -> gen_cst_uniform `bool uniform_1bv prg name
+let bool2v_cst_uniform = fun prg name -> gen_cst_uniform `bool_vec2 uniform_2bv prg name
+let bool3v_cst_uniform = fun prg name -> gen_cst_uniform `bool_vec3 uniform_3bv prg name
+let bool4v_cst_uniform = fun prg name -> gen_cst_uniform `bool_vec4 uniform_4bv prg name
+let float1v_cst_uniform = fun prg name -> gen_cst_uniform `float uniform_1fv prg name
+let float2v_cst_uniform = fun prg name -> gen_cst_uniform `float_vec2 uniform_2fv prg name
+let float3v_cst_uniform = fun prg name -> gen_cst_uniform `float_vec3 uniform_3fv prg name
+let float4v_cst_uniform = fun prg name -> gen_cst_uniform `float_vec4 uniform_4fv prg name
 
 let gen_mat_uniform = fun ty (fn: loc:int -> ?count:int -> ?transp:bool -> 'a array -> unit) prg ?(transp=false) name ->
   try
