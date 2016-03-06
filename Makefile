@@ -1,3 +1,7 @@
+MAJOR = 20160307
+MINOR = alpha
+VERSION = $(MAJOR).$(MINOR)
+
 DESTDIR      = /usr/local/lib/ocaml/gles3
 
 CC	     = gcc -fPIC
@@ -73,20 +77,22 @@ URLSSH=lama.univ-savoie.fr:WWW/gles3
 URL=https://lama.univ-savoie.fr/~raffalli/gles3
 
 tar: all clean
-	cd ..; tar cvzf gles3-`date +%Y%m%d`.tar.gz --exclude=_darcs gles3
+	cd ../gles3_0; darcs pull
+	cd ..; tar cvzf gles3-$(VERSION).tar.gz --exclude=_darcs gles3
 
 distrib: all clean tar
 	scp -r html/* $(URLSSH)/
 	scp -r README.html $(URLSSH)/index.html
 	scp -r cubes.png $(URLSSH)/
 	darcs push lama.univ-savoie.fr:WWW/gles3/repos
-	scp ../gles3-`date +%Y%m%d`.tar.gz $(URLSSH)/
-	ssh lama.univ-savoie.fr cd WWW/gles3; ln -sf gles3-`date +%Y%m%d`.tar.gz gles3-latest.tar.gz
+	scp ../gles3-$(VERSION).tar.gz $(URLSSH)/
+	ssh lama.univ-savoie.fr cd WWW/gles3; ln -sf gles3-$(VERSION).tar.gz gles3-latest.tar.gz
 
-opam: distrib
-	cd ..; opam-publish prepare $(URL)/gles3-`date +%Y%m%d`.tar.gz
-	cp description.txt ../gles3.`date +%Y%m%d`.alpha/descr
-	cd ..; opam publish submit ./gles3.`date +%Y%m%d`.alpha
+opam: opam.tmpl distrib
+	sed -e s/__VERSION__/$(VERSION)/g opam.tmpl > opam
+	cd ..; opam-publish prepare $(URL)/gles3-$(VERSION).tar.gz
+	cp description.txt ../gles3.$(VERSION)/descr
+	cd ..; opam publish submit ./gles3.$(VERSION)
 
 %.o: %.c
 	$(CC) -c $<
