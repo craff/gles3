@@ -107,7 +107,7 @@ val float4v_uniform : 'a program -> string -> (float array -> 'a) program
 val float_mat2_uniform : 'a program -> string -> (float array -> 'a) program
 val float_mat3_uniform : 'a program -> string -> (float array -> 'a) program
 val float_mat4_uniform : 'a program -> string -> (float array -> 'a) program
-val texture_2d_uniform : 'a program -> string -> (ntexture -> 'a) program
+val texture_2d_uniform : 'a program -> string -> (gc_texture -> 'a) program
 
 (** Functions to give a fixed value to a uniform variable, using array. *)
 val int1v_cst_uniform : 'a program -> string -> int array -> 'a program
@@ -128,4 +128,4 @@ val float_mat3_cst_uniform :
   'a program -> string -> float array -> 'a program
 val float_mat4_cst_uniform :
   'a program -> string -> float array -> 'a program
-val texture_2d_cst_uniform : 'a program -> string -> ntexture -> 'a program
+val texture_2d_cst_uniform : 'a program -> string -> gc_texture -> 'a program

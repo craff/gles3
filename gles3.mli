@@ -386,7 +386,7 @@ external gen_textures : int -> texture array = "ml_glGenTextures"
 external delete_texture : texture -> unit = "ml_glDeleteTexture"
 external delete_textures : texture array -> unit = "ml_glDeleteTextures"
 
-external active_texture : int -> unit = "ml_glActiveTexture"
+external active_texture : texture -> unit = "ml_glActiveTexture"
 
 external bind_texture : target:texture_target -> texture -> unit
     = "ml_glBindTexture"

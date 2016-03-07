@@ -31,47 +31,68 @@ let need_mipmap =
   | `texture_min_filter x -> fn x
   | _ -> false
 
-let tex_count = ref 0
-
-(* FIXME: Gc.finalise + collect free numbers ... *)
-type ntexture = {
-  index : texture;
-  n : int
+type gc_texture = {
+  tex_index : texture;
 }
 
-let image_to_texture2d : image -> ?level:int -> texture_parameter list -> ntexture =
+let gen_gc_texture () =
+  let tex = gen_texture () in
+  let res = { tex_index = tex } in
+  Gc.finalise (fun _ -> delete_texture tex) res;
+  res
+
+type gc_renderbuffer = {
+  renderbuffer_index : renderbuffer
+}
+
+let gen_gc_renderbuffer () =
+  let buf = gen_renderbuffer () in
+  let res = { renderbuffer_index = buf } in
+  Gc.finalise (fun _ -> delete_renderbuffer buf) res;
+  res
+
+type gc_framebuffer = {
+  framebuffer_index : framebuffer
+}
+
+let gen_gc_framebuffer () =
+  let buf = gen_framebuffer () in
+  let res = { framebuffer_index = buf } in
+  Gc.finalise (fun _ -> delete_framebuffer buf) res;
+  res
+			 
+let image_to_texture2d : image -> ?level:int -> texture_parameter list -> gc_texture =
   fun image ?(level=0) ls ->
-    let n = !tex_count in
-    incr tex_count;
-    active_texture n;
-    let index = gen_texture () in
-    bind_texture `texture_2d index;
+    let tex = gen_gc_texture () in
+    active_texture tex.tex_index;
+    bind_texture `texture_2d tex.tex_index;
     let need_mipmap_ref = ref false in
     List.iter (fun param ->
       tex_parameter `texture_2d param;
       need_mipmap_ref := need_mipmap param || !need_mipmap_ref) ls;
     tex_image_2d ~target:`texture_2d ~level image;
     if !need_mipmap_ref then generate_mipmap `texture_2d;
-    { index; n }
+    tex
 
-let frame_buffer_texture width height format ls =
+type framebuffer_texture =
+    { tex : gc_texture; framebuffer : gc_framebuffer }
+      
+let framebuffer_texture width height format ls =
   let render = gen_renderbuffer () in
   bind_renderbuffer `renderbuffer render;
   renderbuffer_storage ~target:`renderbuffer ~format:`depth_component16 ~width ~height;
 
-  let n = !tex_count in
-  incr tex_count;
-  active_texture n;
-  let tex = gen_texture () in
-  bind_texture `texture_2d tex;
+  let tex = gen_gc_texture () in
+  active_texture tex.tex_index;
+  bind_texture `texture_2d tex.tex_index;
   List.iter (fun param ->
     tex_parameter `texture_2d param) ls;
   tex_null_image_2d `texture_2d width height format;
 
-  let buf = gen_framebuffer () in
-  bind_framebuffer `framebuffer buf;
+  let buf = gen_gc_framebuffer () in
+  bind_framebuffer `framebuffer buf.framebuffer_index;
   framebuffer_texture_2d ~target:`framebuffer ~attach:`color_attachment0
-    ~target2:`texture_2d tex ~level:0;
+    ~target2:`texture_2d tex.tex_index ~level:0;
   framebuffer_renderbuffer ~target:`framebuffer ~attach:`depth_attachment
     ~target2:`renderbuffer render;
 
@@ -84,23 +105,22 @@ let frame_buffer_texture width height format ls =
   | `framebuffer_unsupported -> failwith "unsupported");
 
   bind_framebuffer `framebuffer null_framebuffer;
+  let res = {tex; framebuffer = buf} in
+  Gc.finalise (fun _ -> delete_renderbuffer render) res;
+  res
 
-  ({ index=tex; n}, buf)
-
-let frame_buffer_depth_texture width height format ls =
-  let n = !tex_count in
-  incr tex_count;
-  active_texture n;
-  let tex = gen_texture () in
-  bind_texture `texture_2d tex;
+let framebuffer_depth_texture width height format ls =
+  let tex = gen_gc_texture () in
+  active_texture tex.tex_index;
+  bind_texture `texture_2d tex.tex_index;
   List.iter (fun param ->
     tex_parameter `texture_2d param) ls;
   tex_null_image_2d `texture_2d width height format;
 
-  let buf = gen_framebuffer () in
-  bind_framebuffer `framebuffer buf;
+  let buf = gen_gc_framebuffer () in
+  bind_framebuffer `framebuffer buf.framebuffer_index;
   framebuffer_texture_2d ~target:`framebuffer ~attach:`depth_attachment
-    ~target2:`texture_2d tex ~level:0;
+    ~target2:`texture_2d tex.tex_index ~level:0;
   draw_buffers [|`none|];
 
   let status = check_framebuffer_status `framebuffer in
@@ -112,5 +132,6 @@ let frame_buffer_depth_texture width height format ls =
   | `framebuffer_unsupported -> failwith "unsupported");
 
   bind_framebuffer `framebuffer null_framebuffer;
+  {tex; framebuffer = buf}
 
-  ({ index=tex; n}, buf)
+  

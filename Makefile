@@ -2,8 +2,6 @@ MAJOR = 20160307
 MINOR = alpha
 VERSION = $(MAJOR).$(MINOR)
 
-DESTDIR      = /usr/local/lib/ocaml/gles3
-
 CC	     = gcc -fPIC
 OCAMLFIND    = ocamlfind
 OCAML        = ocaml
@@ -26,7 +24,7 @@ EGL_OBJS    = $(EGL_CFILES:.c=.o) $(EGL_MLFILES:.ml=.cmo) $(EGL_MLFILES:.ml=.cmx
 
 DEPS = $(GLES3_MLFILES:.ml=.dep) $(EGL_MLFILES:.ml=.dep)
 
-all: gles3.cma gles3.cmxa egl.cma egl.cmxa doc
+all: gles3.cma gles3.cmxa egl.cma egl.cmxa
 
 ### DEPENDENCIES
 ifneq ($(MAKECMDGOALS),clean)
@@ -59,10 +57,9 @@ clean:
 	- rm -rf examples/_build
 
 distclean: clean
-	- rm -rf html/*
+	- rm -rf html/* opam
 
 install:
-	mkdir -p $(DESTDIR)
 	- $(REMOVE) gles3
 	$(INSTALL) gles3 gles3.cma gles3.cmxa egl.cma egl.cmxa META *.so *.a *.cmi *.mli
 
@@ -76,17 +73,17 @@ doc: README
 URLSSH=lama.univ-savoie.fr:WWW/gles3
 URL=https://lama.univ-savoie.fr/~raffalli/gles3
 
-tar: all clean
-	cd ../gles3_0; darcs pull
+tar:
+	cd ../gles3_0; darcs pull; make all doc clean
 	cd ..; tar cvzf gles3-$(VERSION).tar.gz --exclude=_darcs gles3
 
-distrib: all clean tar
+distrib: all doc clean tar
 	scp -r html/* $(URLSSH)/
 	scp -r README.html $(URLSSH)/index.html
 	scp -r cubes.png $(URLSSH)/
 	darcs push lama.univ-savoie.fr:WWW/gles3/repos
 	scp ../gles3-$(VERSION).tar.gz $(URLSSH)/
-	ssh lama.univ-savoie.fr cd WWW/gles3; ln -sf gles3-$(VERSION).tar.gz gles3-latest.tar.gz
+	ssh lama.univ-savoie.fr "cd WWW/gles3; ln -sf gles3-$(VERSION).tar.gz gles3-latest.tar.gz"
 
 opam: opam.tmpl distrib
 	sed -e s/__VERSION__/$(VERSION)/g opam.tmpl > opam

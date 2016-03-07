@@ -66,6 +66,7 @@ let create_array_buffer fn ty usage size =
   bind_buffer target index;
   buffer_size ~target ~size ~usage;
   buffer_data ~target a ~usage;
+  bind_buffer target null_buffer;
   let res = { index; ty; usage; target=t; array=a; size } in
   Gc.finalise (fun res -> delete_buffer res.index; Printf.eprintf "DELETE BUFFERS\n%!") res;
   res
@@ -78,6 +79,7 @@ let create_element_buffer fn ty usage size =
   bind_buffer target index;
   buffer_size ~target ~size ~usage;
   buffer_data ~target a ~usage;
+  bind_buffer target null_buffer;
   let res = { index; ty; usage; target=t; array=a; size } in
   Gc.finalise (fun res -> delete_buffer res.index; Printf.eprintf "DELETE BUFFERS\n%!") res;
   res
@@ -104,6 +106,7 @@ let to_array_buffer fn ty usage a =
   bind_buffer target index;
   buffer_size ~target ~size ~usage;
   buffer_data ~target a ~usage;
+  bind_buffer target null_buffer;
   let res = { index; ty; usage; target=t; array=a; size } in
   Gc.finalise (fun res -> delete_buffer res.index; Printf.eprintf "DELETE BUFFERS\n%!") res;
   res
@@ -117,6 +120,7 @@ let to_element_buffer fn ty usage a =
   bind_buffer target index;
   buffer_size ~target ~size ~usage;
   buffer_data ~target a ~usage;
+  bind_buffer target null_buffer;
   let res = { index; ty; usage; target=t; array=a; size } in
   Gc.finalise (fun res -> delete_buffer res.index; Printf.eprintf "DELETE BUFFERS\n%!") res;
   res

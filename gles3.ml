@@ -561,7 +561,7 @@ external gen_textures : int -> texture array = "ml_glGenTextures"
 external delete_texture : texture -> unit = "ml_glDeleteTexture"
 external delete_textures : texture array -> unit = "ml_glDeleteTextures"
 
-external active_texture : int -> unit = "ml_glActiveTexture"
+external active_texture : texture -> unit = "ml_glActiveTexture"
 
 type texture_target = [ `texture_2d | `texture_2d_shadow |`texture_cube_map ]
 
@@ -870,3 +870,6 @@ external get_extensions : unit -> string = "ml_glGetExtensions"
 
 external flush : unit -> unit = "ml_glFlush"
 external finish : unit -> unit = "ml_glFinish"
+
+external get_max_textures : unit -> int = "ml_glGetMaxTextures"
+					   

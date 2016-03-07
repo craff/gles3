@@ -230,8 +230,8 @@ let prg = float3v_cst_uniform prg "lightPos" lightPos
 let prg = float4v_cst_uniform prg "lightDiffuse" [|0.7;0.7;0.7;1.0|]
 let prg = float4v_cst_uniform prg "lightAmbient" [|0.2;0.2;0.2;1.0|]
 
-
-let (maptex, mapbuf) = frame_buffer_depth_texture 512 512 `depth_component24
+			      
+let depthmap = framebuffer_depth_texture 512 512 `depth_component24
   [`texture_min_filter `linear;
    `texture_mag_filter `linear;
    `texture_compare_mode `compare_ref_to_texture;
@@ -239,7 +239,7 @@ let (maptex, mapbuf) = frame_buffer_depth_texture 512 512 `depth_component24
    `texture_wrap_t `clamp_to_edge]
 
 let prg = float_mat4_cst_uniform prg "shadowproj" shadow_projection
-let prg = texture_2d_cst_uniform prg "shadowmap" maptex
+let prg = texture_2d_cst_uniform prg "shadowmap" depthmap.tex
 
 (** we can now define a function drawing the cube using
    Shaders.draw_uint_elements *)
@@ -281,7 +281,7 @@ let frames = ref 0
    if the computation of the frame rates *)
 let draw () =
   let t = Unix.gettimeofday () in
-  bind_framebuffer `framebuffer mapbuf;
+  bind_framebuffer `framebuffer depthmap.framebuffer.framebuffer_index;
   clear [  `depth_buffer];
   viewport ~x:0 ~y:0 ~w:512 ~h:512;
   shadow_cubes t;

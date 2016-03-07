@@ -24,16 +24,30 @@ open Gles3
 (** highlevel functions to initialise texture (only
     texture 2D are supported yet) *)
 
-type ntexture = {
-  index : texture;
-  n : int
+type gc_texture = {
+  tex_index : texture;
 }
 
-val image_to_texture2d : image -> ?level:int -> texture_parameter list -> ntexture
+type gc_framebuffer = {
+  framebuffer_index : framebuffer
+}
+
+type gc_renderbuffer = {
+  renderbuffer_index : renderbuffer
+}
+
+val gen_gc_texture : unit -> gc_texture
+val gen_gc_framebuffer	: unit -> gc_framebuffer
+val gen_gc_renderbuffer	: unit -> gc_renderbuffer
+				    
+val image_to_texture2d : image -> ?level:int -> texture_parameter list -> gc_texture
 (** transform an image into a 2D texture *)
 
-val frame_buffer_texture : int -> int -> internal_image_format -> texture_parameter list ->
-  ntexture * framebuffer
+type framebuffer_texture =
+    { tex : gc_texture; framebuffer : gc_framebuffer }
 
-val frame_buffer_depth_texture : int -> int -> internal_image_format -> texture_parameter list ->
-  ntexture * framebuffer
+val framebuffer_texture : int -> int -> internal_image_format -> texture_parameter list ->
+  framebuffer_texture
+
+val framebuffer_depth_texture : int -> int -> internal_image_format -> texture_parameter list ->
+  framebuffer_texture

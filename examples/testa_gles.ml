@@ -134,7 +134,7 @@ let vertices = to_float_bigarray
 let prg = float_cst_attr prg "in_position" vertices
 
 (** the normals associated to each vertex, in the same orders *)
-let normals = to_float_bigarray
+let normals = to_float_array_buffer `static_draw
   [|
     -1.;0.;0.;
     -1.;0.;0.;
@@ -168,7 +168,7 @@ let normals = to_float_bigarray
   |]
 
 (** we set the normals vertices in the shader *)
-let prg = float_cst_attr prg "in_normal" normals
+let prg = buffer_cst_attr prg "in_normal" normals
 
 (** we define the elements (here 12 triangles), as index in the above array *)
 let elements = to_uint_bigarray [|

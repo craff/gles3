@@ -1299,5 +1299,13 @@ CAMLprim value ml_glGetExtensions(value v)
   CAMLreturn(caml_copy_string(s)) ;
 }
 
+CAMLprim value ml_glGetMaxTextures(value v)
+{
+  CAMLparam1(v) ;
+  GLint r;
+  glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS,&r) ;
+  CAMLreturn(Val_int(r));
+}
+
 ML_0(glFlush) ;
 ML_0(glFinish) ;

@@ -143,7 +143,8 @@ let draw_buffer_elements prg shape (buf:'a element_buffer) =
   check_complete prg; use_program prg.program;
   prg.value (fun () ->
     bind_buffer `element_array_buffer buf.index ;
-    draw_buffer_elements shape ~count:buf.size ~typ:buf.ty 0)
+    draw_buffer_elements shape ~count:buf.size ~typ:buf.ty 0;
+    bind_buffer `element_array_buffer null_buffer)
 
 let assoc_rm name l =
   let rec fn acc = function
@@ -228,9 +229,10 @@ let uint_cst_attr = fun prg -> gen_cst_attr vertex_attrib_uint_pointer prg
 let float_cst_attr = fun prg -> gen_cst_attr vertex_attrib_float_pointer prg
 let buffer_cst_attr = fun prg ?(norm=false) ?(stride=0) name buffer ->
   gen_cst_attr (fun ~index ~size ?(norm=false) ?(stride=0) buf ->
-    bind_buffer `array_buffer buf;
-    vertex_attrib_buffer_pointer ~index ~size ~typ:buffer.Buffers.ty ~norm ~stride 0)
-    prg name ~norm ~stride buffer.index
+		bind_buffer `array_buffer buf;
+		vertex_attrib_buffer_pointer ~index ~size ~typ:buffer.Buffers.ty ~norm ~stride 0;
+		bind_buffer `array_buffer null_buffer)
+	       prg name ~norm ~stride buffer.index
 
 let gen_uniform1 = fun ty (fn: loc:int -> 'a -> unit) prg name ->
   try
@@ -494,9 +496,9 @@ let texture_2d_uniform =
     in
     let value cont texture =
       (try
-	 active_texture texture.n;
-	 bind_texture ty texture.index;
-	 uniform_1i index texture.n
+	 active_texture texture.tex_index;
+	 bind_texture ty texture.tex_index;
+	 uniform_1i index (int_of_texture texture.tex_index)
        with Failure s ->
 	 failwith (Printf.sprintf "%s for %s in %s" s name prg.name));
       prg.value cont
@@ -521,9 +523,9 @@ let texture_2d_cst_uniform =
     in
     let value cont =
       (try
-	 active_texture texture.n;
-	 bind_texture ty texture.index;
-	 uniform_1i index texture.n
+	 active_texture texture.tex_index;
+	 bind_texture ty texture.tex_index;
+	 uniform_1i index (int_of_texture texture.tex_index)
        with Failure s ->
 	 failwith (Printf.sprintf "%s for %s in %s" s name prg.name));
       prg.value cont
