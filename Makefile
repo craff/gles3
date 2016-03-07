@@ -75,7 +75,7 @@ URL=https://lama.univ-savoie.fr/~raffalli/gles3
 
 tar:
 	cd ../gles3_0; darcs pull; make all doc clean
-	cd ..; tar cvzf gles3-$(VERSION).tar.gz --exclude=_darcs gles3
+	cd ..; tar cvfz gles3-$(VERSION).tar.gz --exclude=_darcs --transform "s,gles3_0,gles3-$(VERSION),"  gles3_0
 
 distrib: all doc clean tar
 	scp -r html/* $(URLSSH)/
@@ -85,11 +85,19 @@ distrib: all doc clean tar
 	scp ../gles3-$(VERSION).tar.gz $(URLSSH)/
 	ssh lama.univ-savoie.fr "cd WWW/gles3; ln -sf gles3-$(VERSION).tar.gz gles3-latest.tar.gz"
 
+OPAMREPO=$(HOME)/Caml/opam-repository/packages/gles3
+
 opam: opam.tmpl distrib
 	sed -e s/__VERSION__/$(VERSION)/g opam.tmpl > opam
-	cd ..; opam-publish prepare $(URL)/gles3-$(VERSION).tar.gz
-	cp description.txt ../gles3.$(VERSION)/descr
-	cd ..; opam publish submit ./gles3.$(VERSION)
+	mkdir -p $(OPAMREPO)/gles3.$(VERSION)
+	cp opam $(OPAMREPO)/gles3.$(VERSION)/opam
+	cp description.txt $(OPAMREPO)/gles3.$(VERSION)/descr
+	echo -n "archive: \""  > $(OPAMREPO)/gles3.$(VERSION)/url
+	echo -n "$(URL)/gles3-$(VERSION).tar.gz" >> $(OPAMREPO)/gles3.$(VERSION)/url
+	echo "\"" >> $(OPAMREPO)/gles3.$(VERSION)/url
+	echo -n "checksum: \"" >> $(OPAMREPO)/gles3.$(VERSION)/url
+	echo -n `md5sum ../gles3-$(VERSION).tar.gz | cut -b -32` >> $(OPAMREPO)/gles3.$(VERSION)/url
+	echo "\"" >> $(OPAMREPO)/gles3.$(VERSION)/url
 
 %.o: %.c
 	$(CC) -c $<
