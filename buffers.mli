@@ -60,6 +60,21 @@ val create_ushort_element_buffer : buffer_usage -> int -> ushort_bigarray elemen
 val create_uint_element_buffer : buffer_usage -> int -> uint_bigarray element_buffer
 val create_float_element_buffer : buffer_usage -> int -> float_bigarray element_buffer
 
+(** Functions creating uninitialized mmapped buffers, that will be shared between processes *)
+val create_mmapped_byte_array_buffer : buffer_usage -> int -> byte_bigarray array_buffer
+val create_mmapped_ubyte_array_buffer : buffer_usage -> int -> ubyte_bigarray array_buffer
+val create_mmapped_short_array_buffer : buffer_usage -> int -> short_bigarray array_buffer
+val create_mmapped_ushort_array_buffer : buffer_usage -> int -> ushort_bigarray array_buffer
+val create_mmapped_uint_array_buffer : buffer_usage -> int -> uint_bigarray array_buffer
+val create_mmapped_float_array_buffer : buffer_usage -> int -> float_bigarray array_buffer
+
+val create_mmapped_byte_element_buffer : buffer_usage -> int -> byte_bigarray element_buffer
+val create_mmapped_ubyte_element_buffer : buffer_usage -> int -> ubyte_bigarray element_buffer
+val create_mmapped_short_element_buffer : buffer_usage -> int -> short_bigarray element_buffer
+val create_mmapped_ushort_element_buffer : buffer_usage -> int -> ushort_bigarray element_buffer
+val create_mmapped_uint_element_buffer : buffer_usage -> int -> uint_bigarray element_buffer
+val create_mmapped_float_element_buffer : buffer_usage -> int -> float_bigarray element_buffer
+
 (** Functions creating initialized buffers from an array*)
 val to_byte_array_buffer : buffer_usage -> int array -> byte_bigarray array_buffer
 val to_ubyte_array_buffer : buffer_usage -> int array -> ubyte_bigarray array_buffer

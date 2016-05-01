@@ -28,6 +28,7 @@ val pi : float
 (** pi is usefull for ratations *)
 
 val idt : float array
+val idt3 : float array
 (** identity matrices *)
 
 val mul : float array -> float array -> float array

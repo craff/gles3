@@ -39,6 +39,13 @@ val create_ushort_bigarray : int -> ushort_bigarray
 val create_uint_bigarray : int -> uint_bigarray
 val create_float_bigarray : int -> float_bigarray
 
+val create_mmapped_byte_bigarray : int -> byte_bigarray
+val create_mmapped_ubyte_bigarray : int -> ubyte_bigarray
+val create_mmapped_short_bigarray : int -> short_bigarray
+val create_mmapped_ushort_bigarray : int -> ushort_bigarray
+val create_mmapped_uint_bigarray : int -> uint_bigarray
+val create_mmapped_float_bigarray : int -> float_bigarray
+
 (****************************************************************************)
 (**  {b VERTEX ATTRIBUTES & DRAWING }                                       *)
 (****************************************************************************)
@@ -245,7 +252,7 @@ val string_of_type : [<uniform_type] -> string
 val glsl_string_of_type : [<uniform_type] -> string
 
 external get_active_attribs :
-    program -> (string * attribute_type * int) list
+    program -> (string * int * attribute_type * int) list
 	= "ml_glGetActiveAttribs"
 
 external get_attrib_location :
@@ -255,7 +262,7 @@ external bind_attrib_location :
     program -> int -> string -> unit = "ml_glBindAttribLocation"
 
 external get_active_uniforms :
-    program -> (string * uniform_type * int) list
+    program -> (string * int * uniform_type * int) list
 	= "ml_glGetActiveUniforms"
 
 external get_uniform_location :

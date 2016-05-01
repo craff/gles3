@@ -97,6 +97,19 @@ let create_uint_element_buffer = create_element_buffer create_uint_bigarray `uin
 let create_float_array_buffer = create_array_buffer create_float_bigarray `float
 let create_float_element_buffer = create_element_buffer create_float_bigarray `float
 
+let create_mmapped_byte_array_buffer = create_array_buffer create_mmapped_byte_bigarray `byte
+let create_mmapped_byte_element_buffer = create_element_buffer create_mmapped_byte_bigarray `byte
+let create_mmapped_ubyte_array_buffer = create_array_buffer create_mmapped_ubyte_bigarray `ubyte
+let create_mmapped_ubyte_element_buffer = create_element_buffer create_mmapped_ubyte_bigarray `ubyte
+let create_mmapped_short_array_buffer = create_array_buffer create_mmapped_short_bigarray `short
+let create_mmapped_short_element_buffer = create_element_buffer create_mmapped_short_bigarray `short
+let create_mmapped_ushort_array_buffer = create_array_buffer create_mmapped_ushort_bigarray `ushort
+let create_mmapped_ushort_element_buffer = create_element_buffer create_mmapped_ushort_bigarray `ushort
+let create_mmapped_uint_array_buffer = create_array_buffer create_mmapped_uint_bigarray `uint
+let create_mmapped_uint_element_buffer = create_element_buffer create_mmapped_uint_bigarray `uint
+let create_mmapped_float_array_buffer = create_array_buffer create_mmapped_float_bigarray `float
+let create_mmapped_float_element_buffer = create_element_buffer create_mmapped_float_bigarray `float
+
 let to_array_buffer fn ty usage a =
   let size = Array.length a in
   let index = gen_buffer () in

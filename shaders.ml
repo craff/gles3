@@ -53,14 +53,10 @@ let load_shader ty filename =
 type 'a program = {
   name : string;
   program : Gles3.program;
-  attributes : (string * attribute_type * int * int) list;
-  uniforms : (string * uniform_type * int * int) list;
+  attributes : (string * int * attribute_type * int) list;
+  uniforms : (string * int * uniform_type * int) list;
   value : (unit -> unit) -> 'a;
 }
-
-let number l =
-  let i = ref 0 in
-  List.map(fun (x,y,z) -> let j = !i in incr i; (x,y,z,j)) l
 
 let error_replace (shaders:shader list) msg =
   let fn num filename =
@@ -104,8 +100,8 @@ let compile : ?version:string -> ?precision:string -> string * shader list -> un
   let res = {
     program = prg;
     name = prgname;
-    attributes = List.sort cmp (number (get_active_attribs prg));
-    uniforms = List.sort cmp (number (get_active_uniforms prg));
+    attributes = List.sort cmp (get_active_attribs prg);
+    uniforms = List.sort cmp (get_active_uniforms prg);
     value = (fun f -> f ()) ;
   } in
   Gc.finalise (fun _ ->
@@ -149,7 +145,7 @@ let draw_buffer_elements prg shape (buf:'a element_buffer) =
 let assoc_rm name l =
   let rec fn acc = function
     | [] -> raise Not_found
-    | (name',ty,size,index) as x::l ->
+    | (name',index,ty,size) as x::l ->
        if name = name' then ((ty,size,index), List.rev_append acc l) else fn (x::acc) l
   in fn [] l
 

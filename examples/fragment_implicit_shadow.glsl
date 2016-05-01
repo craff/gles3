@@ -10,4 +10,5 @@ void main()
   vec4 Position = Projection * m_position;
   float depth = (Position.z / Position.w + 1.0) / 2.0;
   FragColor=vec4(depth,mod(depth,1./256.)*256.0,depth,1.0);
+  gl_FragDepth=depth;
 }

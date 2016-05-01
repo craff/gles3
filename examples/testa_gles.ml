@@ -33,23 +33,22 @@ let light_shader =
    uniform vec4 lightDiffuse,lightAmbient,color;
    uniform vec3 lightPos;
 
-   in vec3 in_position;
-   in vec3 in_normal;
+   in vec3  in_position, in_normal;
 
    out vec4 diffuse,ambient,m_position;
    out vec3 normal,halfVector;
 
    void main()
    {
+     /* pass the halfVector to the fragment shader */
+     m_position = ModelView * vec4(in_position,1.0);
+     halfVector = normalize(lightPos - 2.0 * m_position.xyz);
+
      // only works for orthogonal matrices
      mat3 NormalMatrix=mat3(ModelView[0].xyz,ModelView[1].xyz,ModelView[2].xyz);
      /* first transform the normal into eye space and
      normalize the result */
      normal = normalize(NormalMatrix * in_normal);
-
-     /* pass the halfVector to the fragment shader */
-     m_position = ModelView * vec4(in_position,1.0);
-     halfVector = normalize(lightPos - 2.0 * m_position.xyz);
 
      /* Compute the diffuse, ambient and globalAmbient terms */
      diffuse = color * lightDiffuse;
@@ -132,9 +131,45 @@ let vertices = to_float_bigarray
 
 (** we set the vertices in the shader *)
 let prg = float_cst_attr prg "in_position" vertices
+(** we define the cube vertices as a big array.
+   notice the flat structure of the array (3 coordinates per point)
+   and the repetition of the same points because they will have
+   different normals *)
+
+let normals = to_float_bigarray
+  [|-1.;0.;0.;
+    -1.;0.;0.;
+    -1.;0.;0.;
+    -1.;0.;0.;
+
+    1.;0.;0.;
+    1.;0.;1.;
+    1.;1.;1.;
+    1.;1.;0.;
+
+    0.;0.;0.;
+    1.;0.;0.;
+    1.;1.;0.;
+    0.;1.;0.;
+
+    0.;0.;1.;
+    1.;0.;1.;
+    1.;1.;1.;
+    0.;1.;1.;
+
+    0.;0.;0.;
+    1.;0.;0.;
+    1.;0.;1.;
+    0.;0.;1.;
+
+    0.;1.;0.;
+    1.;1.;0.;
+    1.;1.;1.;
+    0.;1.;1.;
+  |]
 
 (** the normals associated to each vertex, in the same orders *)
-let normals = to_float_array_buffer `static_draw
+let normals0 = to_float_bigarray
   [|
     -1.;0.;0.;
     -1.;0.;0.;
@@ -168,7 +203,7 @@ let normals = to_float_array_buffer `static_draw
   |]
 
 (** we set the normals vertices in the shader *)
-let prg = buffer_cst_attr prg "in_normal" normals
+let prg = float_cst_attr prg "in_normal" normals0
 
 (** we define the elements (here 12 triangles), as index in the above array *)
 let elements = to_uint_bigarray [|
@@ -216,6 +251,7 @@ let dessine_cube t = draw_uint_elements prg `triangles elements (projection ()) 
 (** some last initializations of openGL state *)
 let _ =
   enable `depth_test;
+  disable `cull_face;
   cull_face `back;
   clear_color { r = 0.1; g = 0.1; b = 0.1; a = 1.0 }
 
@@ -229,8 +265,8 @@ let draw () =
   clear [ `color_buffer ; `depth_buffer];
   let t = Unix.gettimeofday () in
   dessine_cube t;
-  swap_buffers ();
   show_errors "after draw";
+  swap_buffers ();
   incr frames;
   let delta = t -. !lasttime in
   if delta > 5.0 then(
