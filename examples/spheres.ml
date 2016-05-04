@@ -387,8 +387,8 @@ let dessine_sphere index s =
     let y = s.centre.Vector3.y in
     let z = s.centre.Vector3.z in
     let r = s.rayon in
-    let m = mul Vector3.(translate x y z) (scale r) in
-    let im = mul (scale (1. /. r)) Vector3.(translate (-.x) (-.y) (-.z)) in
+    let m = mul (translate x y z) (scale r) in
+    let im = mul (scale (1. /. r)) (translate (-.x) (-.y) (-.z)) in
     let n = idt3 in
     draw_buffer_elements iprg `triangles ielements (projection ()) m im n
 
@@ -399,8 +399,8 @@ let shadow_sphere index s =
     let y = s.centre.Vector3.y in
     let z = s.centre.Vector3.z in
     let r = s.rayon in
-    let m = mul Vector3.(translate x y z) (scale r) in
-    let im = mul (scale (1. /. r)) Vector3.(translate (-.x) (-.y) (-.z)) in
+    let m = mul (translate x y z) (scale r) in
+    let im = mul (scale (1. /. r)) (translate (-.x) (-.y) (-.z)) in
     draw_buffer_elements ishade `triangles ielements m im
 
 
@@ -607,7 +607,8 @@ let _ = draw () (** draw once outsize the loop, because all exceptions are caugh
 (** we now start the main loop ! *)
 let _ =
   let t0 = Unix.gettimeofday () in
-  let rec f i =
-    if i = 0 then main_loop ()
-    else if Unix.fork () = 0 then run (i-1) t0 t0 else f (i-1)
-  in f nb_cores
+  let rec f pids i =
+    if i = 0 then (main_loop (); List.iter (fun pid -> Unix.kill pid Sys.sigint) pids)
+    else let pid = Unix.fork () in
+	 if pid = 0 then run (i-1) t0 t0 else f (pid::pids) (i-1)
+  in f [] nb_cores
