@@ -11,6 +11,7 @@ OCAMLMKLIB   = $(OCAMLFIND) ocamlmklib
 OCAMLDEP     = $(OCAMLFIND) ocamldep
 INSTALL	     = $(OCAMLFIND) install
 REMOVE	     = $(OCAMLFIND) remove
+CFLAGS	     = -I `ocamlfind ocamlc -where`
 
 GLES3_CLIBS   = -cclib -lGLESv2
 GLES3_CFILES  = ml_gles3.c
@@ -100,7 +101,7 @@ opam: opam.tmpl distrib
 	echo "\"" >> $(OPAMREPO)/gles3.$(VERSION)/url
 
 %.o: %.c
-	$(CC) -c $<
+	$(CC) -c $< $(CFLAGS)
 
 %.cmi: %.mli %.dep
 	$(OCAMLC) -c $<

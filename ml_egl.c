@@ -30,6 +30,7 @@
 #include <caml/alloc.h>
 #include <caml/config.h>
 #include <caml/callback.h>
+#include <caml/fail.h>
 
 static int initialized = 0 ;
 
@@ -178,14 +179,14 @@ static void free_resources()
   initialized = 0 ;
 }
 
-value ml_egl_terminate(value v)
+CAMLprim value ml_egl_terminate(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.terminate: not initialized") ;
   free_resources() ;
   initialized = 0 ; /* already done above */
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit);
 }
 
 /****************************************************************************/
@@ -194,7 +195,7 @@ value ml_egl_terminate(value v)
 
 #define init_fail(s)  (free_resources(), failwith("Egl.initialize: " s))
 
-value ml_egl_initialize(value vc, value vw, value vh, value vn)
+CAMLprim value ml_egl_initialize(value vc, value vw, value vh, value vn)
 {
   CAMLparam3(vw, vh, vn) ;
 
@@ -287,7 +288,7 @@ value ml_egl_initialize(value vc, value vw, value vh, value vn)
 
   initialized = 1 ;
 
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 /****************************************************************************/
@@ -300,7 +301,7 @@ CAMLprim value ml_egl_set_idle_callback(value v)
   if(!initialized)
     failwith("Egl.set_idle_callback: not initialized") ;
   idle_callback = v ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_egl_set_reshape_callback(value v)
@@ -309,7 +310,7 @@ CAMLprim value ml_egl_set_reshape_callback(value v)
   if(!initialized)
     failwith("Egl.set_reshape_callback: not initialized") ;
   reshape_callback = v ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_egl_set_delete_callback(value v)
@@ -318,7 +319,7 @@ CAMLprim value ml_egl_set_delete_callback(value v)
   if(!initialized)
     failwith("Egl.set_delete_callback: not initialized") ;
   delete_callback = v ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_egl_set_key_press_callback(value v)
@@ -327,7 +328,7 @@ CAMLprim value ml_egl_set_key_press_callback(value v)
   if(!initialized)
     failwith("Egl.set_key_press_callback: not initialized") ;
   key_press_callback = v ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_egl_set_key_release_callback(value v)
@@ -336,7 +337,7 @@ CAMLprim value ml_egl_set_key_release_callback(value v)
   if(!initialized)
     failwith("Egl.set_key_release_callback: not initialized") ;
   key_release_callback = v ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_egl_set_button_press_callback(value v)
@@ -345,7 +346,7 @@ CAMLprim value ml_egl_set_button_press_callback(value v)
   if(!initialized)
     failwith("Egl.set_button_press_callback: not initialized") ;
   button_press_callback = v ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_egl_set_button_release_callback(value v)
@@ -354,7 +355,7 @@ CAMLprim value ml_egl_set_button_release_callback(value v)
   if(!initialized)
     failwith("Egl.set_button_release_callback: not initialized") ;
   button_release_callback = v ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_egl_set_motion_notify_callback(value v)
@@ -363,7 +364,7 @@ CAMLprim value ml_egl_set_motion_notify_callback(value v)
   if(!initialized)
     failwith("Egl.set_motion_notify_callback: not initialized") ;
   motion_notify_callback = v ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 /****************************************************************************/
@@ -492,7 +493,7 @@ value ml_egl_main_loop(value v)
     }
   }
   main_loop_reentrant = 0 ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 value ml_egl_exit_loop(value v)
@@ -501,7 +502,7 @@ value ml_egl_exit_loop(value v)
   if(!main_loop_reentrant)
     failwith("Egl.exit_loop: can only be called inside main_loop\n") ;
   main_loop_continue = 0 ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 /****************************************************************************/
@@ -514,7 +515,7 @@ value ml_egl_swap_buffers(value v)
   if(!initialized)
     failwith("Egl.swap_buffers: not initialized") ;
   eglSwapBuffers(display, surface) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 value ml_egl_query_version(value v)

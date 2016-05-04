@@ -28,6 +28,7 @@
 #include <caml/alloc.h>
 #include <caml/config.h>
 #include <caml/bigarray.h>
+#include <caml/fail.h>
 #include <GLES3/gl3.h>
 
 /*** SIMPLE C -> ML WRAPPERS ***/
@@ -215,7 +216,7 @@ CAMLprim value ml_glVertexAttribfv(value vi, value vv)
   case 3: glVertexAttrib3fv(index, tmp) ; break ;
   case 4: glVertexAttrib4fv(index, tmp) ; break ;
   }
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 ML_1(glEnableVertexAttribArray, Int_val) ;
@@ -231,7 +232,7 @@ CAMLprim value ml_glVertexAttribBytePointer(value vi, value vs, value vn,
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
   glVertexAttribPointer(index, size, GL_BYTE, norm, stride, data) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glVertexAttribUBytePointer(value vi, value vs, value vn,
@@ -244,7 +245,7 @@ CAMLprim value ml_glVertexAttribUBytePointer(value vi, value vs, value vn,
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
   glVertexAttribPointer(index, size, GL_UNSIGNED_BYTE, norm, stride, data) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glVertexAttribShortPointer(value vi, value vs, value vn,
@@ -257,7 +258,7 @@ CAMLprim value ml_glVertexAttribShortPointer(value vi, value vs, value vn,
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
   glVertexAttribPointer(index, size, GL_SHORT, norm, stride, data) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glVertexAttribUShortPointer(value vi, value vs, value vn,
@@ -270,7 +271,7 @@ CAMLprim value ml_glVertexAttribUShortPointer(value vi, value vs, value vn,
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
   glVertexAttribPointer(index, size, GL_UNSIGNED_SHORT, norm, stride, data) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glVertexAttribUIntPointer(value vi, value vs, value vn,
@@ -283,7 +284,7 @@ CAMLprim value ml_glVertexAttribUIntPointer(value vi, value vs, value vn,
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
   glVertexAttribPointer(index, size, GL_UNSIGNED_INT, norm, stride, data) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glVertexAttribFloatPointer(value vi, value vs, value vn,
@@ -296,7 +297,7 @@ CAMLprim value ml_glVertexAttribFloatPointer(value vi, value vs, value vn,
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
   glVertexAttribPointer(index, size, GL_FLOAT, norm, stride, data) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glVertexAttribBufferPointer(value vi, value vs, value vt,
@@ -311,7 +312,7 @@ CAMLprim value ml_glVertexAttribBufferPointer(value vi, value vs, value vt,
   GLsizei stride = Int_val(vr) ;
   void *data = (void *)Long_val(vd) ;
   glVertexAttribPointer(index, size, type, norm, stride, data) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glVertexAttribBufferPointer_bc(value *argv, int argn)
@@ -330,7 +331,7 @@ CAMLprim value ml_glDrawUByteElements(value vm, value vc, value vd)
   GLsizei count = Int_val(vc) ;
   void *data = Caml_ba_data_val(vd) ;
   glDrawElements(mode, count, GL_UNSIGNED_BYTE, data) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glDrawUShortElements(value vm, value vc, value vd)
@@ -340,7 +341,7 @@ CAMLprim value ml_glDrawUShortElements(value vm, value vc, value vd)
   GLsizei count = Int_val(vc) ;
   void *data = Caml_ba_data_val(vd) ;
   glDrawElements(mode, count, GL_UNSIGNED_SHORT, data) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glDrawUIntElements(value vm, value vc, value vd)
@@ -350,7 +351,7 @@ CAMLprim value ml_glDrawUIntElements(value vm, value vc, value vd)
   GLsizei count = Int_val(vc) ;
   void *data = Caml_ba_data_val(vd) ;
   glDrawElements(mode, count, GL_UNSIGNED_INT, data) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glDrawBufferElements(value vm, value vc, value vt, value vd)
@@ -361,7 +362,7 @@ CAMLprim value ml_glDrawBufferElements(value vm, value vc, value vt, value vd)
   GLenum type = Enum_val(vt) ;
   void *data = (void *)Long_val(vd) ;
   glDrawElements(mode, count, type, data) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 /****************************************************************************/
@@ -396,7 +397,7 @@ CAMLprim value ml_glDeleteBuffer(value vb)
   CAMLparam1(vb) ;
   GLuint buf = Int_val(vb) ;
   glDeleteBuffers(1, &buf) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glDeleteBuffers(value vv)
@@ -407,7 +408,7 @@ CAMLprim value ml_glDeleteBuffers(value vv)
   for(i = 0; i < n; i++)
     buf[i] = Int_val(Field(vv, i)) ;
   glDeleteBuffers(n, buf) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 ML_2(glBindBuffer, Enum_val, Int_val) ;
@@ -419,7 +420,7 @@ CAMLprim value ml_glBufferSize(value vt, value vs, value vu)
   GLint size = Int_val(vs) ;
   GLenum usage = Enum_val(vu) ;
   glBufferData(target, size, NULL, usage) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glBufferData(value vt, value vd, value vu)
@@ -430,7 +431,7 @@ CAMLprim value ml_glBufferData(value vt, value vd, value vu)
   void *data = Caml_ba_data_val(vd) ;
   GLenum usage = Enum_val(vu) ;
   glBufferData(target, size, data, usage) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glBufferSubData(value vt, value vo, value vd)
@@ -441,7 +442,7 @@ CAMLprim value ml_glBufferSubData(value vt, value vo, value vd)
   int size = Caml_ba_data_bsize_val(vd) ;
   void *data = Caml_ba_data_val(vd) ;
   glBufferSubData(target, offset, size, data) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glGetBufferSize(value vt)
@@ -479,7 +480,7 @@ CAMLprim value ml_glShaderSource(value vs, value vv)
   for(i = 0; i < count; i++)
     tmp[i] = String_val(Field(vv, i)) ;
   glShaderSource(shader, count, tmp, NULL) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 ML_1(glCompileShader, Int_val) ;
@@ -685,7 +686,7 @@ CAMLprim value ml_glUniform1iv(value vl, value vc, value vv)
   for(i = 0; i < len; i++)
     tmp[i] = Int_val(Field(vv, i)) ;
   glUniform1iv(loc, count, tmp) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glUniform2iv(value vl, value vc, value vv)
@@ -700,7 +701,7 @@ CAMLprim value ml_glUniform2iv(value vl, value vc, value vv)
   for(i = 0; i < len; i++)
     tmp[i] = Int_val(Field(vv, i)) ;
   glUniform2iv(loc, count, tmp) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glUniform3iv(value vl, value vc, value vv)
@@ -715,7 +716,7 @@ CAMLprim value ml_glUniform3iv(value vl, value vc, value vv)
   for(i = 0; i < len; i++)
     tmp[i] = Int_val(Field(vv, i)) ;
   glUniform3iv(loc, count, tmp) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glUniform4iv(value vl, value vc, value vv)
@@ -730,7 +731,7 @@ CAMLprim value ml_glUniform4iv(value vl, value vc, value vv)
   for(i = 0; i < len; i++)
     tmp[i] = Int_val(Field(vv, i)) ;
   glUniform4iv(loc, count, tmp) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 ML_2(glUniform1f, Int_val, Float_val) ;
@@ -750,7 +751,7 @@ CAMLprim value ml_glUniform1fv(value vl, value vc, value vv)
   for(i = 0; i < len; i++)
     tmp[i] = (GLfloat)Double_field(vv, i) ;
   glUniform1fv(loc, count, tmp) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glUniform2fv(value vl, value vc, value vv)
@@ -765,7 +766,7 @@ CAMLprim value ml_glUniform2fv(value vl, value vc, value vv)
   for(i = 0; i < len; i++)
     tmp[i] = (GLfloat)Double_field(vv, i) ;
   glUniform2fv(loc, count, tmp) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glUniform3fv(value vl, value vc, value vv)
@@ -780,7 +781,7 @@ CAMLprim value ml_glUniform3fv(value vl, value vc, value vv)
   for(i = 0; i < len; i++)
     tmp[i] = (GLfloat)Double_field(vv, i) ;
   glUniform3fv(loc, count, tmp) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glUniform4fv(value vl, value vc, value vv)
@@ -795,7 +796,7 @@ CAMLprim value ml_glUniform4fv(value vl, value vc, value vv)
   for(i = 0; i < len; i++)
     tmp[i] = (GLfloat)Double_field(vv, i) ;
   glUniform4fv(loc, count, tmp) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glUniformMatrix2fv(value vl, value vc, value vt, value vv)
@@ -811,7 +812,7 @@ CAMLprim value ml_glUniformMatrix2fv(value vl, value vc, value vt, value vv)
     tmp[i] = (GLfloat)Double_field(vv, i) ;
   GLboolean transp = Bool_val(vt) ;
   glUniformMatrix2fv(loc, count, transp, tmp) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glUniformMatrix3fv(value vl, value vc, value vt, value vv)
@@ -827,7 +828,7 @@ CAMLprim value ml_glUniformMatrix3fv(value vl, value vc, value vt, value vv)
     tmp[i] = (GLfloat)Double_field(vv, i) ;
   GLboolean transp = Bool_val(vt) ;
   glUniformMatrix3fv(loc, count, transp, tmp) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glUniformMatrix4fv(value vl, value vc, value vt, value vv)
@@ -843,7 +844,7 @@ CAMLprim value ml_glUniformMatrix4fv(value vl, value vc, value vt, value vv)
     tmp[i] = (GLfloat)Double_field(vv, i) ;
   GLboolean transp = Bool_val(vt) ;
   glUniformMatrix4fv(loc, count, transp, tmp) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 /****************************************************************************/
@@ -894,7 +895,7 @@ CAMLprim value ml_glDeleteTexture(value vb)
   CAMLparam1(vb) ;
   GLuint tex = Int_val(vb) ;
   glDeleteTextures(1, &tex) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glDeleteTextures(value vv)
@@ -905,7 +906,7 @@ CAMLprim value ml_glDeleteTextures(value vv)
   for(i = 0; i < n; i++)
     tex[i] = Int_val(Field(vv, i)) ;
   glDeleteTextures(n, tex) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 ML_2(glBindTexture, Enum_val, Int_val) ;
@@ -915,7 +916,7 @@ CAMLprim value ml_glActiveTexture(value vi)
   CAMLparam1(vi) ;
   int i = Int_val(vi) ;
   glActiveTexture(GL_TEXTURE0 + i) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 static int pixel_bsize(GLenum format)
@@ -978,7 +979,7 @@ CAMLprim value ml_glTexImage2D(value vt, value vl, value vimg)
   void *data = Caml_ba_data_val(ba) ;
   glTexImage2D(target, level, format, width, height, 0,
 	       format, GL_UNSIGNED_BYTE, data) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glTexNullImage2D(value vt, value vl, value vw, value vh, value vif)
@@ -993,7 +994,7 @@ CAMLprim value ml_glTexNullImage2D(value vt, value vl, value vw, value vh, value
   GLenum type = type_from_internal(internal_format);
   glTexImage2D(target, level, internal_format, width, height, 0,
 	       format, type, 0) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glTexSubImage2D(value vt, value vl,
@@ -1014,7 +1015,7 @@ CAMLprim value ml_glTexSubImage2D(value vt, value vl,
   void *data = Caml_ba_data_val(ba) ;
   glTexSubImage2D(target, level, xoffset, yoffset, width, height,
 	       format, GL_UNSIGNED_BYTE, data) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glCopyTexImage2D(value vt, value vl, value vf, value vr)
@@ -1029,7 +1030,7 @@ CAMLprim value ml_glCopyTexImage2D(value vt, value vl, value vf, value vr)
   GLint width = Int_val(Field(vr, 2)) ;
   GLint height = Int_val(Field(vr, 3)) ;
   glCopyTexImage2D(target, level, format, x, y, width, height, 0) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glCopyTexSubImage2D(value vt, value vl,
@@ -1046,7 +1047,7 @@ CAMLprim value ml_glCopyTexSubImage2D(value vt, value vl,
   GLint width = Int_val(Field(vr, 2)) ;
   GLint height = Int_val(Field(vr, 3)) ;
   glCopyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glTexParameter(value vt, value vp)
@@ -1056,7 +1057,7 @@ CAMLprim value ml_glTexParameter(value vt, value vp)
   GLenum param = Enum_val(Field(vp, 0)) ;
   GLenum val = Enum_val(Field(vp, 1)) ;
   glTexParameteri(target, param, val) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 ML_1(glGenerateMipmap, Enum_val) ;
@@ -1090,7 +1091,7 @@ CAMLprim value ml_glBlendColor(value vc)
   GLfloat blue = (GLfloat)Double_field(vc, 2) ;
   GLfloat alpha = (GLfloat)Double_field(vc, 3) ;
   glBlendColor(red, green, blue, alpha) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 /****************************************************************************/
@@ -1111,7 +1112,7 @@ CAMLprim value ml_glClear(value vl)
     vl = Field(vl, 1) ;
   }
   glClear(accu) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glClearColor(value vc)
@@ -1122,7 +1123,7 @@ CAMLprim value ml_glClearColor(value vc)
   GLfloat blue = (GLfloat)Double_field(vc, 2) ;
   GLfloat alpha = (GLfloat)Double_field(vc, 3) ;
   glClearColor(red, green, blue, alpha) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 ML_1(glClearDepthf, Float_val) ;
@@ -1142,7 +1143,7 @@ CAMLprim value ml_glReadPixels(value vx, value vy, value vimg)
     GLES_FAIL("read_pixels: too few data bytes") ;
   void *data = Caml_ba_data_val(ba) ;
   glReadPixels(x, y, width, height, format, GL_UNSIGNED_BYTE, data) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 /****************************************************************************/
@@ -1177,7 +1178,7 @@ CAMLprim value ml_glDeleteRenderbuffer(value vb)
   CAMLparam1(vb) ;
   GLuint buf = Int_val(vb) ;
   glDeleteRenderbuffers(1, &buf) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glDeleteRenderbuffers(value vv)
@@ -1188,7 +1189,7 @@ CAMLprim value ml_glDeleteRenderbuffers(value vv)
   for(i = 0; i < n; i++)
     buf[i] = Int_val(Field(vv, i)) ;
   glDeleteRenderbuffers(n, buf) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glDrawBuffers(value vv)
@@ -1199,7 +1200,7 @@ CAMLprim value ml_glDrawBuffers(value vv)
   for(i = 0; i < n; i++)
     buf[i] = Enum_val(Field(vv, i)) ;
   glDrawBuffers(n, buf) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 ML_2(glBindRenderbuffer, Enum_val, Int_val) ;
@@ -1238,7 +1239,7 @@ CAMLprim value ml_glDeleteFramebuffer(value vb)
   CAMLparam1(vb) ;
   GLuint buf = Int_val(vb) ;
   glDeleteFramebuffers(1, &buf) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 CAMLprim value ml_glDeleteFramebuffers(value vv)
@@ -1249,7 +1250,7 @@ CAMLprim value ml_glDeleteFramebuffers(value vv)
   for(i = 0; i < n; i++)
     buf[i] = Int_val(Field(vv, i)) ;
   glDeleteFramebuffers(n, buf) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 ML_2(glBindFramebuffer, Enum_val, Int_val) ;
