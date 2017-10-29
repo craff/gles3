@@ -31,35 +31,34 @@ GLES) application using OCaml. It comes in three parts:
 
 ## Installation
 
-     * as an opam package
-     * [from the gles3 github repository](https://github.com/craff/gles3)
+* as an opam package
+* [from the gles3 github repository](https://github.com/craff/gles3)
 
 ## Documentation
 
-     * Generated html from the MLI files (make doc)
-     * the examples:
-       ./examples/testa_gles.ml: a rotating cube
-       ./examples/testb_gles.ml: a rotating cube with a texture
-       ./examples/testc_gles.ml: 7 rotating cubes with simple shadow
-                                 mapping
-       ./examples/testd_gles.ml: 7 rotating cubes and 8 implicit
+* Generated html from the MLI files (make doc)
+* the examples:
+       `./examples/testa_gles.ml`: a rotating cube
+       `./examples/testb_gles.ml`: a rotating cube with a texture
+       `./examples/testc_gles.ml`: 7 rotating cubes with simple shadow mapping
+       `./examples/testd_gles.ml`: 7 rotating cubes and 8 implicit
                                  surfaces with simple shadow mapping
-       ./examples/spheres.ml   : mainy boucing spheres, using ancient
+       `./examples/spheres.ml`   : mainy boucing spheres, using ancient
                                  to run multicore (experimental)
 
 ## TODO (please contribute !)
 
-     * test and fix bugs !
-     * documentation
-     * complete the low-level bindings
-     * develop the high-level bindings guided by more examples
-     * provide support for more platforms (see introduction)
-     * find a way to support multiple version of GLES (at least 2.0, 3.0,
-       3.1) with only one OCaml library, and possibly in a transparent way
-       when using the high-level bindings (i.e., the high level bindings
-       should test the version and make the best choice)
-     * collect regexp for error message in GLSL for most GLES vendors to
-       give good error messages in all cases (only one vendor,
-       nouveau/mesa supported currently). This is a pity that GLES does no
-       define a standard at least for position in error messages.
-     * ...
+* test and fix bugs !
+* documentation
+* complete the low-level bindings
+* develop the high-level bindings guided by more examples
+* provide support for more platforms (see introduction)
+* find a way to support multiple version of GLES (at least 2.0, 3.0,
+  3.1) with only one OCaml library, and possibly in a transparent way
+  when using the high-level bindings (i.e., the high level bindings
+  should test the version and make the best choice)
+* collect regexp for error message in GLSL for most GLES vendors to
+  give good error messages in all cases (only one vendor,
+  nouveau/mesa supported currently). This is a pity that GLES does no
+  define a standard at least for position in error messages.
+* ...
