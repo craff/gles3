@@ -113,14 +113,16 @@ let tempmd addr =
 let spheres =
   let l = Array.init nb_spheres random_sphere in
   let open Ancient in
-  let sh = share (tempmd 0x100000000000n) 0 l in
+  let sh = share (tempmd 0x200000000000n) 0 l in
+  Printf.eprintf "sphere share created\n%!";
   let l = follow sh in
   l
 
 let sync =
   let counts = Array.make nb_cores 0 in
   let open Ancient in
-  let sh = share (tempmd 0n) 0 counts in
+  let sh = share (tempmd 0x300000000000n) 0 counts in
+  Printf.eprintf "counts share created\n%!";
   let counts = follow sh in
   (fun process ->
     let n = counts.(process) + 1 in
@@ -196,7 +198,8 @@ let grille =
     }
   in
   let open Ancient in
-  let sh = share (tempmd 0x200000000000n) 0 g in
+  let sh = share (tempmd 0x400000000000n) 0 g in
+  Printf.eprintf "grid share created\n%!";
   follow sh
 
 (** simple example, using vertex buffers + one simple texture*)
