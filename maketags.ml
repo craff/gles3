@@ -56,7 +56,7 @@ let split_line line =
   List.rev !accu
 
 let default_enum tag =
-  "GL_" ^ String.uppercase tag
+  "GL_" ^ String.uppercase_ascii tag
 
 let input_pairs ch =
   let accu = ref [] in

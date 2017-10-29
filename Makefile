@@ -1,4 +1,4 @@
-MAJOR = 20160307
+MAJOR = 20160505
 MINOR = alpha
 VERSION = $(MAJOR).$(MINOR)
 
@@ -62,7 +62,7 @@ distclean: clean
 
 install:
 	- $(REMOVE) gles3
-	$(INSTALL) gles3 gles3.cma gles3.cmxa egl.cma egl.cmxa META *.so *.a *.cmi *.mli
+	$(INSTALL) gles3 gles3.cma gles3.cmxa egl.cma egl.cmxa META *.so *.a *.cmi *.cmx *.mli
 
 README: README.html
 	lynx $< -dump > $@
