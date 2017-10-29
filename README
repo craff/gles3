@@ -30,21 +30,21 @@ Authors
 
 Installation
 
-     * as an opam package (soon)
-     * [5]a tar archive
-     * or darcs repository:
-darcs get http://lama.univ-savoie.fr/~raffalli/gles3/repos
+     * as an opam package
+     * [5] from github
 
 Documentation
 
      * [6]Generated html from the MLI files
      * the examples:
-       [7]examples/testa_gles.ml: a rotating cube
-       [8]examples/testb_gles.ml: a rotating cube with a texture
-       [9]examples/testc_gles.ml: 7 rotating cubes with simple shadow
-       mapping
-       [10]examples/testd_gles.ml: 7 rotating cubes and 8 implicit
-       surfaces with simple shadow mapping
+       ./examples/testa_gles.ml: a rotating cube
+       ./examples/testb_gles.ml: a rotating cube with a texture
+       ./examples/testc_gles.ml: 7 rotating cubes with simple shadow
+                                 mapping
+       ./examples/testd_gles.ml: 7 rotating cubes and 8 implicit
+                                 surfaces with simple shadow mapping
+       ./examples/spheres.ml   : mainy boucing spheres, using ancient
+                                 to run multicore (experimental)
 
 TODO (please contribute !)
 
@@ -55,7 +55,7 @@ TODO (please contribute !)
      * provide support for more platforms (see introduction)
      * find a way to support multiple version of GLES (at least 2.0, 3.0,
        3.1) with only one OCaml library, and possibly in a transparent way
-       when using the high-level bindings (i.e., the high lebel bindings
+       when using the high-level bindings (i.e., the high level bindings
        should test the version and make the best choice)
      * collect regexp for error message in GLSL for most GLES vendors to
        give good error messages in all cases (only one vendor,
@@ -73,9 +73,4 @@ Références
    2. https://www.khronos.org/registry/gles
    3. https://www.fing.edu.uy/~amiquel/
    4. file:///~raffalli
-   5. file:///home/raffalli/Caml/gles3/gles3-latest.tar.gz
-   6. file:///home/raffalli/Caml/gles3/main.html
-   7. file:///home/raffalli/Caml/gles3/repos/examples/testa_gles.ml
-   8. file:///home/raffalli/Caml/gles3/repos/examples/testa_gles.ml
-   9. file:///home/raffalli/Caml/gles3/repos/examples/testa_gles.ml
-  10. file:///home/raffalli/Caml/gles3/repos/examples/testa_gles.ml
+   5. https://github.com/craff/gles3
