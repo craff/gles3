@@ -1,17 +1,15 @@
-MAJOR = 20160505
-MINOR = alpha
-VERSION = $(MAJOR).$(MINOR)
+VERSION = 20160505.alpha
 
-CC	     = gcc -fPIC
-OCAMLFIND    = ocamlfind
-OCAML        = ocaml
-OCAMLC       = $(OCAMLFIND) ocamlc
-OCAMLOPT     = $(OCAMLFIND) ocamlopt
-OCAMLMKLIB   = $(OCAMLFIND) ocamlmklib
-OCAMLDEP     = $(OCAMLFIND) ocamldep
-INSTALL	     = $(OCAMLFIND) install
-REMOVE	     = $(OCAMLFIND) remove
-CFLAGS	     = -I `ocamlfind ocamlc -where`
+CC         = gcc -fPIC
+OCAMLFIND  = ocamlfind
+OCAML      = ocaml
+OCAMLC     = $(OCAMLFIND) ocamlc
+OCAMLOPT   = $(OCAMLFIND) ocamlopt
+OCAMLMKLIB = $(OCAMLFIND) ocamlmklib
+OCAMLDEP   = $(OCAMLFIND) ocamldep
+INSTALL    = $(OCAMLFIND) install
+REMOVE     = $(OCAMLFIND) remove
+CFLAGS     = -I `ocamlfind ocamlc -where`
 
 GLES3_CLIBS   = -cclib -lGLESv2
 GLES3_CFILES  = ml_gles3.c
@@ -58,47 +56,21 @@ clean:
 	- rm -rf examples/*/_build
 
 distclean: clean
-	- rm -rf html/* opam
+	- rm -rf html
 
 install:
 	- $(REMOVE) gles3
 	$(INSTALL) gles3 gles3.cma gles3.cmxa egl.cma egl.cmxa META *.so *.a *.cmi *.cmx *.mli
 
-README: README.html
-	lynx $< -dump > $@
-
-doc: README
+doc: all
+	mkdir html
 	ocamldoc -t "OCaml GLES3 bindings" -keep-code -html -d html *.mli
-	mv html/index.html html/main.html
 
-URLSSH=lama.univ-savoie.fr:WWW/gles3
-URL=https://lama.univ-savoie.fr/~raffalli/gles3
-
-tar:
-	cd ../gles3_0; darcs pull; make all doc clean
-	cd ..; tar cvfz gles3-$(VERSION).tar.gz --exclude=_darcs --transform "s,gles3_0,gles3-$(VERSION),"  gles3_0
-
-distrib: all doc clean tar
-	scp -r html/* $(URLSSH)/
-	scp -r README.html $(URLSSH)/index.html
-	scp -r cubes.png $(URLSSH)/
-	darcs push lama.univ-savoie.fr:WWW/gles3/repos
-	scp ../gles3-$(VERSION).tar.gz $(URLSSH)/
-	ssh lama.univ-savoie.fr "cd WWW/gles3; ln -sf gles3-$(VERSION).tar.gz gles3-latest.tar.gz"
-
-OPAMREPO=$(HOME)/Caml/opam-repository/packages/gles3
-
-opam: opam.tmpl distrib
-	sed -e s/__VERSION__/$(VERSION)/g opam.tmpl > opam
-	mkdir -p $(OPAMREPO)/gles3.$(VERSION)
-	cp opam $(OPAMREPO)/gles3.$(VERSION)/opam
-	cp description.txt $(OPAMREPO)/gles3.$(VERSION)/descr
-	echo -n "archive: \""  > $(OPAMREPO)/gles3.$(VERSION)/url
-	echo -n "$(URL)/gles3-$(VERSION).tar.gz" >> $(OPAMREPO)/gles3.$(VERSION)/url
-	echo "\"" >> $(OPAMREPO)/gles3.$(VERSION)/url
-	echo -n "checksum: \"" >> $(OPAMREPO)/gles3.$(VERSION)/url
-	echo -n `md5sum ../gles3-$(VERSION).tar.gz | cut -b -32` >> $(OPAMREPO)/gles3.$(VERSION)/url
-	echo "\"" >> $(OPAMREPO)/gles3.$(VERSION)/url
+.PHONY: release
+release: distclean
+	git push origin
+	git tag -a ocaml-gles3_$(VERSION)
+	git push origin ocaml-gles3_$(VERSION)
 
 %.o: %.c
 	$(CC) -c $< $(CFLAGS)
