@@ -35,7 +35,7 @@ Installation
 
 Documentation
 
-     * [6]Generated html from the MLI files
+     * Generated html from the MLI files (make doc)
      * the examples:
        ./examples/testa_gles.ml: a rotating cube
        ./examples/testb_gles.ml: a rotating cube with a texture
@@ -72,5 +72,5 @@ Références
    1. http://caml.inria.fr/
    2. https://www.khronos.org/registry/gles
    3. https://www.fing.edu.uy/~amiquel/
-   4. file:///~raffalli
+   4. https://lama.univ-savoie.fr/~raffalli
    5. https://github.com/craff/gles3
