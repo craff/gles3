@@ -1,0 +1,81 @@
+                         [1]OCaml [2]GLES 3.0 bindings
+
+                            examples with shadows
+
+Introduction
+
+   This project aims at providing a portable way to do OpenGL (precisely
+   GLES) application using OCaml. It comes in three parts:
+     * Low level bindings which allow to call directly GLES functions.
+       This binding tries to be reasonably type-safe using polymorphic
+       variants to encode Glenum type. The low level bindings also provide
+       some sanity checks for the size of bigarrays which allow to capture
+       quite a lot of errors with clear messages.
+     * High level bindings: to provide some auxiliary functions like
+       matrix inversion and ease the development. For instance, to use
+       shaders, with the high level bindings, you use compile_shader with
+       the sources code, get a value of type unit program. Then, you can
+       set the variables of the shaders (uniform or attributes), either as
+       constant or function and get a function to finally run the shaders.
+     * A way to open a window, start the main loop and interact. Currently
+       only EGL under X11 is supported but it would be nice to have
+       support for other platforms (windows, OSX, android, ios, wayland,
+       ...) with exactly the same interface.
+
+Authors
+
+     * [3]Alexandre Miquel (initial low level bindings for GLES 2)
+     * [4]Christophe Raffalli (partial port to GLES 3.0, high-level
+       bindings and examples)
+
+Installation
+
+     * as an opam package (soon)
+     * [5]a tar archive
+     * or darcs repository:
+darcs get http://lama.univ-savoie.fr/~raffalli/gles3/repos
+
+Documentation
+
+     * [6]Generated html from the MLI files
+     * the examples:
+       [7]examples/testa_gles.ml: a rotating cube
+       [8]examples/testb_gles.ml: a rotating cube with a texture
+       [9]examples/testc_gles.ml: 7 rotating cubes with simple shadow
+       mapping
+       [10]examples/testd_gles.ml: 7 rotating cubes and 8 implicit
+       surfaces with simple shadow mapping
+
+TODO (please contribute !)
+
+     * test and fix bugs !
+     * documentation
+     * complete the low-level bindings
+     * develop the high-level bindings guided by more examples
+     * provide support for more platforms (see introduction)
+     * find a way to support multiple version of GLES (at least 2.0, 3.0,
+       3.1) with only one OCaml library, and possibly in a transparent way
+       when using the high-level bindings (i.e., the high lebel bindings
+       should test the version and make the best choice)
+     * collect regexp for error message in GLSL for most GLES vendors to
+       give good error messages in all cases (only one vendor,
+       nouveau/mesa supported currently). This is a pity that GLES does no
+       define a standard at least for position in error messages.
+     * ...
+
+Known bugs
+
+     * None at the moment
+
+Références
+
+   1. http://caml.inria.fr/
+   2. https://www.khronos.org/registry/gles
+   3. https://www.fing.edu.uy/~amiquel/
+   4. file:///~raffalli
+   5. file:///home/raffalli/Caml/gles3/gles3-latest.tar.gz
+   6. file:///home/raffalli/Caml/gles3/main.html
+   7. file:///home/raffalli/Caml/gles3/repos/examples/testa_gles.ml
+   8. file:///home/raffalli/Caml/gles3/repos/examples/testa_gles.ml
+   9. file:///home/raffalli/Caml/gles3/repos/examples/testa_gles.ml
+  10. file:///home/raffalli/Caml/gles3/repos/examples/testa_gles.ml
