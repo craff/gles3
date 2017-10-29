@@ -25,14 +25,14 @@
 
 ## Authors
 
-     * [3]Alexandre Miquel (initial low level bindings for GLES 2)
-     * [4]Christophe Raffalli (partial port to GLES 3.0, high-level
+     * [Alexandre Miquel](https://www.fing.edu.uy/~amiquel) (initial low level bindings for GLES 2)
+     * [Christophe Raffalli](https://lama.univ-savoie.fr/~raffalli) (partial port to GLES 3.0, high-level
        bindings and examples)
 
 ## Installation
 
      * as an opam package
-     * [5] from github
+     * [from the gles3 github repository](https://github.com/craff/gles3)
 
 ## Documentation
 
@@ -63,13 +63,3 @@
        nouveau/mesa supported currently). This is a pity that GLES does no
        define a standard at least for position in error messages.
      * ...
-
-## Known bugs
-
-     * None at the moment
-
-## Références
-
-   3. https://www.fing.edu.uy/~amiquel/
-   4. https://lama.univ-savoie.fr/~raffalli
-   5. https://github.com/craff/gles3
