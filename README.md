@@ -5,28 +5,28 @@
 
 ## Introduction
 
-   This project aims at providing a portable way to do OpenGL (precisely
-   GLES) application using OCaml. It comes in three parts:
-     * Low level bindings which allow to call directly GLES functions.
-       This binding tries to be reasonably type-safe using polymorphic
-       variants to encode Glenum type. The low level bindings also provide
-       some sanity checks for the size of bigarrays which allow to capture
-       quite a lot of errors with clear messages.
-     * High level bindings: to provide some auxiliary functions like
-       matrix inversion and ease the development. For instance, to use
-       shaders, with the high level bindings, you use compile_shader with
-       the sources code, get a value of type unit program. Then, you can
-       set the variables of the shaders (uniform or attributes), either as
-       constant or function and get a function to finally run the shaders.
-     * A way to open a window, start the main loop and interact. Currently
-       only EGL under X11 is supported but it would be nice to have
-       support for other platforms (windows, OSX, android, ios, wayland,
-       ...) with exactly the same interface.
+This project aims at providing a portable way to do OpenGL (precisely
+GLES) application using OCaml. It comes in three parts:
+* Low level bindings which allow to call directly GLES functions.
+  This binding tries to be reasonably type-safe using polymorphic
+  variants to encode Glenum type. The low level bindings also provide
+  some sanity checks for the size of bigarrays which allow to capture
+  quite a lot of errors with clear messages.
+* High level bindings: to provide some auxiliary functions like
+  matrix inversion and ease the development. For instance, to use
+  shaders, with the high level bindings, you use compile_shader with
+  the sources code, get a value of type unit program. Then, you can
+  set the variables of the shaders (uniform or attributes), either as
+  constant or function and get a function to finally run the shaders.
+* A way to open a window, start the main loop and interact. Currently
+  only EGL under X11 is supported but it would be nice to have
+  support for other platforms (windows, OSX, android, ios, wayland,
+  ...) with exactly the same interface.
 
 ## Authors
 
-     * [Alexandre Miquel](https://www.fing.edu.uy/~amiquel) (initial low level bindings for GLES 2)
-     * [Christophe Raffalli](https://lama.univ-savoie.fr/~raffalli) (partial port to GLES 3.0, high-level
+* [Alexandre Miquel](https://www.fing.edu.uy/~amiquel) (initial low level bindings for GLES 2)
+* [Christophe Raffalli](https://lama.univ-savoie.fr/~raffalli) (partial port to GLES 3.0, high-level
        bindings and examples)
 
 ## Installation
