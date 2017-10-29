@@ -1,8 +1,7 @@
                          [1]OCaml [2]GLES 3.0 bindings
 
-                  ![Screen shot](https://raw.githubusercontent.com/craff/gles3/master/cubes.png?raw=true "A nice screen shot")
+![Screen shot](https://raw.githubusercontent.com/craff/gles3/master/cubes.png?raw=true "A nice screen shot")
 
-                            examples with shadows
 
 Introduction
 
