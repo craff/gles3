@@ -38,12 +38,12 @@ GLES) application using OCaml. It comes in three parts:
 
 * Generated html from the MLI files (make doc)
 * the examples:
-  * `./examples/testa_gles.ml`: a rotating cube
-  * `./examples/testb_gles.ml`: a rotating cube with a texture
-  * `./examples/testc_gles.ml`: 7 rotating cubes with simple shadow mapping
-  * `./examples/testd_gles.ml`: 7 rotating cubes and 8 implicit
-                                 surfaces with simple shadow mapping
-  * `./examples/spheres.ml`   : mainy boucing spheres, using ancient
+  * `./examples/testa/testa.ml`: a rotating cube
+  * `./examples/testb/testb.ml`: a rotating cube with a texture
+  * `./examples/testc/testc.ml`: 7 rotating cubes with simple shadow mapping
+  * `./examples/testd/testd.ml`: 7 rotating cubes and 8 implicit surfaces with
+                                 simple shadow mapping
+  * `./examples/spheres/spheres.ml` : mainy boucing spheres, using ancient
                                  to run multicore (experimental)
 
 ## TODO (please contribute !)
