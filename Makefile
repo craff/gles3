@@ -54,8 +54,8 @@ clean:
 	- rm -f *.cm[oix] *.o *~ */*~ \#* \.#* */\#* */\.#*
 	- rm -f gles3_tags.h
 	- rm -f *.cma *.cmxa *.so *.a *.dep
-	- rm examples/*.native examples/*.byte
-	- rm -rf examples/_build
+	- rm -f examples/*/*.native
+	- rm -rf examples/*/_build
 
 distclean: clean
 	- rm -rf html/* opam
