@@ -32,18 +32,18 @@ ifneq ($(MAKECMDGOALS),distclean)
 endif
 endif
 
+# Generated C-file
+gles3_tags.h: maketags.ml gles3.mli gles3.ml
+	$(OCAML) $^ > $@
+
+ml_gles3.c: gles3_tags.h
+
 #main targets
 gles3.cma gles3.cmxa: $(GLES3_OBJS)
 	$(OCAMLMKLIB) -custom -o gles3 $(GLES3_CLIBS) $(GLES3_OBJS)
 
 egl.cma egl.cmxa: $(EGL_OBJS)
 	$(OCAMLMKLIB) -o egl $(EGL_CLIBS) $(EGL_OBJS)
-
-# Generated C-file
-gles3_tags.h: maketags.ml gles3_tags.lst
-	$(OCAML) maketags.ml < gles3_tags.lst > gles3_tags.h
-
-ml_gles3.c: gles3_tags.h
 
 count:
 	wc -l *.ml *.mli *.c | sort -n
