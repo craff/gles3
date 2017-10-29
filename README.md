@@ -1,9 +1,9 @@
-                         [1]OCaml [2]GLES 3.0 bindings
+# [OCaml](http://caml.inria.fr/) [GLES](https://www.khronos.org/registry/gles) 3.0 bindings
 
 ![Screen shot](https://raw.githubusercontent.com/craff/gles3/master/cubes.png?raw=true "A nice screen shot")
 
 
-Introduction
+## Introduction
 
    This project aims at providing a portable way to do OpenGL (precisely
    GLES) application using OCaml. It comes in three parts:
@@ -23,18 +23,18 @@ Introduction
        support for other platforms (windows, OSX, android, ios, wayland,
        ...) with exactly the same interface.
 
-Authors
+## Authors
 
      * [3]Alexandre Miquel (initial low level bindings for GLES 2)
      * [4]Christophe Raffalli (partial port to GLES 3.0, high-level
        bindings and examples)
 
-Installation
+## Installation
 
      * as an opam package
      * [5] from github
 
-Documentation
+## Documentation
 
      * Generated html from the MLI files (make doc)
      * the examples:
@@ -47,7 +47,7 @@ Documentation
        ./examples/spheres.ml   : mainy boucing spheres, using ancient
                                  to run multicore (experimental)
 
-TODO (please contribute !)
+## TODO (please contribute !)
 
      * test and fix bugs !
      * documentation
@@ -64,14 +64,12 @@ TODO (please contribute !)
        define a standard at least for position in error messages.
      * ...
 
-Known bugs
+## Known bugs
 
      * None at the moment
 
-Références
+## Références
 
-   1. http://caml.inria.fr/
-   2. https://www.khronos.org/registry/gles
    3. https://www.fing.edu.uy/~amiquel/
    4. https://lama.univ-savoie.fr/~raffalli
    5. https://github.com/craff/gles3
