@@ -129,3 +129,5 @@ val float_mat3_cst_uniform :
 val float_mat4_cst_uniform :
   'a program -> string -> float array -> 'a program
 val texture_2d_cst_uniform : 'a program -> string -> gc_texture -> 'a program
+
+val clean : unit -> unit
