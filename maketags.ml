@@ -31,47 +31,63 @@ let hash_variant s =
   (* make it signed for 64 bits architectures *)
   if !accu > 0x3FFFFFFF then !accu - (1 lsl 31) else !accu
 
+let build_keys : string array -> int array =
+  Array.map hash_variant
+
 (****************************************************************************)
 (*   PARSING                                                                *)
 (****************************************************************************)
 
-let uncomment line =
-  try String.sub line 0 (String.index line '#')
-  with Not_found -> line
+let iter_polymorphic_variants : (string -> unit) -> string -> unit =
+  let iter_lines fn fname =
+    let ic = open_in fname in
+    try while true do fn (input_line ic) done
+    with End_of_file -> close_in ic
+  in
+  let is_alpha c = ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') in
+  let is_alpha_num c = is_alpha c || ('0' <= c && c <= '9') || c = '_' in
+  let rec collect_from_line fn line =
+    let len = String.length line in
+    let gn i c =
+      if c <> '`' || i+1 >= len || not (is_alpha line.[i+1]) then () else
+      let l = ref 1 in
+      while i + !l + 1 < len && is_alpha_num line.[i + !l + 1] do
+        incr l
+      done;
+      fn (String.sub line (i+1) !l)
+    in
+    String.iteri gn line
+  in
+  fun add -> iter_lines (collect_from_line add)
 
-let is_space = function
-  | ' '|'\n'|'\r'|'\t' -> true
-  | _ -> false
+let parse_variants fnames =
+  let variants = ref [] in
+  let add_variant s = variants := s :: !variants in
+  List.iter (iter_polymorphic_variants add_variant) fnames;
+  Array.of_list (List.sort_uniq String.compare !variants)
 
-let split_line line =
-  let line = uncomment line in
-  let n = String.length line in
-  let accu = ref [] and i = ref 0 in
-  while !i < n do
-    while !i < n && is_space line.[!i] do incr i done ;
-    let i0 = !i in
-    while !i < n && not (is_space line.[!i]) do incr i done ;
-    accu := String.sub line i0 (!i - i0) :: !accu
-  done ;
-  List.rev !accu
+(****************************************************************************)
+(*   GENERATING ENUM NAME                                                   *)
+(****************************************************************************)
+
+let special_names : (string * string) list =
+  [ ("color_buffer"     , "GL_COLOR_BUFFER_BIT"  )
+  ; ("depth_buffer"     , "GL_DEPTH_BUFFER_BIT"  )
+  ; ("stencil_buffer"   , "GL_STENCIL_BUFFER_BIT")
+  ; ("ubyte"            , "GL_UNSIGNED_BYTE"     )
+  ; ("ushort"           , "GL_UNSIGNED_SHORT"    )
+  ; ("uint"             , "GL_UNSIGNED_INT"      )
+  ; ("texture_2d_shadow", "GL_TEXTURE_2D_ARRAY"  ) ]
+(* FIXME not sure what the last one should actually be. *)
 
 let default_enum tag =
   "GL_" ^ String.uppercase_ascii tag
 
-let input_pairs ch =
-  let accu = ref [] in
-  try
-    while true do
-      match split_line (input_line ch) with
-      | [] -> ()
-      | [tag] -> accu := (tag, default_enum tag) :: !accu
-      | tag :: enum :: _ -> accu := (tag, enum) :: !accu
-    done ; assert false
-  with End_of_file ->
-    Array.of_list (List.rev !accu)
+let enum_name : string -> string = fun v ->
+  try List.assoc v special_names with Not_found -> default_enum v
 
-let extract_keys pairs =
-  Array.map (function (tag, _) -> hash_variant tag) pairs
+let build_pairs : string array -> (string * string) array =
+  Array.map (fun s -> (s, enum_name s))
 
 (****************************************************************************)
 (*   COMPUTING MASK                                                         *)
@@ -132,13 +148,16 @@ let output_C_file ch pairs size mask =
 (****************************************************************************)
 
 let _ =
-  let pairs = input_pairs stdin in
+  let fnames = List.tl (Array.to_list Sys.argv) in
+  let variants = parse_variants fnames in
+  let pairs = build_pairs variants in
+  let keys = build_keys variants in
   let num = Array.length pairs in
   let size = 2 * num + 1 in
-  let keys = extract_keys pairs in
   let (mask, mark) = compute_params keys size 0xFFF in
   Format.eprintf "Found params: " ;
   Format.eprintf "num = %d, size = %d, mask = 0x%X@." num size mask ;
   let (max, sum) = mark in
   Format.eprintf "Probes: max = %d, sum = %d@." max sum ;
   output_C_file stdout pairs size mask
+
