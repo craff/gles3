@@ -77,8 +77,7 @@ let special_names : (string * string) list =
   ; ("ubyte"            , "GL_UNSIGNED_BYTE"     )
   ; ("ushort"           , "GL_UNSIGNED_SHORT"    )
   ; ("uint"             , "GL_UNSIGNED_INT"      )
-  ; ("texture_2d_shadow", "GL_TEXTURE_2D_ARRAY"  ) ]
-(* FIXME not sure what the last one should actually be. *)
+  ; ("texture_2d_shadow", "GL_TEXTURE_2D"        ) ]
 
 let default_enum tag =
   "GL_" ^ String.uppercase_ascii tag
@@ -160,4 +159,3 @@ let _ =
   let (max, sum) = mark in
   Format.eprintf "Probes: max = %d, sum = %d@." max sum ;
   output_C_file stdout pairs size mask
-
