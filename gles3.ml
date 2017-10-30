@@ -579,7 +579,7 @@ external delete_textures : texture array -> unit = "ml_glDeleteTextures"
 
 external active_texture : texture -> unit = "ml_glActiveTexture"
 
-type texture_target = [ `texture_2d | `texture_2d_shadow |`texture_cube_map ]
+type texture_target = [ `texture_2d |`texture_cube_map ]
 
 external bind_texture : target:texture_target -> texture -> unit
     = "ml_glBindTexture"

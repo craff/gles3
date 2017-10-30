@@ -361,7 +361,7 @@ external polygon_offset : factor:float -> units:float -> unit =
 (**  TEXTURES                                                               *)
 (****************************************************************************)
 
-type texture_target = [ `texture_2d | `texture_2d_shadow |`texture_cube_map ]
+type texture_target = [ `texture_2d |`texture_cube_map ]
 
 type wrap_mode = [ `repeat | `clamp_to_edge ]
 
