@@ -76,8 +76,7 @@ let special_names : (string * string) list =
   ; ("stencil_buffer"   , "GL_STENCIL_BUFFER_BIT")
   ; ("ubyte"            , "GL_UNSIGNED_BYTE"     )
   ; ("ushort"           , "GL_UNSIGNED_SHORT"    )
-  ; ("uint"             , "GL_UNSIGNED_INT"      )
-  ; ("texture_2d_shadow", "GL_TEXTURE_2D"        ) ]
+  ; ("uint"             , "GL_UNSIGNED_INT"      ) ]
 
 let default_enum tag =
   "GL_" ^ String.uppercase_ascii tag
