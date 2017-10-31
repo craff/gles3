@@ -285,30 +285,25 @@ let prg_y : (float array -> unit) Shaders.program =
 let prg_y : (float array -> float array -> unit) Shaders.program =
   Shaders.float_mat4_uniform prg_y "Projection"
 
-
-
-
-
-(* TODO *)
-
 (* Drawing function for the cube (depending on window ratio and time). *)
 let draw_maze : float -> float -> unit = fun ratio t ->
   let (<*>) = Matrix.mul in
   let projection =
-    Matrix.perspective 45.0 ratio 1.0 5.0
-      <*> Matrix.lookat [|0.0;0.0;3.5|] [|0.0;0.0;0.0|] [|1.0;1.0;0.0|]
+    Matrix.perspective 45.0 ratio 1.0 10.0
+      <*>
+      Matrix.lookat [|0.0;0.0;3.5|] [|0.0;0.0;0.0|] [|0.5;0.5;0.0|]
   in
   let modelview = Matrix.scale 0.1 in
   let draw_x x y =
     let modelView = modelview <*>
-      Matrix.translate (float_of_int x) (float_of_int y) 0.0
+      Matrix.translate (0.9 *. float_of_int x) (0.9 *. float_of_int y) 0.0
     in
     Shaders.draw_uint_elements prg_x `triangles triangles
       projection modelView;
   in
   let draw_y x y =
     let modelView = modelview <*>
-      Matrix.translate (float_of_int x) (float_of_int y) 0.0
+      Matrix.translate (0.9 *. float_of_int x) (0.9 *. float_of_int y) 0.0
     in
     Shaders.draw_uint_elements prg_y `triangles triangles
       projection modelView;
