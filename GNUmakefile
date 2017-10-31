@@ -49,7 +49,8 @@ count:
 	wc -l *.ml *.mli *.c | sort -n
 
 clean:
-	- rm -f *.cm[oix] *.o *~ */*~ \#* \.#* */\#* */\.#*
+	- find -type f -name "*~" -exec rm {} \;
+	- rm -f *.cm[oix] *.o \#* \.#* */\#* */\.#*
 	- rm -f gles3_tags.h
 	- rm -f *.cma *.cmxa *.so *.a *.dep
 	- rm -f examples/*/*.native

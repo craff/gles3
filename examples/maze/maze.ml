@@ -288,12 +288,17 @@ let prg_y : (float array -> float array -> unit) Shaders.program =
 (* Drawing function for the cube (depending on window ratio and time). *)
 let draw_maze : float -> float -> unit = fun ratio t ->
   let (<*>) = Matrix.mul in
+  let cx = (0.9 *. float_of_int maze.w) /. 2.0 in
+  let cy = (0.9 *. float_of_int maze.h) /. 2.0 in
   let projection =
-    Matrix.perspective 45.0 ratio 1.0 10.0
-      <*>
-      Matrix.lookat [|0.0;0.0;3.5|] [|0.0;0.0;0.0|] [|0.5;0.5;0.0|]
+    Matrix.perspective 45.0 ratio 1.0 20.0
+      <*> Matrix.lookat [|0.0;0.0;2.0|] [|0.0;0.0;0.0|] [|0.5;0.5;0.0|]
   in
-  let modelview = Matrix.scale 0.1 in
+  let modelview =
+    Matrix.scale 0.2
+      <*> Matrix.rotateZ (0.1 *. t)
+      <*> Matrix.translate (-. cx) (-. cy) 0.0
+  in
   let draw_x x y =
     let modelView = modelview <*>
       Matrix.translate (0.9 *. float_of_int x) (0.9 *. float_of_int y) 0.0
