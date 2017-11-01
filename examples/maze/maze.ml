@@ -234,6 +234,16 @@ let y_wall : Gles3.float_bigarray = Buffers.to_float_bigarray
      0.0;0.0;0.0;  0.0;1.0;0.0;  0.0;1.0;0.5;  0.0;0.0;0.5;
      0.1;0.0;0.0;  0.1;1.0;0.0;  0.1;1.0;0.5;  0.1;0.0;0.5; |]
 
+(* The vertices for pillars. *)
+let pillar : Gles3.float_bigarray = Buffers.to_float_bigarray
+  (* Left, right, bottom, top, back, front *)
+  [| 0.0;0.0;0.0;  0.0;0.0;0.5;  0.1;0.0;0.5;  0.1;0.0;0.0;
+     0.0;0.1;0.0;  0.0;0.1;0.5;  0.1;0.1;0.5;  0.1;0.1;0.0;
+     0.0;0.0;0.0;  0.0;0.1;0.0;  0.1;0.1;0.0;  0.1;0.0;0.0;
+     0.0;0.0;0.5;  0.0;0.1;0.5;  0.1;0.1;0.5;  0.1;0.0;0.5;
+     0.0;0.0;0.0;  0.0;0.1;0.0;  0.0;0.1;0.5;  0.0;0.0;0.5;
+     0.1;0.0;0.0;  0.1;0.1;0.0;  0.1;0.1;0.5;  0.1;0.0;0.5; |]
+
 (* The normals associated to each vertex (in the same order). *)
 let normals  : Gles3.float_bigarray = Buffers.to_float_bigarray
   [| -1.0; 0.0; 0.0; -1.0; 0.0; 0.0; -1.0; 0.0; 0.0; -1.0; 0.0; 0.0;
@@ -271,6 +281,7 @@ let prg = Shaders.float4v_cst_uniform prg "lightAmbient" [|0.2;0.2;0.2;1.0|]
 let prg = Shaders.float_cst_attr prg "in_normal" normals
 let prg_x = Shaders.float_cst_attr prg "in_position" x_wall
 let prg_y = Shaders.float_cst_attr prg "in_position" y_wall
+let prg_c = Shaders.float_cst_attr prg "in_position" pillar
 
 (* We abstract away the "ModelView" and "Projection" parameters. *)
 let prg_x : (float array -> unit) Shaders.program =
@@ -285,11 +296,17 @@ let prg_y : (float array -> unit) Shaders.program =
 let prg_y : (float array -> float array -> unit) Shaders.program =
   Shaders.float_mat4_uniform prg_y "Projection"
 
+let prg_c : (float array -> unit) Shaders.program =
+  Shaders.float_mat4_uniform prg_c "ModelView"
+
+let prg_c : (float array -> float array -> unit) Shaders.program =
+  Shaders.float_mat4_uniform prg_c "Projection"
+
 (* Drawing function for the cube (depending on window ratio and time). *)
 let draw_maze : float -> float -> unit = fun ratio t ->
   let (<*>) = Matrix.mul in
-  let cx = (0.9 *. float_of_int maze.w) /. 2.0 in
-  let cy = (0.9 *. float_of_int maze.h) /. 2.0 in
+  let cx = (1.1 *. float_of_int maze.w +. 0.1) /. 2.0 in
+  let cy = (1.1 *. float_of_int maze.h +. 0.1) /. 2.0 in
   let projection =
     Matrix.perspective 45.0 ratio 1.0 20.0
       <*> Matrix.lookat [|0.0;0.0;2.0|] [|0.0;0.0;0.0|] [|0.5;0.5;0.0|]
@@ -301,14 +318,18 @@ let draw_maze : float -> float -> unit = fun ratio t ->
   in
   let draw_x x y =
     let modelView = modelview <*>
-      Matrix.translate (0.9 *. float_of_int x) (0.9 *. float_of_int y) 0.0
+      let x =  1.1 *. float_of_int x +. 0.1 in
+      let y =  1.1 *. float_of_int y in
+      Matrix.translate x y 0.0
     in
     Shaders.draw_uint_elements prg_x `triangles triangles
       projection modelView;
   in
   let draw_y x y =
     let modelView = modelview <*>
-      Matrix.translate (0.9 *. float_of_int x) (0.9 *. float_of_int y) 0.0
+      let x = 1.1 *. float_of_int x in
+      let y = 1.1 *. float_of_int y +. 0.1 in
+      Matrix.translate x y 0.0
     in
     Shaders.draw_uint_elements prg_y `triangles triangles
       projection modelView;
@@ -320,6 +341,15 @@ let draw_maze : float -> float -> unit = fun ratio t ->
       let c = get_cell maze x y in
       if y <> maze.h - 1 && not c.north then draw_x x (y+1);
       if x <> maze.w - 1 && not c.east  then draw_y (x+1) y
+    done
+  done;
+  for x = 0 to maze.w do
+    for y = 0 to maze.h do
+      let x = 1.1 *. float_of_int x in
+      let y = 1.1 *. float_of_int y in
+      let modelView = modelview <*> Matrix.translate x y 0.0 in
+      Shaders.draw_uint_elements prg_c `triangles triangles
+        projection modelView;
     done
   done
 
