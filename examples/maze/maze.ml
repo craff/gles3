@@ -305,18 +305,50 @@ let prg_c : (float array -> unit) Shaders.program =
 let prg_c : (float array -> float array -> unit) Shaders.program =
   Shaders.float_mat4_uniform prg_c "Projection"
 
+open Camera
+
+let camera = Camera.new_camera
+               ~position:[|0.0;0.0;2.0|]
+               ~forward:[|0.0;0.0;-1.0|]
+               ~right:[|1.0;0.0;0.0|]
+               ~up:[|0.0;1.0;0.0|]
+               ~far:30.0
+               ()
+
+let _ = Egl.set_key_press_callback
+          (fun ~key ~state ~x ~y ->
+            match key, state land 0x1 with
+            | (65307
+             | 113), _ -> exit 0
+            | 65363, 0 -> camera.r_speed <- 0.2
+            | 65361, 0 -> camera.r_speed <- -0.2
+            | 65363, 1 -> camera.t_speed <-  0.2
+            | 65361, 1 -> camera.t_speed <- -0.2
+            | 65362, _ -> camera.u_speed <-  0.2
+            | 65364, _ -> camera.u_speed <- -0.2
+            | 32   , _ -> camera.speed   <-  0.2
+            | _    , _ -> Printf.printf "unset key: %d state: %d\n%!" key state)
+
+let _ = Egl.set_key_release_callback
+          (fun ~key ~state ~x ~y ->
+            match key, state land 0x1 with
+            | 65363, 0 -> camera.r_speed <- 0.0
+            | 65361, 0 -> camera.r_speed <- 0.0
+            | 65363, 1 -> camera.t_speed <- 0.0
+            | 65361, 1 -> camera.t_speed <- 0.0
+            | 65362, _ -> camera.u_speed <- 0.0
+            | 65364, _ -> camera.u_speed <- 0.0
+            | 32   , _ -> camera.speed   <- 0.0
+            | _        -> ())
+
 (* Drawing function for the cube (depending on window ratio and time). *)
-let draw_maze : float -> float -> unit = fun ratio t ->
+let draw_maze : float -> unit = fun ratio ->
   let (<*>) = Matrix.mul in
   let cx = (1.1 *. float_of_int maze.w +. 0.1) /. 2.0 in
   let cy = (1.1 *. float_of_int maze.h +. 0.1) /. 2.0 in
-  let projection =
-    Matrix.perspective 45.0 ratio 1.0 20.0
-      <*> Matrix.lookat [|0.0;0.0;2.0|] [|0.0;0.0;0.0|] [|0.5;0.5;0.0|]
-  in
+  let projection = projection ratio camera in
   let modelview =
     Matrix.scale 0.2
-      <*> Matrix.rotateZ (0.1 *. t)
       <*> Matrix.translate (-. cx) (-. cy) 0.0
   in
   let draw_x x y =
@@ -359,7 +391,8 @@ let draw_maze : float -> float -> unit = fun ratio t ->
 (* The main drawing function. *)
 let draw : unit -> unit = fun () ->
   Gles3.clear [`color_buffer; `depth_buffer];
-  draw_maze !window_ratio (Unix.gettimeofday ());
+  Camera.update camera;
+  draw_maze !window_ratio;
   Gles3.show_errors "cube";
   Egl.swap_buffers ()
 

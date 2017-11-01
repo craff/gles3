@@ -13,7 +13,8 @@ CFLAGS     = -I `ocamlfind ocamlc -where`
 
 GLES3_CLIBS   = -cclib -lGLESv2
 GLES3_CFILES  = ml_gles3.c
-GLES3_MLFILES = gles3.ml vector3.ml matrix.ml shaders.ml buffers.ml textures.ml
+GLES3_MLFILES = gles3.ml vector.ml vector3.ml matrix.ml camera.ml shaders.ml \
+                buffers.ml textures.ml
 GLES3_OBJS    = $(GLES3_CFILES:.c=.o) $(GLES3_MLFILES:.ml=.cmo) $(GLES3_MLFILES:.ml=.cmx)
 
 EGL_CLIBS   = -cclib -lX11 -cclib -lEGL
