@@ -307,39 +307,38 @@ let prg_c : (float array -> float array -> unit) Shaders.program =
 
 open Camera
 
-let camera = Camera.new_camera
-               ~position:[|0.0;0.0;2.0|]
-               ~forward:[|0.0;0.0;-1.0|]
-               ~right:[|1.0;0.0;0.0|]
-               ~up:[|0.0;1.0;0.0|]
-               ~far:30.0
-               ()
+let camera =
+  Camera.new_camera ~position:[|0.0;0.0;2.0|] ~forward:[|0.0;0.0;-1.0|]
+    ~right:[|1.0;0.0;0.0|] ~up:[|0.0;1.0;0.0|] ~far:30.0 ()
 
-let _ = Egl.set_key_press_callback
-          (fun ~key ~state ~x ~y ->
-            match key, state land 0x1 with
-            | (65307
-             | 113), _ -> exit 0
-            | 65363, 0 -> camera.r_speed <- 0.2
-            | 65361, 0 -> camera.r_speed <- -0.2
-            | 65363, 1 -> camera.t_speed <-  0.2
-            | 65361, 1 -> camera.t_speed <- -0.2
-            | 65362, _ -> camera.u_speed <-  0.2
-            | 65364, _ -> camera.u_speed <- -0.2
-            | 32   , _ -> camera.speed   <-  0.2
-            | _    , _ -> Printf.printf "unset key: %d state: %d\n%!" key state)
+let _ =
+  let handle_key_press ~key ~state ~x ~y =
+    match (key, state land 0x1) with
+    | (65307, _) -> exit 0
+    | (65363, 0) -> camera.r_speed <-  0.4
+    | (65361, 0) -> camera.r_speed <- -0.4
+    | (65363, 1) -> camera.t_speed <-  0.4
+    | (65361, 1) -> camera.t_speed <- -0.4
+    | (65362, _) -> camera.u_speed <-  0.4
+    | (65364, _) -> camera.u_speed <- -0.4
+    | (32   , _) -> camera.speed   <-  0.4
+    | (_    , _) -> Printf.printf "unset key: %d state: %d\n%!" key state
+  in
+  Egl.set_key_press_callback handle_key_press
 
-let _ = Egl.set_key_release_callback
-          (fun ~key ~state ~x ~y ->
-            match key, state land 0x1 with
-            | 65363, 0 -> camera.r_speed <- 0.0
-            | 65361, 0 -> camera.r_speed <- 0.0
-            | 65363, 1 -> camera.t_speed <- 0.0
-            | 65361, 1 -> camera.t_speed <- 0.0
-            | 65362, _ -> camera.u_speed <- 0.0
-            | 65364, _ -> camera.u_speed <- 0.0
-            | 32   , _ -> camera.speed   <- 0.0
-            | _        -> ())
+let _ =
+  let handle_key_release ~key ~state ~x ~y =
+    match key, state land 0x1 with
+    | (65363, 0) -> camera.r_speed <- 0.0
+    | (65361, 0) -> camera.r_speed <- 0.0
+    | (65363, 1) -> camera.t_speed <- 0.0
+    | (65361, 1) -> camera.t_speed <- 0.0
+    | (65362, _) -> camera.u_speed <- 0.0
+    | (65364, _) -> camera.u_speed <- 0.0
+    | (32   , _) -> camera.speed   <- 0.0
+    | (_       ) -> ()
+  in
+  Egl.set_key_release_callback handle_key_release
 
 (* Drawing function for the cube (depending on window ratio and time). *)
 let draw_maze : float -> unit = fun ratio ->
