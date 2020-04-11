@@ -156,15 +156,15 @@ let draw_arrays prg shape ?(first=0) count =
 
 let draw_ushort_elements prg shape a =
   check_complete prg;
-  prg.value prg.fixed (fun () -> draw_ushort_elements shape ~count:(Bigarray.Array1.dim a) a)
+  prg.value prg.fixed (fun () -> draw_ushort_elements shape ~count:(Bigarray.Genarray.dims a).(0) a)
 
 let draw_ubyte_elements prg shape a =
   check_complete prg;
-  prg.value prg.fixed (fun () -> draw_ubyte_elements shape ~count:(Bigarray.Array1.dim a) a)
+  prg.value prg.fixed (fun () -> draw_ubyte_elements shape ~count:(Bigarray.Genarray.dims a).(0) a)
 
 let draw_uint_elements prg shape a =
   check_complete prg;
-  prg.value prg.fixed (fun () -> draw_uint_elements shape ~count:(Bigarray.Array1.dim a) a)
+  prg.value prg.fixed (fun () -> draw_uint_elements shape ~count:(Bigarray.Genarray.dims a).(0) a)
 
 let draw_buffer_elements prg shape (buf:'a element_buffer) =
   check_complete prg;

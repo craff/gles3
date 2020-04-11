@@ -23,19 +23,19 @@
 
 open Bigarray
 
-type byte_bigarray = (int, int8_signed_elt, c_layout) Array1.t
-type ubyte_bigarray = (int, int8_unsigned_elt, c_layout) Array1.t
-type short_bigarray = (int, int16_signed_elt, c_layout) Array1.t
-type ushort_bigarray = (int, int16_unsigned_elt, c_layout) Array1.t
-type uint_bigarray = (int32, int32_elt, c_layout) Array1.t
-type float_bigarray = (float, float32_elt, c_layout) Array1.t
+type byte_bigarray = (int, int8_signed_elt, c_layout) Genarray.t
+type ubyte_bigarray = (int, int8_unsigned_elt, c_layout) Genarray.t
+type short_bigarray = (int, int16_signed_elt, c_layout) Genarray.t
+type ushort_bigarray = (int, int16_unsigned_elt, c_layout) Genarray.t
+type uint_bigarray = (int32, int32_elt, c_layout) Genarray.t
+type float_bigarray = (float, float32_elt, c_layout) Genarray.t
 
-let create_byte_bigarray len = Array1.create int8_signed c_layout len
-let create_ubyte_bigarray len = Array1.create int8_unsigned c_layout len
-let create_short_bigarray len = Array1.create int16_signed c_layout len
-let create_ushort_bigarray len = Array1.create int16_unsigned c_layout len
-let create_uint_bigarray len = Array1.create int32 c_layout len
-let create_float_bigarray len = Array1.create float32 c_layout len
+let create_byte_bigarray len = Genarray.create int8_signed c_layout [|len|]
+let create_ubyte_bigarray len = Genarray.create int8_unsigned c_layout [|len|]
+let create_short_bigarray len = Genarray.create int16_signed c_layout [|len|]
+let create_ushort_bigarray len = Genarray.create int16_unsigned c_layout [|len|]
+let create_uint_bigarray len = Genarray.create int32 c_layout [|len|]
+let create_float_bigarray len = Genarray.create float32 c_layout [|len|]
 
 (* create a shadow file descriptor *)
 let tempfd () =
@@ -46,12 +46,12 @@ let tempfd () =
     fd
   with e -> Unix.unlink name; raise e
 
-let create_mmapped_byte_bigarray len = Array1.map_file (tempfd ()) int8_signed c_layout true len
-let create_mmapped_ubyte_bigarray len = Array1.map_file (tempfd ()) int8_unsigned c_layout true len
-let create_mmapped_short_bigarray len = Array1.map_file (tempfd ()) int16_signed c_layout true len
-let create_mmapped_ushort_bigarray len = Array1.map_file (tempfd ()) int16_unsigned c_layout true len
-let create_mmapped_uint_bigarray len = Array1.map_file (tempfd ()) int32 c_layout true len
-let create_mmapped_float_bigarray len = Array1.map_file (tempfd ()) float32 c_layout true len
+let create_mmapped_byte_bigarray len = Unix.map_file (tempfd ()) int8_signed c_layout true [|len|]
+let create_mmapped_ubyte_bigarray len = Unix.map_file (tempfd ()) int8_unsigned c_layout true [|len|]
+let create_mmapped_short_bigarray len = Unix.map_file (tempfd ()) int16_signed c_layout true [|len|]
+let create_mmapped_ushort_bigarray len = Unix.map_file (tempfd ()) int16_unsigned c_layout true [|len|]
+let create_mmapped_uint_bigarray len = Unix.map_file (tempfd ()) int32 c_layout true [|len|]
+let create_mmapped_float_bigarray len = Unix.map_file (tempfd ()) float32 c_layout true [|len|]
 
 (****************************************************************************)
 (*   VERTEX ATTRIBUTES & DRAWING                                            *)
@@ -196,12 +196,12 @@ external buffer_size :
 
 external buffer_data :
     target:buffer_target ->
-    ('a, 'b, c_layout) Array1.t -> usage:buffer_usage -> unit
+    ('a, 'b, c_layout) Genarray.t -> usage:buffer_usage -> unit
 	= "ml_glBufferData"
 
 external buffer_sub_data_aux :
     target:buffer_target -> offset:int ->
-    ('a, 'b, c_layout) Array1.t -> unit
+    ('a, 'b, c_layout) Genarray.t -> unit
 	= "ml_glBufferSubData"
 
 let buffer_sub_data ~target ?(offset=0) ba =

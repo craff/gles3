@@ -25,12 +25,12 @@
 
 open Bigarray
 
-type byte_bigarray = (int, int8_signed_elt, c_layout) Array1.t
-type ubyte_bigarray = (int, int8_unsigned_elt, c_layout) Array1.t
-type short_bigarray = (int, int16_signed_elt, c_layout) Array1.t
-type ushort_bigarray = (int, int16_unsigned_elt, c_layout) Array1.t
-type uint_bigarray = (int32, int32_elt, c_layout) Array1.t
-type float_bigarray = (float, float32_elt, c_layout) Array1.t
+type byte_bigarray = (int, int8_signed_elt, c_layout) Genarray.t
+type ubyte_bigarray = (int, int8_unsigned_elt, c_layout) Genarray.t
+type short_bigarray = (int, int16_signed_elt, c_layout) Genarray.t
+type ushort_bigarray = (int, int16_unsigned_elt, c_layout) Genarray.t
+type uint_bigarray = (int32, int32_elt, c_layout) Genarray.t
+type float_bigarray = (float, float32_elt, c_layout) Genarray.t
 
 val create_byte_bigarray : int -> byte_bigarray
 val create_ubyte_bigarray : int -> ubyte_bigarray
@@ -158,12 +158,12 @@ external buffer_size :
 
 external buffer_data :
     target:buffer_target ->
-    ('a, 'b, c_layout) Array1.t -> usage:buffer_usage -> unit
+    ('a, 'b, c_layout) Genarray.t -> usage:buffer_usage -> unit
 	= "ml_glBufferData"
 
 val buffer_sub_data :
     target:buffer_target -> ?offset:int ->
-    ('a, 'b, c_layout) Array1.t -> unit
+    ('a, 'b, c_layout) Genarray.t -> unit
 
 external get_buffer_size : target:buffer_target -> int
     = "ml_glGetBufferSize"
