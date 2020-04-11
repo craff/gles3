@@ -27,23 +27,23 @@ let to_byte_bigarray a =
   res
 let to_ubyte_bigarray a =
   let res = create_ubyte_bigarray (Array.length a) in
-  Array.iteri (fun i x -> Bigarray.Genarray.set res [|i|]x) a;
+  Array.iteri (fun i x -> Bigarray.Genarray.set res [|i|] x) a;
   res
 let to_short_bigarray a =
   let res = create_short_bigarray (Array.length a) in
-  Array.iteri (fun i x -> Bigarray.Genarray.set res [|i|]x) a;
+  Array.iteri (fun i x -> Bigarray.Genarray.set res [|i|] x) a;
   res
 let to_ushort_bigarray a =
   let res = create_ushort_bigarray (Array.length a) in
-  Array.iteri (fun i x -> Bigarray.Genarray.set res [|i|]x) a;
+  Array.iteri (fun i x -> Bigarray.Genarray.set res [|i|] x) a;
   res
 let to_uint_bigarray a =
   let res = create_uint_bigarray (Array.length a) in
-  Array.iteri (fun i x -> Bigarray.Genarray.set res [|i|](Int32.of_int x)) a;
+  Array.iteri (fun i x -> Bigarray.Genarray.set res [|i|] (Int32.of_int x)) a;
   res
 let to_float_bigarray a =
   let res = create_float_bigarray (Array.length a) in
-  Array.iteri (fun i x -> Bigarray.Genarray.set res [|i|]x) a;
+  Array.iteri (fun i x -> Bigarray.Genarray.set res [|i|] x) a;
   res
 
 type ('a, 'b) buffer = {
