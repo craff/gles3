@@ -99,6 +99,10 @@ external set_idle_callback :
     (unit -> unit) -> unit
 	= "ml_egl_set_idle_callback"
 
+external unset_idle_callback :
+    unit -> unit
+	= "ml_egl_unset_idle_callback"
+
 external set_reshape_callback :
     (width:int -> height:int -> unit) -> unit
 	= "ml_egl_set_reshape_callback"
