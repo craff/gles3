@@ -1,11 +1,11 @@
 VERSION = 20160505.alpha
 
-CC         = gcc -fPIC
+CC         = gcc -fPIC -pthread
 OCAMLFIND  = ocamlfind
 OCAML      = ocaml
-OCAMLC     = $(OCAMLFIND) ocamlc
-OCAMLOPT   = $(OCAMLFIND) ocamlopt
-OCAMLMKLIB = $(OCAMLFIND) ocamlmklib
+OCAMLC     = $(OCAMLFIND) ocamlc -thread
+OCAMLOPT   = $(OCAMLFIND) ocamlopt -thread
+OCAMLMKLIB = $(OCAMLFIND) ocamlmklib -ocamloptflags -thread -ocamlcflags -thread -ccopt -pthread -ldopt -pthread -cclib -pthread
 OCAMLDEP   = $(OCAMLFIND) ocamldep
 INSTALL    = $(OCAMLFIND) install
 REMOVE     = $(OCAMLFIND) remove

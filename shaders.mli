@@ -125,6 +125,9 @@ type shader = { name : string; ty : shader_type; src : string; }
 (** [load_shader ty filename] allows to load a shader from a file *)
 val load_shader : shader_type -> string -> shader
 
+(** [of_stirng ty shader] takes a shader directly from a string *)
+val of_string : shader_type -> string -> shader
+
 (** gles3 try to give a reasonnably type safe interface to shaders trough
     the abstract type of 'a program. *)
 type 'a program

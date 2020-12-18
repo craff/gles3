@@ -29,6 +29,7 @@
 #include <caml/config.h>
 #include <caml/bigarray.h>
 #include <caml/fail.h>
+#include <caml/threads.h>
 #include <GLES3/gl3.h>
 
 /*** SIMPLE C -> ML WRAPPERS ***/
@@ -231,7 +232,9 @@ CAMLprim value ml_glVertexAttribBytePointer(value vi, value vs, value vn,
   GLboolean norm = Bool_val(vn) ;
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
+  caml_release_runtime_system();
   glVertexAttribPointer(index, size, GL_BYTE, norm, stride, data) ;
+  caml_acquire_runtime_system();
   CAMLreturn(Val_unit) ;
 }
 
@@ -244,7 +247,9 @@ CAMLprim value ml_glVertexAttribUBytePointer(value vi, value vs, value vn,
   GLboolean norm = Bool_val(vn) ;
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
+  caml_release_runtime_system();
   glVertexAttribPointer(index, size, GL_UNSIGNED_BYTE, norm, stride, data) ;
+  caml_acquire_runtime_system();
   CAMLreturn(Val_unit) ;
 }
 
@@ -257,7 +262,9 @@ CAMLprim value ml_glVertexAttribShortPointer(value vi, value vs, value vn,
   GLboolean norm = Bool_val(vn) ;
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
+  caml_release_runtime_system();
   glVertexAttribPointer(index, size, GL_SHORT, norm, stride, data) ;
+  caml_acquire_runtime_system();
   CAMLreturn(Val_unit) ;
 }
 
@@ -270,7 +277,9 @@ CAMLprim value ml_glVertexAttribUShortPointer(value vi, value vs, value vn,
   GLboolean norm = Bool_val(vn) ;
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
+  caml_release_runtime_system();
   glVertexAttribPointer(index, size, GL_UNSIGNED_SHORT, norm, stride, data) ;
+  caml_acquire_runtime_system();
   CAMLreturn(Val_unit) ;
 }
 
@@ -283,7 +292,9 @@ CAMLprim value ml_glVertexAttribUIntPointer(value vi, value vs, value vn,
   GLboolean norm = Bool_val(vn) ;
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
+  caml_release_runtime_system();
   glVertexAttribPointer(index, size, GL_UNSIGNED_INT, norm, stride, data) ;
+  caml_acquire_runtime_system();
   CAMLreturn(Val_unit) ;
 }
 
@@ -296,7 +307,9 @@ CAMLprim value ml_glVertexAttribFloatPointer(value vi, value vs, value vn,
   GLboolean norm = Bool_val(vn) ;
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
+  caml_release_runtime_system();
   glVertexAttribPointer(index, size, GL_FLOAT, norm, stride, data) ;
+  caml_acquire_runtime_system();
   CAMLreturn(Val_unit) ;
 }
 
@@ -311,7 +324,9 @@ CAMLprim value ml_glVertexAttribBufferPointer(value vi, value vs, value vt,
   GLboolean norm = Bool_val(vn) ;
   GLsizei stride = Int_val(vr) ;
   void *data = (void *)Long_val(vd) ;
+  caml_release_runtime_system();
   glVertexAttribPointer(index, size, type, norm, stride, data) ;
+  caml_acquire_runtime_system();
   CAMLreturn(Val_unit) ;
 }
 
@@ -330,7 +345,9 @@ CAMLprim value ml_glDrawUByteElements(value vm, value vc, value vd)
   GLenum mode = Enum_val(vm) ;
   GLsizei count = Int_val(vc) ;
   void *data = Caml_ba_data_val(vd) ;
+  caml_release_runtime_system();
   glDrawElements(mode, count, GL_UNSIGNED_BYTE, data) ;
+  caml_acquire_runtime_system();
   CAMLreturn(Val_unit) ;
 }
 
@@ -340,7 +357,9 @@ CAMLprim value ml_glDrawUShortElements(value vm, value vc, value vd)
   GLenum mode = Enum_val(vm) ;
   GLsizei count = Int_val(vc) ;
   void *data = Caml_ba_data_val(vd) ;
+  caml_release_runtime_system();
   glDrawElements(mode, count, GL_UNSIGNED_SHORT, data) ;
+  caml_acquire_runtime_system();
   CAMLreturn(Val_unit) ;
 }
 
@@ -350,7 +369,9 @@ CAMLprim value ml_glDrawUIntElements(value vm, value vc, value vd)
   GLenum mode = Enum_val(vm) ;
   GLsizei count = Int_val(vc) ;
   void *data = Caml_ba_data_val(vd) ;
+  caml_release_runtime_system();
   glDrawElements(mode, count, GL_UNSIGNED_INT, data) ;
+  caml_acquire_runtime_system();
   CAMLreturn(Val_unit) ;
 }
 
@@ -361,7 +382,9 @@ CAMLprim value ml_glDrawBufferElements(value vm, value vc, value vt, value vd)
   GLsizei count = Int_val(vc) ;
   GLenum type = Enum_val(vt) ;
   void *data = (void *)Long_val(vd) ;
+  caml_release_runtime_system();
   glDrawElements(mode, count, type, data) ;
+  caml_acquire_runtime_system();
   CAMLreturn(Val_unit) ;
 }
 
@@ -1106,12 +1129,15 @@ ML_2(glStencilMaskSeparate, Enum_val, Int_val) ;
 CAMLprim value ml_glClear(value vl)
 {
   CAMLparam1(vl) ;
-  GLint accu = 0 ;
-  while(Is_block(vl)) {
-    accu |= Enum_val(Field(vl, 0)) ;
-    vl = Field(vl, 1) ;
+  value vp = vl;
+  GLint accu =0 ;
+  while(Is_block(vp)) {
+    accu |= Enum_val(Field(vp, 0)) ;
+    vp = Field(vp, 1) ;
   }
+  caml_release_runtime_system();
   glClear(accu) ;
+  caml_acquire_runtime_system();
   CAMLreturn(Val_unit) ;
 }
 
@@ -1199,7 +1225,9 @@ CAMLprim value ml_glDrawBuffers(value vv)
   GLenum buf[n] ;
   for(i = 0; i < n; i++)
     buf[i] = Enum_val(Field(vv, i)) ;
+  caml_release_runtime_system();
   glDrawBuffers(n, buf) ;
+  caml_acquire_runtime_system();
   CAMLreturn(Val_unit) ;
 }
 

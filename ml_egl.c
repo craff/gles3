@@ -31,6 +31,9 @@
 #include <caml/config.h>
 #include <caml/callback.h>
 #include <caml/fail.h>
+#include <caml/threads.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 static int initialized = 0 ;
 
@@ -60,33 +63,51 @@ static value motion_notify_callback = (value)NULL ;
 
 static void protect_callback(char *name, value f, value v1)
 {
+  caml_acquire_runtime_system();
+  CAMLparam2(f,v1);
+  printf("before callback %s %x\n",name,f); fflush(stdout);
   if(Is_exception_result(caml_callback_exn(f, v1)))
     fprintf(stderr, "Egl.main_loop: "
 	    "WARNING: %s raised an exception\n", name) ;
+  printf("after callback %s\n",name); fflush(stdout);
+  CAMLdrop;
+  caml_release_runtime_system();
 }
 
 static void protect_callback2(char *name, value f, value v1, value v2)
 {
+  caml_acquire_runtime_system();
+  CAMLparam3(f,v1,v2);
   if(Is_exception_result(caml_callback2_exn(f, v1, v2)))
     fprintf(stderr, "Egl.main_loop: "
 	    "WARNING: %s raised an exception\n", name) ;
+  CAMLdrop;
+  caml_release_runtime_system();
 }
 
 static void protect_callback3(char *name, value f, value v1,
 			      value v2, value v3)
 {
+  caml_acquire_runtime_system();
+  CAMLparam4(f,v1,v2,v3);
   if(Is_exception_result(caml_callback3_exn(f, v1, v2, v3)))
     fprintf(stderr, "Egl.main_loop: "
 	    "WARNING: %s raised an exception\n", name) ;
+  CAMLdrop;
+  caml_release_runtime_system();
 }
 
 static void protect_callback4(char *name, value f, value v1,
 			      value v2, value v3, value v4)
 {
-  value tmp[4] = { v1, v2, v3, v4 } ;
+  caml_acquire_runtime_system();
+  CAMLparam5(f,v1,v2,v3,v4);
+  value tmp[4] = { v1, v2, v3, v4 } ;  
   if(Is_exception_result(caml_callbackN_exn(f, 4, tmp)))
     fprintf(stderr, "Egl.main_loop: "
 	    "WARNING: %s raised an exception\n", name) ;
+  CAMLdrop;
+  caml_release_runtime_system();
 }
 
 /****************************************************************************/
@@ -95,6 +116,7 @@ static void protect_callback4(char *name, value f, value v1,
 
 static int IOErrorHandler(Display *dpy)
 {
+  printf("IOErrorHandler \n"); fflush(stdout);
   /* If error came from another display, we call saved_IOErrorHandler */
   if(dpy != xdisplay) {
     if(saved_IOErrorHandler != NULL)
@@ -107,14 +129,14 @@ static int IOErrorHandler(Display *dpy)
 
   value saved_delete_callback = delete_callback ;
 
-  idle_callback = (value)NULL ;
-  reshape_callback = (value)NULL ;
-  delete_callback = (value)NULL ;
-  key_press_callback = (value)NULL ;
-  key_release_callback = (value)NULL ;
-  button_press_callback = (value)NULL ;
-  button_release_callback = (value)NULL ;
-  motion_notify_callback = (value)NULL ;
+  caml_modify_generational_global_root(&idle_callback, (value)NULL) ;
+  caml_modify_generational_global_root(&reshape_callback, (value)NULL) ;
+  caml_modify_generational_global_root(&delete_callback, (value)NULL) ;
+  caml_modify_generational_global_root(&key_press_callback, (value)NULL) ;
+  caml_modify_generational_global_root(&key_release_callback, (value)NULL) ;
+  caml_modify_generational_global_root(&button_press_callback, (value)NULL) ;
+  caml_modify_generational_global_root(&button_release_callback, (value)NULL) ;
+  caml_modify_generational_global_root(&motion_notify_callback, (value)NULL) ;
 
   context = EGL_NO_CONTEXT ;
   surface = EGL_NO_SURFACE ;
@@ -277,14 +299,14 @@ CAMLprim value ml_egl_initialize(value vc, value vw, value vh, value vn)
   saved_IOErrorHandler = XSetIOErrorHandler(&IOErrorHandler) ;
 
   /* Register CAML roots for callbacks */
-  caml_register_global_root(&idle_callback) ;
-  caml_register_global_root(&reshape_callback) ;
-  caml_register_global_root(&delete_callback) ;
-  caml_register_global_root(&key_press_callback) ;
-  caml_register_global_root(&key_release_callback) ;
-  caml_register_global_root(&button_press_callback) ;
-  caml_register_global_root(&button_release_callback) ;
-  caml_register_global_root(&motion_notify_callback) ;
+  caml_register_generational_global_root(&idle_callback) ;
+  caml_register_generational_global_root(&reshape_callback) ;
+  caml_register_generational_global_root(&delete_callback) ;
+  caml_register_generational_global_root(&key_press_callback) ;
+  caml_register_generational_global_root(&key_release_callback) ;
+  caml_register_generational_global_root(&button_press_callback) ;
+  caml_register_generational_global_root(&button_release_callback) ;
+  caml_register_generational_global_root(&motion_notify_callback) ;
 
   initialized = 1 ;
 
@@ -300,7 +322,16 @@ CAMLprim value ml_egl_set_idle_callback(value v)
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_idle_callback: not initialized") ;
-  idle_callback = v ;
+  caml_modify_generational_global_root(&idle_callback, v) ;
+  CAMLreturn(Val_unit) ;
+}
+
+CAMLprim value ml_egl_unset_idle_callback(value v)
+{
+  CAMLparam1(v);
+  if(!initialized)
+    failwith("Egl.set_idle_callback: not initialized") ;
+  caml_modify_generational_global_root(&idle_callback, (value)NULL) ;
   CAMLreturn(Val_unit) ;
 }
 
@@ -309,7 +340,7 @@ CAMLprim value ml_egl_set_reshape_callback(value v)
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_reshape_callback: not initialized") ;
-  reshape_callback = v ;
+  caml_modify_generational_global_root(&reshape_callback, v) ;
   CAMLreturn(Val_unit) ;
 }
 
@@ -318,7 +349,7 @@ CAMLprim value ml_egl_set_delete_callback(value v)
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_delete_callback: not initialized") ;
-  delete_callback = v ;
+  caml_modify_generational_global_root(&delete_callback, v) ;
   CAMLreturn(Val_unit) ;
 }
 
@@ -327,7 +358,7 @@ CAMLprim value ml_egl_set_key_press_callback(value v)
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_key_press_callback: not initialized") ;
-  key_press_callback = v ;
+  caml_modify_generational_global_root(&key_press_callback, v) ;
   CAMLreturn(Val_unit) ;
 }
 
@@ -336,7 +367,7 @@ CAMLprim value ml_egl_set_key_release_callback(value v)
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_key_release_callback: not initialized") ;
-  key_release_callback = v ;
+  caml_modify_generational_global_root(&key_release_callback, v) ;
   CAMLreturn(Val_unit) ;
 }
 
@@ -345,7 +376,7 @@ CAMLprim value ml_egl_set_button_press_callback(value v)
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_button_press_callback: not initialized") ;
-  button_press_callback = v ;
+  caml_modify_generational_global_root(&button_press_callback, v) ;
   CAMLreturn(Val_unit) ;
 }
 
@@ -354,7 +385,7 @@ CAMLprim value ml_egl_set_button_release_callback(value v)
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_button_release_callback: not initialized") ;
-  button_release_callback = v ;
+  caml_modify_generational_global_root(&button_release_callback, v) ;
   CAMLreturn(Val_unit) ;
 }
 
@@ -363,7 +394,7 @@ CAMLprim value ml_egl_set_motion_notify_callback(value v)
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_motion_notify_callback: not initialized") ;
-  motion_notify_callback = v ;
+  caml_modify_generational_global_root(&motion_notify_callback, v) ;
   CAMLreturn(Val_unit) ;
 }
 
@@ -376,6 +407,8 @@ value ml_egl_main_loop(value v)
   CAMLparam1(v) ;
   CAMLlocal1(res) ;
   XEvent event ;
+
+  caml_release_runtime_system();
 
   if(!initialized)
     failwith("Egl.main_loop: not initialized") ;
@@ -392,9 +425,11 @@ value ml_egl_main_loop(value v)
 
   while(main_loop_continue) {
 
-    if(idle_callback != (value)NULL)
-      while(XPending(xdisplay) == 0)
+    if(idle_callback != (value)NULL) {
+      while(XPending(xdisplay) == 0) {
 	protect_callback("idle callback", idle_callback, Val_unit) ;
+      }
+    }
     XNextEvent(xdisplay, &event) ;
 
     switch(event.type) {
@@ -493,6 +528,8 @@ value ml_egl_main_loop(value v)
     }
   }
   main_loop_reentrant = 0 ;
+
+  caml_acquire_runtime_system();
   CAMLreturn(Val_unit) ;
 }
 
@@ -514,7 +551,9 @@ value ml_egl_swap_buffers(value v)
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.swap_buffers: not initialized") ;
+  caml_release_runtime_system();
   eglSwapBuffers(display, surface) ;
+  caml_acquire_runtime_system();
   CAMLreturn(Val_unit) ;
 }
 

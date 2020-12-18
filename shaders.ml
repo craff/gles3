@@ -41,6 +41,11 @@ type shader = {
   src : string
 }
 
+let of_string ty str =
+  { name = str;
+    ty;
+    src = str }
+
 let load_shader ty filename =
   let ch = open_in filename in
   let len = in_channel_length ch in
