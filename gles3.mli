@@ -54,33 +54,18 @@ type storage_type = [ `byte | `ubyte | `short | `ushort | `uint | `float ]
 
 type shape =
   [ `points | `lines | `line_strip | `line_loop
-  | `triangles | `triangle_strip | `triangle_fan ]
+    | `triangles | `triangle_strip | `triangle_fan
+  ]
 
-external vertex_attrib_1f :
-    index:int -> float -> unit
-        = "ml_glVertexAttrib1f"
+val vertex_attrib_1f : index:int -> float -> unit
+val vertex_attrib_2f : index:int -> float -> float -> unit
+val vertex_attrib_3f : index:int -> float -> float -> float -> unit
+val vertex_attrib_4f : index:int -> float -> float -> float -> float -> unit
 
-external vertex_attrib_2f :
-    index:int -> float -> float -> unit
-        = "ml_glVertexAttrib2f"
+val vertex_attrib_fv : index:int -> float array -> unit
 
-external vertex_attrib_3f :
-    index:int -> float -> float -> float -> unit
-        = "ml_glVertexAttrib3f"
-
-external vertex_attrib_4f :
-    index:int -> float -> float -> float -> float -> unit
-        = "ml_glVertexAttrib4f"
-
-external vertex_attrib_fv :
-    index:int -> float array -> unit
-        = "ml_glVertexAttribfv"
-
-external enable_vertex_attrib_array : index:int -> unit
-    = "ml_glEnableVertexAttribArray"
-
-external disable_vertex_attrib_array : index:int -> unit
-    = "ml_glDisableVertexAttribArray"
+val enable_vertex_attrib_array : index:int -> unit
+val disable_vertex_attrib_array : index:int -> unit
 
 val vertex_attrib_byte_pointer :
     index:int -> size:int -> ?norm:bool ->
@@ -113,22 +98,14 @@ val vertex_attrib_buffer_pointer :
 
 val draw_arrays : shape -> ?first:int -> count:int -> unit
 
-external draw_ubyte_elements :
-    shape -> count:int -> ubyte_bigarray -> unit
-	= "ml_glDrawUByteElements"
+val draw_ubyte_elements : shape -> count:int -> ubyte_bigarray -> unit
 
-external draw_ushort_elements :
-    shape -> count:int -> ushort_bigarray -> unit
-	= "ml_glDrawUShortElements"
+val draw_ushort_elements : shape -> count:int -> ushort_bigarray -> unit
 
 (* only supported if extension GL_OES_element_index_uint is present *)
-external draw_uint_elements :
-    shape -> count:int -> uint_bigarray -> unit
-	= "ml_glDrawUIntElements"
+val draw_uint_elements : shape -> count:int -> uint_bigarray -> unit
 
-external draw_buffer_elements :
-    shape -> count:int -> typ:storage_type -> int -> unit
-	= "ml_glDrawBufferElements"
+val draw_buffer_elements : shape -> count:int -> typ:storage_type -> int -> unit
 
 (****************************************************************************)
 (** {b  BUFFERS }                                                           *)
@@ -140,36 +117,31 @@ type buffer_target = [ `array_buffer | `element_array_buffer ]
 type buffer
 
 val null_buffer : buffer
-external int_of_buffer : buffer -> int = "%identity"
-external buffer_of_int : int -> buffer = "%identity"
+val int_of_buffer : buffer -> int
+val buffer_of_int : int -> buffer
 
-external is_buffer : buffer -> bool = "ml_glIsBuffer"
-external gen_buffer : unit -> buffer = "ml_glGenBuffer"
-external gen_buffers : int -> buffer array = "ml_glGenBuffers"
-external delete_buffer : buffer -> unit = "ml_glDeleteBuffer"
-external delete_buffers : buffer array -> unit = "ml_glDeleteBuffers"
+val is_buffer : buffer -> bool
+val gen_buffer : unit -> buffer
+val gen_buffers : int -> buffer array
+val delete_buffer : buffer -> unit
+val delete_buffers : buffer array -> unit
 
-external bind_buffer : target:buffer_target -> buffer -> unit
-    = "ml_glBindBuffer"
+val bind_buffer : target:buffer_target -> buffer -> unit
 
-external buffer_size :
+val buffer_size :
     target:buffer_target -> size:int -> usage:buffer_usage -> unit
-	= "ml_glBufferSize"
 
-external buffer_data :
+val buffer_data :
     target:buffer_target ->
     ('a, 'b, c_layout) Genarray.t -> usage:buffer_usage -> unit
-	= "ml_glBufferData"
 
 val buffer_sub_data :
     target:buffer_target -> ?offset:int ->
     ('a, 'b, c_layout) Genarray.t -> unit
 
-external get_buffer_size : target:buffer_target -> int
-    = "ml_glGetBufferSize"
+val get_buffer_size : target:buffer_target -> int
 
-external get_buffer_usage : target:buffer_target -> buffer_usage
-    = "ml_glGetBufferUsage"
+val get_buffer_usage : target:buffer_target -> buffer_usage
 
 (****************************************************************************)
 (** {b  SHADERS}                                                            *)
@@ -180,58 +152,48 @@ type shader_type = [ `vertex_shader | `fragment_shader ]
 type shader
 
 val null_shader : shader
-external int_of_shader : shader -> int = "%identity"
-external shader_of_int : int -> shader = "%identity"
+val int_of_shader : shader -> int
+val shader_of_int : int -> shader
+val is_shader : shader -> bool
+val create_shader : shader_type -> shader
+val delete_shader : shader -> unit
 
-external is_shader : shader -> bool = "ml_glIsShader"
-external create_shader : shader_type -> shader = "ml_glCreateShader"
-external delete_shader : shader -> unit = "ml_glDeleteShader"
+val shader_source : shader -> string array -> unit
+val compile_shader : shader -> unit
+val release_shader_compiler : unit -> unit
 
-external shader_source : shader -> string array -> unit = "ml_glShaderSource"
-external compile_shader : shader -> unit = "ml_glCompileShader"
-external release_shader_compiler : unit -> unit = "ml_glReleaseShaderCompiler"
-
-external get_shader_type : shader -> shader_type = "ml_glGetShaderType"
-external get_shader_source : shader -> string = "ml_glGetShaderSource"
-external get_shader_info_log : shader -> string = "ml_glGetShaderInfoLog"
-
-external get_shader_delete_status : shader -> bool
-    = "ml_glGetShaderDeleteStatus"
-
-external get_shader_compile_status : shader -> bool
-    = "ml_glGetShaderCompileStatus"
+val get_shader_type : shader -> shader_type
+val get_shader_source : shader -> string
+val get_shader_info_log : shader -> string
+val get_shader_delete_status : shader -> bool
+val get_shader_compile_status : shader -> bool
 
 (****************************************************************************)
 (** {b PROGRAMS  }                                                          *)
 (****************************************************************************)
 
-type program
+type program = int
 
 val null_program : program
-external int_of_program : program -> int = "%identity"
-external program_of_int : int -> program = "%identity"
+val int_of_program : program -> int
+val program_of_int : int -> program
 
-external is_program : program -> bool = "ml_glIsShader"
-external create_program : unit -> program = "ml_glCreateProgram"
-external delete_program : program -> unit = "ml_glDeleteProgram"
+val is_program : program -> bool
+val create_program : unit -> program
+val delete_program : program -> unit
 
-external attach_shader : program -> shader -> unit = "ml_glAttachShader"
-external detach_shader : program -> shader -> unit = "ml_glDetachShader"
+val attach_shader : program -> shader -> unit
+val detach_shader : program -> shader -> unit
 
-external link_program : program -> unit = "ml_glLinkProgram"
-external use_program : program -> unit = "ml_glUseProgram"
-external validate_program : program -> bool = "ml_glValidateProgram"
+val link_program : program -> unit
+val use_program : program -> unit
+val validate_program : program -> bool
 
-external get_attached_shaders : program -> shader array
-    = "ml_glGetAttachedShaders"
+val get_attached_shaders : program -> shader array
+val get_program_info_log : program -> string
+val get_program_delete_status : program -> bool
+val get_program_link_status : program -> bool
 
-external get_program_info_log : program -> string = "ml_glGetProgramInfoLog"
-
-external get_program_delete_status : program -> bool
-    = "ml_glGetProgramDeleteStatus"
-
-external get_program_link_status : program -> bool
-    = "ml_glGetProgramLinkStatus"
 
 (****************************************************************************)
 (**  {b PROGRAMS ATTRIBUTES & UNIFORMS }                                    *)
@@ -251,72 +213,41 @@ type uniform_type = [int_type|bool_type|float_type|sampler_type]
 val string_of_type : [<uniform_type] -> string
 val glsl_string_of_type : [<uniform_type] -> string
 
-external get_active_attribs :
-    program -> (string * int * attribute_type * int) list
-	= "ml_glGetActiveAttribs"
+val get_active_attribs : program -> (string * int * attribute_type * int) list
+val get_attrib_location : program -> string -> int
+val bind_attrib_location : program -> int -> string -> unit
 
-external get_attrib_location :
-    program -> string -> int = "ml_glGetAttribLocation"
-
-external bind_attrib_location :
-    program -> int -> string -> unit = "ml_glBindAttribLocation"
-
-external get_active_uniforms :
-    program -> (string * int * uniform_type * int) list
-	= "ml_glGetActiveUniforms"
-
-external get_uniform_location :
-    program -> string -> int = "ml_glGetUniformLocation"
+val get_active_uniforms : program -> (string * int * uniform_type * int) list
+val get_uniform_location : program -> string -> int
 
 (****************************************************************************)
 (** {b  UNIFORMS}                                                           *)
 (****************************************************************************)
 
-external uniform_1i :
-    loc:int -> int -> unit = "ml_glUniform1i"
-
-external uniform_2i :
-    loc:int -> int -> int -> unit = "ml_glUniform2i"
-
-external uniform_3i :
-    loc:int -> int -> int -> int -> unit = "ml_glUniform3i"
-
-external uniform_4i :
-    loc:int -> int -> int -> int -> int -> unit = "ml_glUniform4i"
+val uniform_1i : loc:int -> int -> unit
+val uniform_2i : loc:int -> int -> int -> unit
+val uniform_3i : loc:int -> int -> int -> int -> unit
+val uniform_4i : loc:int -> int -> int -> int -> int -> unit
 
 val uniform_1iv : loc:int -> ?count:int -> int array -> unit
 val uniform_2iv : loc:int -> ?count:int -> int array -> unit
 val uniform_3iv : loc:int -> ?count:int -> int array -> unit
 val uniform_4iv : loc:int -> ?count:int -> int array -> unit
 
-external uniform_1b :
-    loc:int -> bool -> unit = "ml_glUniform1i"
-
-external uniform_2b :
-    loc:int -> bool -> bool -> unit = "ml_glUniform2i"
-
-external uniform_3b :
-    loc:int -> bool -> bool -> bool -> unit = "ml_glUniform3i"
-
-external uniform_4b :
-    loc:int -> bool -> bool -> bool -> bool -> unit = "ml_glUniform4i"
+val uniform_1b : loc:int -> bool -> unit
+val uniform_2b : loc:int -> bool -> bool -> unit
+val uniform_3b : loc:int -> bool -> bool -> bool -> unit
+val uniform_4b : loc:int -> bool -> bool -> bool -> bool -> unit
 
 val uniform_1bv : loc:int -> ?count:int -> bool array -> unit
 val uniform_2bv : loc:int -> ?count:int -> bool array -> unit
 val uniform_3bv : loc:int -> ?count:int -> bool array -> unit
 val uniform_4bv : loc:int -> ?count:int -> bool array -> unit
 
-external uniform_1f :
-    loc:int -> float -> unit = "ml_glUniform1f"
-
-external uniform_2f :
-    loc:int -> float -> float -> unit = "ml_glUniform2f"
-
-external uniform_3f :
-    loc:int -> float -> float -> float -> unit = "ml_glUniform3f"
-
-external uniform_4f :
-    loc:int -> float -> float -> float -> float -> unit = "ml_glUniform4f"
+val uniform_1f : loc:int -> float -> unit
+val uniform_2f : loc:int -> float -> float -> unit
+val uniform_3f : loc:int -> float -> float -> float -> unit
+val uniform_4f : loc:int -> float -> float -> float -> float -> unit
 
 val uniform_1fv : loc:int -> ?count:int -> float array -> unit
 val uniform_2fv : loc:int -> ?count:int -> float array -> unit
@@ -342,20 +273,19 @@ type cap =
 
 type face = [ `front | `back | `front_and_back ]
 
-external depth_range : near:float -> far:float -> unit = "ml_glDepthRangef"
-external viewport : x:int -> y:int -> w:int -> h:int -> unit = "ml_glViewport"
+val depth_range : near:float -> far:float -> unit
+val viewport : x:int -> y:int -> w:int -> h:int -> unit
 
-external enable : cap -> unit = "ml_glEnable"
-external disable : cap -> unit = "ml_glDisable"
-external is_enabled : cap -> bool = "ml_glIsEnabled"
+val enable : cap -> unit
+val disable : cap -> unit
+val is_enabled : cap -> bool
 
-external line_width : float -> unit = "ml_glLineWidth"
+val line_width : float -> unit
 
-external front_face : [`cw|`ccw] -> unit = "ml_glFrontFace"
-external cull_face : face:face -> unit = "ml_glCullFace"
+val front_face : [`cw|`ccw] -> unit
+val cull_face : face:face -> unit
 
-external polygon_offset : factor:float -> units:float -> unit =
-  "ml_glPolygonOffset"
+val polygon_offset : factor:float -> units:float -> unit
 
 (****************************************************************************)
 (**  TEXTURES                                                               *)
@@ -384,25 +314,18 @@ type texture_parameter =
 type texture
 
 val null_texture : texture
-external int_of_texture : texture -> int = "%identity"
-external texture_of_int : int -> texture = "%identity"
+val int_of_texture : texture -> int
+val texture_of_int : int -> texture
 
-external is_texture : texture -> bool = "ml_glIsTexture"
-external gen_texture : unit -> texture = "ml_glGenTexture"
-external gen_textures : int -> texture array = "ml_glGenTextures"
-external delete_texture : texture -> unit = "ml_glDeleteTexture"
-external delete_textures : texture array -> unit = "ml_glDeleteTextures"
-
-external active_texture : texture -> unit = "ml_glActiveTexture"
-
-external bind_texture : target:texture_target -> texture -> unit
-    = "ml_glBindTexture"
-
-external tex_parameter : target:texture_target -> texture_parameter -> unit
-    = "ml_glTexParameter"
-
-external generate_mipmap : target:texture_target -> unit
-    = "ml_glGenerateMipmap"
+val is_texture : texture -> bool
+val gen_texture : unit -> texture
+val gen_textures : int -> texture array
+val delete_texture : texture -> unit
+val delete_textures : texture array -> unit
+val active_texture : texture -> unit
+val bind_texture : target:texture_target -> texture -> unit
+val tex_parameter : target:texture_target -> texture_parameter -> unit
+val generate_mipmap : target:texture_target -> unit
 
 (****************************************************************************)
 (**  {b TEXTURE IMAGES }                                                    *)
@@ -477,46 +400,39 @@ type src_blend_func = [ dst_blend_func | `src_alpha_saturate ]
 
 val rgba : r:float -> g:float -> b:float -> a:float -> rgba
 
-external scissor : x:int -> y:int -> w:int -> h:int -> unit = "ml_glScissor"
+val scissor : x:int -> y:int -> w:int -> h:int -> unit
 
-external sample_coverage_aux : float -> invert:bool -> unit =
-  "ml_glSampleCoverage"
+val sample_coverage_aux : float -> invert:bool -> unit
 
 val sample_coverage : ?invert:bool -> float -> unit
 
-external stencil_func :
-    func:cmp_func -> ref:int -> mask:int -> unit = "ml_glStencilFunc"
+val stencil_func : func:cmp_func -> ref:int -> mask:int -> unit
 
-external stencil_func_separate :
+val stencil_func_separate :
     face:face -> func:cmp_func -> ref:int -> mask:int -> unit
-        = "ml_glStencilFuncSeparate"
 
-external stencil_op :
+val stencil_op :
     sfail:stencil_op ->
     dpfail:stencil_op -> dppass:stencil_op -> unit
-        = "ml_glStencilOp"
 
-external stencil_op_separate :
+val stencil_op_separate :
     face:face -> sfail:stencil_op ->
     dpfail:stencil_op -> dppass:stencil_op -> unit
-        = "ml_glStencilOpSeparate"
 
-external depth_func : func:cmp_func -> unit = "ml_glDepthFunc"
+val depth_func : func:cmp_func -> unit
 
-external blend_equation : blend_mode -> unit = "ml_glBlendEquation"
+val blend_equation : blend_mode -> unit
 
-external blend_equation_separate :
-    rgb:blend_mode -> alpha:blend_mode -> unit = "ml_glBlendEquationSeparate"
+val blend_equation_separate :
+    rgb:blend_mode -> alpha:blend_mode -> unit
 
-external blend_func : src:src_blend_func -> dst:dst_blend_func -> unit
-    = "ml_glBlendFunc"
+val blend_func : src:src_blend_func -> dst:dst_blend_func -> unit
 
-external blend_func_separate :
+val blend_func_separate :
     src_rgb:src_blend_func -> dst_rgb:dst_blend_func ->
     src_alpha:src_blend_func -> dst_alpha:dst_blend_func -> unit
-        = "ml_glBlendFuncSeparate"
 
-external blend_color : rgba -> unit = "ml_glBlendColor"
+val blend_color : rgba -> unit
 
 (****************************************************************************)
 (**  {b WHOLE FRAMEBUFFER OPERATIONS }                                      *)
@@ -524,24 +440,20 @@ external blend_color : rgba -> unit = "ml_glBlendColor"
 
 type which_buffer = [ `color_buffer | `depth_buffer | `stencil_buffer ]
 
-external color_mask :
-    red:bool -> green:bool -> blue:bool -> alpha:bool -> unit
-        = "ml_glColorMask"
+val color_mask : red:bool -> green:bool -> blue:bool -> alpha:bool -> unit
 
-external depth_mask : bool -> unit = "ml_glDepthMask"
-external stencil_mask : int -> unit = "ml_glStencilMask"
+val depth_mask : bool -> unit
+val stencil_mask : int -> unit
 
-external stencil_mask_separate :
-    face:face -> int -> unit = "ml_glStencilMaskSeparate"
+val stencil_mask_separate : face:face -> int -> unit
 
-external clear : which_buffer list -> unit = "ml_glClear"
+val clear : which_buffer list -> unit
 
-external clear_color : rgba -> unit = "ml_glClearColor"
-external clear_depth : float -> unit = "ml_glClearDepthf"
-external clear_stencil : int -> unit = "ml_glClearStencil"
+val clear_color : rgba -> unit
+val clear_depth : float -> unit
+val clear_stencil : int -> unit
 
-external read_pixels : x:int -> y:int -> image -> unit
-    = "ml_glReadPixels"
+val read_pixels : x:int -> y:int -> image -> unit
 
 (****************************************************************************)
 (**  {b RENDERBUFFERS   }                                                   *)
@@ -555,35 +467,28 @@ type renderbuffer_format =
 type renderbuffer
 
 val null_renderbuffer : renderbuffer
-external int_of_renderbuffer : renderbuffer -> int = "%identity"
-external renderbuffer_of_int : int -> renderbuffer = "%identity"
+val int_of_renderbuffer : renderbuffer -> int
+val renderbuffer_of_int : int -> renderbuffer
+val is_renderbuffer : renderbuffer -> bool
 
-external is_renderbuffer : renderbuffer -> bool = "ml_glIsRenderbuffer"
+val gen_renderbuffer : unit -> renderbuffer
+val gen_renderbuffers : int -> renderbuffer array
 
-external gen_renderbuffer : unit -> renderbuffer
-    = "ml_glGenRenderbuffer"
-external gen_renderbuffers : int -> renderbuffer array
-    = "ml_glGenRenderbuffers"
+val delete_renderbuffer : renderbuffer -> unit
+val delete_renderbuffers : renderbuffer array -> unit
 
-external delete_renderbuffer : renderbuffer -> unit
-    = "ml_glDeleteRenderbuffer"
-external delete_renderbuffers : renderbuffer array -> unit
-    = "ml_glDeleteRenderbuffers"
-
-external draw_buffers : [ `none | `back | `color_attachment0 | `color_attachment1
+val draw_buffers : [ `none | `back | `color_attachment0 | `color_attachment1
  | `color_attachment2 | `color_attachment3 | `color_attachment4 | `color_attachment5
  | `color_attachment6 | `color_attachment7 | `color_attachment8 | `color_attachment9
  | `color_attachment10 | `color_attachment11 | `color_attachment12 | `color_attachment13
  | `color_attachment14 | `color_attachment15 ] array -> unit
-    = "ml_glDrawBuffers"
 
-external bind_renderbuffer :
-    target:renderbuffer_target -> renderbuffer -> unit
-	= "ml_glBindRenderbuffer"
 
-external renderbuffer_storage :
+val bind_renderbuffer : target:renderbuffer_target -> renderbuffer -> unit
+
+val renderbuffer_storage :
     target:renderbuffer_target -> format:renderbuffer_format ->
-    width:int -> height:int -> unit = "ml_glRenderbufferStorage"
+    width:int -> height:int -> unit
 
 (****************************************************************************)
 (** {b  FRAMEBUFFERS }                                                      *)
@@ -594,37 +499,27 @@ type framebuffer_target = [ `framebuffer ]
 type framebuffer
 
 val null_framebuffer : framebuffer
-external int_of_framebuffer : framebuffer -> int = "%identity"
-external framebuffer_of_int : int -> framebuffer = "%identity"
+val int_of_framebuffer : framebuffer -> int
+val framebuffer_of_int : int -> framebuffer
+val is_framebuffer : (framebuffer [@untagged]) -> bool
 
-external is_framebuffer : framebuffer -> bool = "ml_glIsFramebuffer"
+val gen_framebuffer : unit -> framebuffer
+val gen_framebuffers : int -> framebuffer array
+val delete_framebuffer : framebuffer -> unit
+val delete_framebuffers : framebuffer array -> unit
 
-external gen_framebuffer : unit -> framebuffer
-    = "ml_glGenFramebuffer"
-external gen_framebuffers : int -> framebuffer array
-    = "ml_glGenFramebuffers"
-
-external delete_framebuffer : framebuffer -> unit
-    = "ml_glDeleteFramebuffer"
-external delete_framebuffers : framebuffer array -> unit
-    = "ml_glDeleteFramebuffers"
-
-external bind_framebuffer :
-    target:framebuffer_target -> framebuffer -> unit
-	= "ml_glBindFramebuffer"
+val bind_framebuffer : target:framebuffer_target -> framebuffer -> unit
 
 type framebuffer_attachment =
   [ `color_attachment0 | `depth_attachment | `stencil_attachment ]
 
-external framebuffer_renderbuffer :
+val framebuffer_renderbuffer :
     target:framebuffer_target -> attach:framebuffer_attachment ->
     target2:renderbuffer_target -> renderbuffer -> unit
-        = "ml_glFramebufferRenderbuffer"
 
-external framebuffer_texture_2d :
+val framebuffer_texture_2d :
     target:framebuffer_target -> attach:framebuffer_attachment ->
     target2:texture_image_target -> texture -> level:int -> unit
-        = "ml_glFramebufferTexture2D"
 
 type framebuffer_status =
   [ `framebuffer_complete
@@ -633,9 +528,8 @@ type framebuffer_status =
   | `framebuffer_incomplete_missing_attachment
   | `framebuffer_unsupported ]
 
-external check_framebuffer_status :
+val check_framebuffer_status :
     target:framebuffer_target -> framebuffer_status
-	= "ml_glCheckFramebufferStatus"
 
 (****************************************************************************)
 (**  {b MISCELLANEOUS }                                                     *)
@@ -646,18 +540,18 @@ type error =
   | `invalid_value | `invalid_operation | `out_of_memory ]
 
 val error_to_string : error -> string
-external get_error : unit -> error = "ml_glGetError"
+val get_error : unit -> error
 
 (** show all erros (in a loop) and therefore really reset the error flag
     error code is printed together with the given message *)
 val show_errors : string -> unit
 
-external get_vendor : unit -> string = "ml_glGetVendor"
-external get_renderer : unit -> string = "ml_glGetRenderer"
-external get_version : unit -> string = "ml_glGetVersion"
-external get_shading_language_version : unit -> string
-    = "ml_glGetShadingLanguageVersion"
-external get_extensions : unit -> string = "ml_glGetExtensions"
+val get_vendor : unit -> string
+val get_renderer : unit -> string
+val get_version : unit -> string
+val get_shading_language_version : unit -> string
 
-external flush : unit -> unit = "ml_glFlush"
-external finish : unit -> unit = "ml_glFinish"
+val get_extensions : unit -> string
+
+val flush : unit -> unit
+val finish : unit -> unit

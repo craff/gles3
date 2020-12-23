@@ -58,30 +58,32 @@ let create_mmapped_float_bigarray len = Unix.map_file (tempfd ()) float32 c_layo
 (****************************************************************************)
 
 external vertex_attrib_1f :
-    index:int -> float -> unit
-	= "ml_glVertexAttrib1f"
+    index:(int [@untagged]) -> (float [@unboxed]) -> unit
+	= "ml_glVertexAttrib1f" "mlU_glVertexAttrib1f"
 
 external vertex_attrib_2f :
-    index:int -> float -> float -> unit
-	= "ml_glVertexAttrib2f"
+    index:(int [@untagged]) -> (float [@unboxed]) -> (float [@unboxed]) -> unit
+	= "ml_glVertexAttrib2f" "mlU_glVertexAttrib2f"
 
 external vertex_attrib_3f :
-    index:int -> float -> float -> float -> unit
-	= "ml_glVertexAttrib3f"
+  index:(int [@untagged]) -> (float [@unboxed]) -> (float [@unboxed])
+       -> (float [@unboxed]) -> unit
+	= "ml_glVertexAttrib3f" "mlU_glVertexAttrib3f"
 
 external vertex_attrib_4f :
-    index:int -> float -> float -> float -> float -> unit
-	= "ml_glVertexAttrib4f"
+  index:(int [@untagged]) -> (float [@unboxed]) -> (float [@unboxed])
+       -> (float [@unboxed]) -> (float [@unboxed]) -> unit
+	= "ml_glVertexAttrib4f" "mlU_glVertexAttrib4f"
 
 external vertex_attrib_fv :
     index:int -> float array -> unit
 	= "ml_glVertexAttribfv"
 
-external enable_vertex_attrib_array : index:int -> unit
-    = "ml_glEnableVertexAttribArray"
+external enable_vertex_attrib_array : index:(int [@untagged]) -> unit
+    = "ml_glEnableVertexAttribArray" "mlU_glEnableVertexAttribArray"
 
-external disable_vertex_attrib_array : index:int -> unit
-    = "ml_glDisableVertexAttribArray"
+external disable_vertex_attrib_array : index:(int [@untaged]) -> unit
+    = "ml_glDisableVertexAttribArray" "mlU_glDisableVertexAttribArray"
 
 type storage_type = [ `byte | `ubyte | `short | `ushort | `uint | `float ]
 
@@ -136,7 +138,7 @@ let vertex_attrib_float_pointer ~index ~size ?(norm=false) ?(stride=0) a =
 external vertex_attrib_buffer_pointer_aux :
     index:int -> size:int -> typ:storage_type ->
     norm:bool -> stride:int -> int -> unit
-	= "ml_glVertexAttribBufferPointer_bc" "ml_glVertexAttribBufferPointer"
+	= "ml_glVertexAttribBufferPointer_bc" "mlU_glVertexAttribBufferPointer"
 
 let vertex_attrib_buffer_pointer
     ~index ~size ~typ ?(norm=false) ?(stride=0) p =
@@ -146,8 +148,9 @@ type shape =
   [ `points | `lines | `line_strip | `line_loop
   | `triangles | `triangle_strip | `triangle_fan ]
 
-external draw_arrays_aux : shape -> first:int -> count:int -> unit
-    = "ml_glDrawArrays"
+external draw_arrays_aux :
+  shape -> first:(int [@untagged]) -> count:(int [@untagged]) -> unit
+    = "ml_glDrawArrays" "mlU_glDrawArrays"
 
 let draw_arrays shape ?(first=0) ~count =
   draw_arrays_aux shape ~first ~count
@@ -175,20 +178,21 @@ external draw_buffer_elements :
 type buffer_usage = [ `static_draw | `dynamic_draw | `stream_draw ]
 type buffer_target = [ `array_buffer | `element_array_buffer ]
 
-type buffer
+type buffer = int
 
 external int_of_buffer : buffer -> int = "%identity"
 external buffer_of_int : int -> buffer = "%identity"
 let null_buffer = buffer_of_int 0
 
-external is_buffer : buffer -> bool = "ml_glIsBuffer"
+external is_buffer : (buffer [@untagged]) -> bool
+  = "ml_glIsBuffer" "mlU_glIsBuffer"
 external gen_buffer : unit -> buffer = "ml_glGenBuffer"
 external gen_buffers : int -> buffer array = "ml_glGenBuffers"
 external delete_buffer : buffer -> unit = "ml_glDeleteBuffer"
 external delete_buffers : buffer array -> unit = "ml_glDeleteBuffers"
 
-external bind_buffer : target:buffer_target -> buffer -> unit
-    = "ml_glBindBuffer"
+external bind_buffer : target:buffer_target -> (buffer [@untagged]) -> unit
+    = "ml_glBindBuffer" "mlU_glBindBuffer"
 
 external buffer_size :
     target:buffer_target -> size:int -> usage:buffer_usage -> unit
@@ -217,7 +221,7 @@ external get_buffer_usage : target:buffer_target -> buffer_usage
 (*   SHADERS                                                                *)
 (****************************************************************************)
 
-type shader
+type shader = int
 
 type shader_type = [ `vertex_shader | `fragment_shader ]
 
@@ -225,12 +229,16 @@ external int_of_shader : shader -> int = "%identity"
 external shader_of_int : int -> shader = "%identity"
 let null_shader = shader_of_int 0
 
-external is_shader : shader -> bool = "ml_glIsShader"
-external create_shader : shader_type -> shader = "ml_glCreateShader"
-external delete_shader : shader -> unit = "ml_glDeleteShader"
+external is_shader : (shader [@untagged]) -> bool
+  = "ml_glIsShader" "mlU_glIsShader"
+external create_shader : shader_type -> (shader [@untagged])
+  = "ml_glCreateShader" "mlU_glCreateShader"
+external delete_shader : (shader [@untagged]) -> unit
+  = "ml_glDeleteShader" "mlU_glDeleteShader"
 
 external shader_source : shader -> string array -> unit = "ml_glShaderSource"
-external compile_shader : shader -> unit = "ml_glCompileShader"
+external compile_shader : (shader [@untagged]) -> unit
+  = "ml_glCompileShader" "mlU_glCompileShader"
 external release_shader_compiler : unit -> unit = "ml_glReleaseShaderCompiler"
 
 external get_shader_type : shader -> shader_type = "ml_glGetShaderType"
@@ -247,21 +255,28 @@ external get_shader_compile_status : shader -> bool
 (*   PROGRAMS                                                               *)
 (****************************************************************************)
 
-type program
+type program = int
 
 external int_of_program : program -> int = "%identity"
 external program_of_int : int -> program = "%identity"
 let null_program = program_of_int 0
 
-external is_program : program -> bool = "ml_glIsShader"
-external create_program : unit -> program = "ml_glCreateProgram"
-external delete_program : program -> unit = "ml_glDeleteProgram"
+external is_program : (program [@untagged]) -> bool
+  = "ml_glIsShader" "mlU_glIsShader"
+external create_program : unit -> (program [@untagged])
+  = "ml_glCreateProgram" "mlU_glCreateProgram"
+external delete_program : (program [@untagged]) -> unit
+  = "ml_glDeleteProgram" "mlU_glDeleteProgram"
 
-external attach_shader : program -> shader -> unit = "ml_glAttachShader"
-external detach_shader : program -> shader -> unit = "ml_glDetachShader"
+external attach_shader : (program [@untagged]) -> (shader [@untagged]) -> unit =
+  "ml_glAttachShader" "mlU_glAttachShader"
+external detach_shader : (program [@untagged]) -> (shader [@untagged]) -> unit =
+  "ml_glDetachShader" "mlU_glDetachShader"
 
-external link_program : program -> unit = "ml_glLinkProgram"
-external use_program : program -> unit = "ml_glUseProgram"
+external link_program : (program [@untagged]) -> unit =
+  "ml_glLinkProgram"  "mlU_glLinkProgram"
+external use_program : (program [@untagged]) -> unit =
+  "ml_glUseProgram"   "mlU_glUseProgram"
 external validate_program : program -> bool = "ml_glValidateProgram"
 
 type int_type = [ `int | `int_vec2 | `int_vec3 | `int_vec4 ]
@@ -320,20 +335,23 @@ external get_active_attribs :
 	= "ml_glGetActiveAttribs"
 
 external get_attrib_location :
-    program -> string -> int = "ml_glGetAttribLocation"
+  (program [@untagged]) -> string -> (int [@untagged]) =
+  "ml_glGetAttribLocation" "mlU_glGetAttribLocation"
 
 external bind_attrib_location :
-    program -> int -> string -> unit = "ml_glBindAttribLocation"
+  (program [@untagged]) -> (int [@untagged]) -> string -> unit
+  = "ml_glBindAttribLocation" "mlU_glBindAttribLocation"
 
 external get_active_uniforms :
     program -> (string * int * uniform_type * int) list
 	= "ml_glGetActiveUniforms"
 
 external get_uniform_location :
-    program -> string -> int = "ml_glGetUniformLocation"
+  (program [@untagged]) -> string -> (int [@untagged])
+  = "ml_glGetUniformLocation" "mlU_glGetUniformLocation"
 
 external get_attached_shaders : program -> shader array
-    = "ml_glGetAttachedShaders"
+  = "ml_glGetAttachedShaders"
 
 external get_program_info_log : program -> string = "ml_glGetProgramInfoLog"
 
@@ -347,17 +365,22 @@ external get_program_link_status : program -> bool
 (*   UNIFORMS                                                               *)
 (****************************************************************************)
 
-external uniform_1i :
-    loc:int -> int -> unit = "ml_glUniform1i"
+external uniform_1i : loc:(int [@untagged]) -> (int [@untagged]) -> unit
+  = "ml_glUniform1i" "mlU_glUniform1i"
 
 external uniform_2i :
-    loc:int -> int -> int -> unit = "ml_glUniform2i"
+  loc:(int [@untagged]) -> (int [@untagged]) -> (int [@untagged]) -> unit
+  = "ml_glUniform2i" "mlU_glUniform2i"
 
 external uniform_3i :
-    loc:int -> int -> int -> int -> unit = "ml_glUniform3i"
+  loc:(int [@untagged]) -> (int [@untagged]) -> (int [@untagged])
+  -> (int [@untagged]) -> unit
+  = "ml_glUniform3i" "mlU_glUniform3i"
 
 external uniform_4i :
-    loc:int -> int -> int -> int -> int -> unit = "ml_glUniform4i"
+  loc:(int [@untagged]) -> (int [@untagged]) -> (int [@untagged])
+  -> (int [@untagged]) -> (int [@untagged]) -> unit
+  = "ml_glUniform4i" "mlU_glUniform4i"
 
 external uniform_1iv_aux : loc:int -> count:int -> int array -> unit
     = "ml_glUniform1iv"
@@ -451,17 +474,22 @@ let uniform_4bv ~loc ?count a =
     | Some count -> count in
   uniform_4bv_aux ~loc ~count a
 
-external uniform_1f :
-    loc:int -> float -> unit = "ml_glUniform1f"
+external uniform_1f : loc:(int [@untagged]) -> (float [@unboxed]) -> unit
+  = "ml_glUniform1f" "mlU_glUniform1f"
 
 external uniform_2f :
-    loc:int -> float -> float -> unit = "ml_glUniform2f"
+  loc:(int [@untagged]) -> (float [@unboxed]) -> (float [@unboxed]) -> unit
+  = "ml_glUniform2f" "mlU_glUniform2f"
 
 external uniform_3f :
-    loc:int -> float -> float -> float -> unit = "ml_glUniform3f"
+  loc:(int [@untagged]) -> (float [@unboxed]) -> (float [@unboxed])
+  -> (float [@unboxed]) -> unit
+  = "ml_glUniform3f" "mlU_glUniform3f"
 
 external uniform_4f :
-    loc:int -> float -> float -> float -> float -> unit = "ml_glUniform4f"
+  loc:(int [@untagged]) -> (float [@unboxed]) -> (float [@unboxed])
+  -> (float [@unboxed]) -> (float [@unboxed]) -> unit
+  = "ml_glUniform4f" "mlU_glUniform4f"
 
 external uniform_1fv_aux : loc:int -> count:int -> float array -> unit
     = "ml_glUniform1fv"
@@ -540,8 +568,13 @@ let uniform_matrix_4fv ~loc ?count ?(transp=false) a =
 (*   RASTERIZATION                                                          *)
 (****************************************************************************)
 
-external depth_range : near:float -> far:float -> unit = "ml_glDepthRangef"
-external viewport : x:int -> y:int -> w:int -> h:int -> unit = "ml_glViewport"
+external depth_range
+         : near:(float [@unboxed]) -> far:(float [@unboxed]) -> unit =
+  "ml_glDepthRangef" "mlU_glDepthRangef"
+external viewport :
+  x:(int [@untagged]) -> y:(int [@untagged]) -> w:(int [@untagged])
+  -> h:(int [@untagged]) -> unit
+  = "ml_glViewport" "mlU_glViewport"
 
 type cap =
   [ `blend|`cull_face|`depth_test|`dither|`polygon_offset_fill
@@ -551,27 +584,30 @@ external is_enabled : cap -> bool = "ml_glIsEnabled"
 external enable : cap -> unit = "ml_glEnable"
 external disable : cap -> unit = "ml_glDisable"
 
-external line_width : float -> unit = "ml_glLineWidth"
+external line_width : (float [@unboxed]) -> unit =
+  "ml_glLineWidth" "mlU_glLineWidth"
 
 type face = [ `front | `back | `front_and_back ]
 
 external front_face : [`cw|`ccw] -> unit = "ml_glFrontFace"
 external cull_face : face:face -> unit = "ml_glCullFace"
 
-external polygon_offset : factor:float -> units:float -> unit =
-  "ml_glPolygonOffset"
+external polygon_offset
+         : factor:(float [@unboxed]) -> units:(float [@unboxed]) -> unit =
+  "ml_glPolygonOffset" "mlU_glPolygonOffset"
 
 (****************************************************************************)
 (*   TEXTURES                                                               *)
 (****************************************************************************)
 
-type texture
+type texture = int
 
 external int_of_texture : texture -> int = "%identity"
 external texture_of_int : int -> texture = "%identity"
 let null_texture = texture_of_int 0
 
-external is_texture : texture -> bool = "ml_glIsTexture"
+external is_texture : (texture [@untagged]) -> bool
+  = "ml_glIsTexture" "mlU_glIsTexture"
 external gen_texture : unit -> texture = "ml_glGenTexture"
 external gen_textures : int -> texture array = "ml_glGenTextures"
 external delete_texture : texture -> unit = "ml_glDeleteTexture"
@@ -581,8 +617,8 @@ external active_texture : texture -> unit = "ml_glActiveTexture"
 
 type texture_target = [ `texture_2d |`texture_cube_map ]
 
-external bind_texture : target:texture_target -> texture -> unit
-    = "ml_glBindTexture"
+external bind_texture : target:texture_target -> (texture [@untagged]) -> unit
+    = "ml_glBindTexture" "mlU_glBindTexture"
 
 type texture_image_target =
   [ `texture_2d
@@ -669,10 +705,13 @@ external generate_mipmap : target:texture_target -> unit
 (*   PER-FRAGMENT OPERATIONS                                                *)
 (****************************************************************************)
 
-external scissor : x:int -> y:int -> w:int -> h:int -> unit = "ml_glScissor"
+external scissor : x:(int [@untagged]) -> y:(int [@untagged])
+                   -> w:(int [@untagged]) -> h:(int [@untagged]) -> unit
+  = "ml_glScissor" "mlU_glScissor"
 
-external sample_coverage_aux : float -> invert:bool -> unit =
-  "ml_glSampleCoverage"
+external sample_coverage_aux : (float [@unboxed]) -> invert:bool -> unit =
+  "ml_glSampleCoverage" "mlU_glSampleCoverage"
+
 
 let sample_coverage ?(invert=false) f = sample_coverage_aux f ~invert
 
@@ -685,11 +724,13 @@ type stencil_op =
   | `incr | `decr | `incr_wrap | `decr_wrap ]
 
 external stencil_func :
-    func:cmp_func -> ref:int -> mask:int -> unit = "ml_glStencilFunc"
+  func:cmp_func -> ref:(int [@untagged]) -> mask:(int [@untagged]) -> unit
+  = "ml_glStencilFunc" "mlU_glStencilFunc"
 
 external stencil_func_separate :
-    face:face -> func:cmp_func -> ref:int -> mask:int -> unit
-	= "ml_glStencilFuncSeparate"
+  face:face -> func:cmp_func -> ref:(int [@untagged])
+  -> mask:(int [@untagged]) -> unit
+  = "ml_glStencilFuncSeparate" "mlU_glStencilFuncSeparate"
 
 external stencil_op :
     sfail:stencil_op ->
@@ -745,16 +786,20 @@ external color_mask :
 	= "ml_glColorMask"
 
 external depth_mask : bool -> unit = "ml_glDepthMask"
-external stencil_mask : int -> unit = "ml_glStencilMask"
+external stencil_mask : (int [@untagged]) -> unit =
+  "ml_glStencilMask" "mlU_glStencilMask"
 
 external stencil_mask_separate :
-    face:face -> int -> unit = "ml_glStencilMaskSeparate"
+  face:face -> (int [@untagged]) -> unit =
+  "ml_glStencilMaskSeparate" "mlU_glStencilMaskSeparate"
 
 external clear : which_buffer list -> unit = "ml_glClear"
 
 external clear_color : rgba -> unit = "ml_glClearColor"
-external clear_depth : float -> unit = "ml_glClearDepthf"
-external clear_stencil : int -> unit = "ml_glClearStencil"
+external clear_depth : (float [@unboxed]) -> unit =
+  "ml_glClearDepthf" "mlU_glClearDepthf"
+external clear_stencil : (int [@untagged]) -> unit =
+  "ml_glClearStencil" "mlU_glClearStencil"
 
 external read_pixels : x:int -> y:int -> image -> unit
     = "ml_glReadPixels"
@@ -765,13 +810,14 @@ external read_pixels : x:int -> y:int -> image -> unit
 
 type renderbuffer_target = [ `renderbuffer ]
 
-type renderbuffer
+type renderbuffer = int
 
 external int_of_renderbuffer : renderbuffer -> int = "%identity"
 external renderbuffer_of_int : int -> renderbuffer = "%identity"
 let null_renderbuffer = renderbuffer_of_int 0
 
-external is_renderbuffer : renderbuffer -> bool = "ml_glIsRenderbuffer"
+external is_renderbuffer : (renderbuffer [@untagged]) -> bool
+  = "ml_glIsRenderbuffer" "mlU_glIsRenderbuffer"
 
 external gen_renderbuffer : unit -> renderbuffer
     = "ml_glGenRenderbuffer"
@@ -791,15 +837,16 @@ external draw_buffers : [ `none | `back | `color_attachment0 | `color_attachment
     = "ml_glDrawBuffers"
 
 external bind_renderbuffer :
-    target:renderbuffer_target -> renderbuffer -> unit
-	= "ml_glBindRenderbuffer"
+    target:renderbuffer_target -> (renderbuffer [@untagged]) -> unit
+	= "ml_glBindRenderbuffer" "mlU_glBindRenderbuffer"
 
 type renderbuffer_format =
     [ `depth_component16 | `depth_component24 | `rgba4 | `rgb5_a1 | `rgb565 | `stencil_index8 ]
 
 external renderbuffer_storage :
     target:renderbuffer_target -> format:renderbuffer_format ->
-    width:int -> height:int -> unit = "ml_glRenderbufferStorage"
+    width:(int [@untagged]) -> height:(int [@untagged]) -> unit
+  = "ml_glRenderbufferStorage" "mlU_glRenderbufferStorage"
 
 (****************************************************************************)
 (*   FRAMEBUFFERS                                                           *)
@@ -807,7 +854,7 @@ external renderbuffer_storage :
 
 type framebuffer_target = [ `framebuffer ]
 
-type framebuffer
+type framebuffer = int
 
 external int_of_framebuffer : framebuffer -> int = "%identity"
 external framebuffer_of_int : int -> framebuffer = "%identity"
@@ -826,21 +873,22 @@ external delete_framebuffers : framebuffer array -> unit
     = "ml_glDeleteFramebuffers"
 
 external bind_framebuffer :
-    target:framebuffer_target -> framebuffer -> unit
-	= "ml_glBindFramebuffer"
+    target:framebuffer_target -> (framebuffer [@untagged]) -> unit
+	= "ml_glBindFramebuffer" "mlU_glBindFramebuffer"
 
 type framebuffer_attachment =
   [ `color_attachment0 | `depth_attachment | `stencil_attachment ]
 
 external framebuffer_renderbuffer :
     target:framebuffer_target -> attach:framebuffer_attachment ->
-    target2:renderbuffer_target -> renderbuffer -> unit
-	= "ml_glFramebufferRenderbuffer"
+    target2:renderbuffer_target -> (renderbuffer [@untagged]) -> unit
+	= "ml_glFramebufferRenderbuffer" "mlU_glFramebufferRenderbuffer"
 
 external framebuffer_texture_2d :
     target:framebuffer_target -> attach:framebuffer_attachment ->
-    target2:texture_image_target -> texture -> level:int -> unit
-	= "ml_glFramebufferTexture2D"
+    target2:texture_image_target ->
+    (texture [@untagged]) -> level:(int [@untagged]) -> unit
+	= "ml_glFramebufferTexture2D" "mlU_glFramebufferTexture2D"
 
 type framebuffer_status =
   [ `framebuffer_complete

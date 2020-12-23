@@ -68,11 +68,13 @@ let default_config =
 (****************************************************************************)
 
 external initialize_aux :
-    config:config -> width:int -> height:int -> string -> unit
+    ('a -> 'b) -> config -> int -> int -> string -> unit
     = "ml_egl_initialize"
 
+let no_callback _ = assert false
+
 let initialize ?(config=default_config) ~width ~height name =
-  initialize_aux ~config ~width ~height name
+  initialize_aux no_callback config width height name
 
 external terminate : unit -> unit = "ml_egl_terminate"
 

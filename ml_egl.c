@@ -50,63 +50,72 @@ static int main_loop_continue = 0 ;
 
 /* Callbacks */
 
-static value idle_callback = (value)NULL ;
-static value reshape_callback = (value)NULL ;
-static value delete_callback = (value)NULL ;
-static value key_press_callback = (value)NULL ;
-static value key_release_callback = (value)NULL ;
-static value button_press_callback = (value)NULL ;
-static value button_release_callback = (value)NULL ;
-static value motion_notify_callback = (value)NULL ;
+static value default_callback = Val_unit ;
+static value idle_callback = Val_unit ;
+static value reshape_callback = Val_unit ;
+static value delete_callback = Val_unit ;
+static value key_press_callback = Val_unit ;
+static value key_release_callback = Val_unit ;
+static value button_press_callback = Val_unit ;
+static value button_release_callback = Val_unit ;
+static value motion_notify_callback = Val_unit ;
 
 /*** Callback utilities ***/
 
-static void protect_callback(char *name, value f, value v1)
+/* pointer to value should be registered to the GC by the caller */
+static void protect_callback(char *name, value *f, value *v1)
 {
   caml_acquire_runtime_system();
-  CAMLparam2(f,v1);
-  printf("before callback %s %x\n",name,f); fflush(stdout);
-  if(Is_exception_result(caml_callback_exn(f, v1)))
-    fprintf(stderr, "Egl.main_loop: "
-	    "WARNING: %s raised an exception\n", name) ;
-  printf("after callback %s\n",name); fflush(stdout);
-  CAMLdrop;
+  {
+    CAMLparam0();
+    if(Is_exception_result(caml_callback_exn(*f, *v1)))
+      fprintf(stderr, "Egl.main_loop: "
+	      "WARNING: %s raised an exception\n", name) ;
+    CAMLdrop;
+  }
   caml_release_runtime_system();
 }
 
-static void protect_callback2(char *name, value f, value v1, value v2)
+static void protect_callback2(char *name, value *f, value *v1, value *v2)
 {
   caml_acquire_runtime_system();
-  CAMLparam3(f,v1,v2);
-  if(Is_exception_result(caml_callback2_exn(f, v1, v2)))
-    fprintf(stderr, "Egl.main_loop: "
-	    "WARNING: %s raised an exception\n", name) ;
-  CAMLdrop;
+  {
+    CAMLparam0();
+    if(Is_exception_result(caml_callback2_exn(*f, *v1, *v2)))
+      fprintf(stderr, "Egl.main_loop: "
+	      "WARNING: %s raised an exception\n", name) ;
+    CAMLdrop;
+  }
   caml_release_runtime_system();
 }
 
-static void protect_callback3(char *name, value f, value v1,
-			      value v2, value v3)
+static void protect_callback3(char *name, value *f, value *v1,
+			      value *v2, value *v3)
 {
   caml_acquire_runtime_system();
-  CAMLparam4(f,v1,v2,v3);
-  if(Is_exception_result(caml_callback3_exn(f, v1, v2, v3)))
-    fprintf(stderr, "Egl.main_loop: "
-	    "WARNING: %s raised an exception\n", name) ;
-  CAMLdrop;
+  {
+    CAMLparam0();
+    if(Is_exception_result(caml_callback3_exn(*f, *v1, *v2, *v3)))
+      fprintf(stderr, "Egl.main_loop: "
+	      "WARNING: %s raised an exception\n", name) ;
+    CAMLdrop;
+  }
   caml_release_runtime_system();
 }
 
-static void protect_callback4(char *name, value f, value v1,
-			      value v2, value v3, value v4)
+static void protect_callback4(char *name, value *f, value *v1,
+			      value *v2, value *v3, value *v4)
 {
   caml_acquire_runtime_system();
-  CAMLparam5(f,v1,v2,v3,v4);
-  value tmp[4] = { v1, v2, v3, v4 } ;  
-  if(Is_exception_result(caml_callbackN_exn(f, 4, tmp)))
-    fprintf(stderr, "Egl.main_loop: "
-	    "WARNING: %s raised an exception\n", name) ;
-  CAMLdrop;
+  {
+    CAMLparam0();
+    CAMLlocalN(tmp,4);
+    tmp[0] = *v1; tmp[1]=*v2; tmp[2]=*v3; tmp[3]=*v4 ;
+    if(Is_exception_result(caml_callbackN_exn(*f, 4, tmp)))
+      fprintf(stderr, "Egl.main_loop: "
+	      "WARNING: %s raised an exception\n", name) ;
+    CAMLdrop;
+  }
   caml_release_runtime_system();
 }
 
@@ -129,14 +138,14 @@ static int IOErrorHandler(Display *dpy)
 
   value saved_delete_callback = delete_callback ;
 
-  caml_modify_generational_global_root(&idle_callback, (value)NULL) ;
-  caml_modify_generational_global_root(&reshape_callback, (value)NULL) ;
-  caml_modify_generational_global_root(&delete_callback, (value)NULL) ;
-  caml_modify_generational_global_root(&key_press_callback, (value)NULL) ;
-  caml_modify_generational_global_root(&key_release_callback, (value)NULL) ;
-  caml_modify_generational_global_root(&button_press_callback, (value)NULL) ;
-  caml_modify_generational_global_root(&button_release_callback, (value)NULL) ;
-  caml_modify_generational_global_root(&motion_notify_callback, (value)NULL) ;
+  caml_modify_generational_global_root(&idle_callback, default_callback) ;
+  caml_modify_generational_global_root(&reshape_callback, default_callback) ;
+  caml_modify_generational_global_root(&delete_callback, default_callback) ;
+  caml_modify_generational_global_root(&key_press_callback, default_callback) ;
+  caml_modify_generational_global_root(&key_release_callback, default_callback) ;
+  caml_modify_generational_global_root(&button_press_callback, default_callback) ;
+  caml_modify_generational_global_root(&button_release_callback, default_callback) ;
+  caml_modify_generational_global_root(&motion_notify_callback, default_callback) ;
 
   context = EGL_NO_CONTEXT ;
   surface = EGL_NO_SURFACE ;
@@ -201,14 +210,12 @@ static void free_resources()
   initialized = 0 ;
 }
 
-CAMLprim value ml_egl_terminate(value v)
+void ml_egl_terminate()
 {
-  CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.terminate: not initialized") ;
   free_resources() ;
   initialized = 0 ; /* already done above */
-  CAMLreturn(Val_unit);
 }
 
 /****************************************************************************/
@@ -217,9 +224,9 @@ CAMLprim value ml_egl_terminate(value v)
 
 #define init_fail(s)  (free_resources(), failwith("Egl.initialize: " s))
 
-CAMLprim value ml_egl_initialize(value vc, value vw, value vh, value vn)
+CAMLprim value ml_egl_initialize(value vf, value vc, value vw, value vh, value vn)
 {
-  CAMLparam3(vw, vh, vn) ;
+  CAMLparam5(vf, vc, vw, vh, vn) ;
 
   EGLint attribs[20] ;
 
@@ -299,6 +306,17 @@ CAMLprim value ml_egl_initialize(value vc, value vw, value vh, value vn)
   saved_IOErrorHandler = XSetIOErrorHandler(&IOErrorHandler) ;
 
   /* Register CAML roots for callbacks */
+  default_callback = vf;
+  idle_callback = vf;
+  reshape_callback = vf;
+  delete_callback = vf;
+  key_press_callback = vf;
+  key_release_callback = vf;
+  button_press_callback = vf;
+  button_release_callback = vf;
+  motion_notify_callback = vf;
+
+  caml_register_generational_global_root(&default_callback) ;
   caml_register_generational_global_root(&idle_callback) ;
   caml_register_generational_global_root(&reshape_callback) ;
   caml_register_generational_global_root(&delete_callback) ;
@@ -317,104 +335,101 @@ CAMLprim value ml_egl_initialize(value vc, value vw, value vh, value vn)
 /*   SETTING CALLBACKS                                                      */
 /****************************************************************************/
 
-CAMLprim value ml_egl_set_idle_callback(value v)
+void ml_egl_set_idle_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_idle_callback: not initialized") ;
   caml_modify_generational_global_root(&idle_callback, v) ;
-  CAMLreturn(Val_unit) ;
+  CAMLreturn0 ;
 }
 
-CAMLprim value ml_egl_unset_idle_callback(value v)
+void ml_egl_unset_idle_callback()
 {
-  CAMLparam1(v);
   if(!initialized)
     failwith("Egl.set_idle_callback: not initialized") ;
-  caml_modify_generational_global_root(&idle_callback, (value)NULL) ;
-  CAMLreturn(Val_unit) ;
+  caml_modify_generational_global_root(&idle_callback, default_callback) ;
 }
 
-CAMLprim value ml_egl_set_reshape_callback(value v)
+void ml_egl_set_reshape_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_reshape_callback: not initialized") ;
   caml_modify_generational_global_root(&reshape_callback, v) ;
-  CAMLreturn(Val_unit) ;
+  CAMLreturn0 ;
 }
 
-CAMLprim value ml_egl_set_delete_callback(value v)
+void ml_egl_set_delete_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_delete_callback: not initialized") ;
   caml_modify_generational_global_root(&delete_callback, v) ;
-  CAMLreturn(Val_unit) ;
+  CAMLreturn0 ;
 }
 
-CAMLprim value ml_egl_set_key_press_callback(value v)
+void ml_egl_set_key_press_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_key_press_callback: not initialized") ;
   caml_modify_generational_global_root(&key_press_callback, v) ;
-  CAMLreturn(Val_unit) ;
+  CAMLreturn0 ;
 }
 
-CAMLprim value ml_egl_set_key_release_callback(value v)
+void ml_egl_set_key_release_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_key_release_callback: not initialized") ;
   caml_modify_generational_global_root(&key_release_callback, v) ;
-  CAMLreturn(Val_unit) ;
+  CAMLreturn0 ;
 }
 
-CAMLprim value ml_egl_set_button_press_callback(value v)
+void ml_egl_set_button_press_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_button_press_callback: not initialized") ;
   caml_modify_generational_global_root(&button_press_callback, v) ;
-  CAMLreturn(Val_unit) ;
+  CAMLreturn0 ;
 }
 
-CAMLprim value ml_egl_set_button_release_callback(value v)
+void ml_egl_set_button_release_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_button_release_callback: not initialized") ;
   caml_modify_generational_global_root(&button_release_callback, v) ;
-  CAMLreturn(Val_unit) ;
+  CAMLreturn0 ;
 }
 
-CAMLprim value ml_egl_set_motion_notify_callback(value v)
+void ml_egl_set_motion_notify_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_motion_notify_callback: not initialized") ;
   caml_modify_generational_global_root(&motion_notify_callback, v) ;
-  CAMLreturn(Val_unit) ;
+  CAMLreturn0 ;
 }
 
 /****************************************************************************/
 /*   MAIN LOOP                                                              */
 /****************************************************************************/
 
-value ml_egl_main_loop(value v)
+void ml_egl_main_loop()
 {
-  CAMLparam1(v) ;
-  CAMLlocal1(res) ;
+  CAMLparam0() ;
   XEvent event ;
-
-  caml_release_runtime_system();
 
   if(!initialized)
     failwith("Egl.main_loop: not initialized") ;
 
   if(main_loop_reentrant)
     failwith("Egl.main_loop: forbidden reentrant call") ;
+
+  caml_release_runtime_system();
 
   main_loop_reentrant = 1 ;
 
@@ -425,9 +440,10 @@ value ml_egl_main_loop(value v)
 
   while(main_loop_continue) {
 
-    if(idle_callback != (value)NULL) {
+    if(idle_callback != default_callback) {
       while(XPending(xdisplay) == 0) {
-	protect_callback("idle callback", idle_callback, Val_unit) ;
+	value u = Val_unit;
+	protect_callback("idle callback", &idle_callback, &u) ;
       }
     }
     XNextEvent(xdisplay, &event) ;
@@ -438,14 +454,15 @@ value ml_egl_main_loop(value v)
 	 event.xconfigure.window == xwindow &&
 	 (event.xconfigure.width != width ||
 	  event.xconfigure.height != height) &&
-	 reshape_callback != (value)NULL)
+	 reshape_callback != default_callback)
 	{
 	  width = event.xconfigure.width ;
 	  height = event.xconfigure.height ;
+	  value ml_width = Val_int(width);
+	  value ml_height = Val_int(height);
 	  protect_callback2("reshape callback",
-			    reshape_callback,
-			    Val_int(width),
-			    Val_int(height)) ;
+			    &reshape_callback,
+			    &ml_width, &ml_height) ;
 	}
       break ;
     case ClientMessage:
@@ -453,75 +470,84 @@ value ml_egl_main_loop(value v)
 	 event.xclient.window == xwindow &&
 	 event.xclient.data.l[0] == wmDeleteMessage)
 	{
-	  if(delete_callback == (value)NULL)
+	  if(delete_callback == default_callback)
 	    main_loop_continue = 0 ;
 	  else
-	    protect_callback("delete callback", delete_callback, Val_unit) ;
+	    {
+	      value u = Val_unit;
+	      protect_callback("delete callback", &delete_callback, &u) ;
+	    }
 	}
       break ;
     case KeyPress:
       if(event.xkey.display == xdisplay &&
 	 event.xkey.window == xwindow &&
-	 key_press_callback != (value)NULL)
+	 key_press_callback != default_callback)
 	{
 	  KeySym keysym ;
 	  XLookupString(&(event.xkey), NULL, 0, &keysym, NULL) ;
-	  protect_callback4("key press callback", key_press_callback,
-			    Val_int(keysym),
-			    Val_int(event.xkey.state),
-			    Val_int(event.xkey.x),
-			    Val_int(event.xkey.y)) ;
+	  value ml_keysym = Val_int(keysym);
+	  value ml_state = Val_int(event.xkey.state);
+	  value ml_x = Val_int(event.xkey.x);
+	  value ml_y = Val_int(event.xkey.y);
+	  protect_callback4("key press callback", &key_press_callback,
+			    &ml_keysym, &ml_state, &ml_x, &ml_y);
 	}
       break ;
     case KeyRelease:
       if(event.xkey.display == xdisplay &&
 	 event.xkey.window == xwindow &&
-	 key_release_callback != (value)NULL)
+	 key_release_callback != default_callback)
 	{
 	  KeySym keysym ;
 	  XLookupString(&(event.xkey), NULL, 0, &keysym, NULL) ;
-	  protect_callback4("key release callback", key_release_callback,
-			    Val_int(keysym),
-			    Val_int(event.xkey.state),
-			    Val_int(event.xkey.x),
-			    Val_int(event.xkey.y)) ;
+	  value ml_keysym = Val_int(keysym);
+	  value ml_state = Val_int(event.xkey.state);
+	  value ml_x = Val_int(event.xkey.x);
+	  value ml_y = Val_int(event.xkey.y);
+	  protect_callback4("key release callback", &key_release_callback,
+			    &ml_keysym, &ml_state, &ml_x, &ml_y);
 	}
       break ;
     case ButtonPress:
       if(event.xbutton.display == xdisplay &&
 	 event.xbutton.window == xwindow &&
-	 button_press_callback != (value)NULL)
+	 button_press_callback != default_callback)
 	{
+	  value ml_button = Val_int(event.xbutton.button - Button1);
+	  value ml_state = Val_int(event.xkey.state);
+	  value ml_x = Val_int(event.xbutton.x);
+	  value ml_y = Val_int(event.xbutton.y);
 	  protect_callback4("button press callback",
-			    button_press_callback,
-			    Val_int(event.xbutton.button - Button1),
-			    Val_int(event.xkey.state),
-			    Val_int(event.xbutton.x),
-			    Val_int(event.xbutton.y)) ;
+			    &button_press_callback,
+			    &ml_button, &ml_state, &ml_x, &ml_y);
 	}
       break ;
     case ButtonRelease:
       if(event.xbutton.display == xdisplay &&
 	 event.xbutton.window == xwindow &&
-	 button_release_callback != (value)NULL)
+	 button_release_callback != default_callback)
 	{
+	  value ml_button = Val_int(event.xbutton.button - Button1);
+	  value ml_state = Val_int(event.xkey.state);
+	  value ml_x = Val_int(event.xbutton.x);
+	  value ml_y = Val_int(event.xbutton.y);
 	  protect_callback4("button release callback",
-			    button_release_callback,
-			    Val_int(event.xbutton.button - Button1),
-			    Val_int(event.xkey.state),
-			    Val_int(event.xbutton.x),
-			    Val_int(event.xbutton.y)) ;
+			    &button_release_callback,
+			    &ml_button, &ml_state, &ml_x, &ml_y);
 	}
       break ;
     case MotionNotify: break;
       if(event.xmotion.display == xdisplay &&
 	 event.xmotion.window == xwindow &&
-	 motion_notify_callback != (value)NULL)
+	 motion_notify_callback != default_callback)
 	{
-	  protect_callback3("motion notify callback", motion_notify_callback,
-			    Val_int(event.xmotion.state),
-			    Val_int(event.xmotion.x),
-			    Val_int(event.xmotion.y)) ;
+	  value ml_state = Val_int(event.xkey.state);
+	  value ml_x = Val_int(event.xmotion.x);
+	  value ml_y = Val_int(event.xmotion.y);
+
+	  protect_callback3("motion notify callback", &motion_notify_callback,
+			    &ml_state, &ml_x, &ml_y);
 	}
       break ;
     default: break ;
@@ -530,72 +556,66 @@ value ml_egl_main_loop(value v)
   main_loop_reentrant = 0 ;
 
   caml_acquire_runtime_system();
-  CAMLreturn(Val_unit) ;
+  CAMLreturn0 ;
 }
 
-value ml_egl_exit_loop(value v)
+void ml_egl_exit_loop()
 {
-  CAMLparam1(v) ;
   if(!main_loop_reentrant)
     failwith("Egl.exit_loop: can only be called inside main_loop\n") ;
   main_loop_continue = 0 ;
-  CAMLreturn(Val_unit) ;
 }
 
 /****************************************************************************/
 /*   MISCELLANEOUS                                                          */
 /****************************************************************************/
 
-value ml_egl_swap_buffers(value v)
+void ml_egl_swap_buffers()
 {
-  CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.swap_buffers: not initialized") ;
-  caml_release_runtime_system();
   eglSwapBuffers(display, surface) ;
-  caml_acquire_runtime_system();
-  CAMLreturn(Val_unit) ;
 }
 
-value ml_egl_query_version(value v)
+CAMLprim value ml_egl_query_version()
 {
-  CAMLparam1(v) ;
+  CAMLparam0() ;
   if(!initialized)
     failwith("Egl.query_version: not initialized") ;
   const char *s = eglQueryString(display, EGL_VERSION) ;
   CAMLreturn(caml_copy_string(s));
 }
 
-value ml_egl_query_vendor(value v)
+CAMLprim value ml_egl_query_vendor()
 {
-  CAMLparam1(v) ;
+  CAMLparam0() ;
   if(!initialized)
     failwith("Egl.query_vendor: not initialized") ;
   const char *s = eglQueryString(display, EGL_VENDOR) ;
   CAMLreturn(caml_copy_string(s));
 }
 
-value ml_egl_query_extensions(value v)
+CAMLprim value ml_egl_query_extensions()
 {
-  CAMLparam1(v) ;
+  CAMLparam0() ;
   if(!initialized)
     failwith("Egl.query_extensions: not initialized") ;
   const char *s = eglQueryString(display, EGL_EXTENSIONS) ;
   CAMLreturn(caml_copy_string(s));
 }
 
-value ml_egl_query_client_apis(value v)
+CAMLprim value ml_egl_query_client_apis()
 {
-  CAMLparam1(v) ;
+  CAMLparam0() ;
   if(!initialized)
     failwith("Egl.query_client_apis: not initialized") ;
   const char *s = eglQueryString(display, EGL_CLIENT_APIS) ;
   CAMLreturn(caml_copy_string(s));
 }
 
-value ml_egl_query_config(value v)
+CAMLprim value ml_egl_query_config()
 {
-  CAMLparam1(v) ;
+  CAMLparam0() ;
   CAMLlocal1(ret) ;
   if(!initialized)
     failwith("Egl.query_config: not initialized") ;
