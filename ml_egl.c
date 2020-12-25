@@ -572,8 +572,7 @@ void ml_egl_exit_loop()
 
 void ml_egl_swap_buffers()
 {
-  if(!initialized)
-    failwith("Egl.swap_buffers: not initialized") ;
+  if(!initialized) failwith("Egl.swap_buffers: not initialized") ;
   eglSwapBuffers(display, surface) ;
 }
 

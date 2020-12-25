@@ -97,38 +97,34 @@ external exit_loop : unit -> unit = "ml_egl_exit_loop"
 (*   SETTING CALLBACKS                                                      *)
 (****************************************************************************)
 
-external set_idle_callback :
-    (unit -> unit) -> unit
-	= "ml_egl_set_idle_callback"
+external set_idle_callback : (unit -> unit) -> unit
+  = "ml_egl_set_idle_callback"
 
-external unset_idle_callback :
-    unit -> unit
-	= "ml_egl_unset_idle_callback"
+external unset_idle_callback : unit -> unit
+  = "ml_egl_unset_idle_callback"
 
-external set_reshape_callback :
-    (width:int -> height:int -> unit) -> unit
-	= "ml_egl_set_reshape_callback"
+external set_reshape_callback : (width:int -> height:int -> unit) -> unit
+  = "ml_egl_set_reshape_callback"
 
-external set_delete_callback :
-    (unit -> unit) -> unit
-	= "ml_egl_set_delete_callback"
+external set_delete_callback : (unit -> unit) -> unit
+  = "ml_egl_set_delete_callback"
 
-external set_key_press_callback :
-    (key:keysym -> state:int -> x:int -> y:int -> unit) -> unit
-	= "ml_egl_set_key_press_callback"
+external set_key_press_callback
+         : (key:keysym -> state:int -> x:int -> y:int -> unit) -> unit
+  = "ml_egl_set_key_press_callback"
 
-external set_key_release_callback :
-    (key:keysym -> state:int -> x:int -> y:int -> unit) -> unit
-	= "ml_egl_set_key_release_callback"
+external set_key_release_callback
+         : (key:keysym -> state:int -> x:int -> y:int -> unit) -> unit
+  = "ml_egl_set_key_release_callback"
 
-external set_button_press_callback :
-    (button:button -> state:int -> x:int -> y:int -> unit) -> unit
-	= "ml_egl_set_button_press_callback"
+external set_button_press_callback
+         : (button:button -> state:int -> x:int -> y:int -> unit) -> unit
+  = "ml_egl_set_button_press_callback"
 
-external set_button_release_callback :
-    (button:button -> state:int -> x:int -> y:int -> unit) -> unit
-	= "ml_egl_set_button_release_callback"
+external set_button_release_callback
+         : (button:button -> state:int -> x:int -> y:int -> unit) -> unit
+  = "ml_egl_set_button_release_callback"
 
-external set_motion_notify_callback :
-    (state:int -> x:int -> y:int -> unit) -> unit
-	= "ml_egl_set_motion_notify_callback"
+external set_motion_notify_callback
+         : (state:int -> x:int -> y:int -> unit) -> unit
+  = "ml_egl_set_motion_notify_callback"
