@@ -1,0 +1,289 @@
+#include <GLES3/gl3.h>
+
+type (_,_) eq_type = True : ('a,'a) eq_type | False : ('a,'b) eq_type
+
+(*BEGIN*)
+type shape = int
+let gl_points = GL_POINTS
+let gl_lines  = GL_LINES
+let gl_line_loop = GL_LINE_LOOP
+let gl_line_strip = GL_LINE_STRIP
+let gl_triangles = GL_TRIANGLES
+let gl_triangle_strip = GL_TRIANGLE_STRIP
+let gl_triangle_fan = GL_TRIANGLE_FAN
+
+type storage_type = int
+let gl_byte = GL_BYTE
+let gl_ubyte = GL_UNSIGNED_BYTE
+let gl_short = GL_SHORT
+let gl_ushort = GL_UNSIGNED_SHORT
+let gl_uint = GL_UNSIGNED_INT
+let gl_float = GL_FLOAT
+
+type (_,_) eq_type = True : ('a,'a) eq_type | False : ('a,'b) eq_type
+
+type gl_bool = int
+let gl_true = GL_TRUE
+let gl_false = GL_FALSE
+
+type buffer_usage = int
+let gl_static_draw = GL_STATIC_DRAW
+let gl_stream_draw = GL_STREAM_DRAW
+let gl_dynamic_draw = GL_DYNAMIC_DRAW
+
+type 'a buffer_target = int
+type array_buffer_t
+type element_array_buffer_t
+let gl_array_buffer  : array_buffer_t buffer_target
+  = GL_ARRAY_BUFFER
+let gl_element_array_buffer  : element_array_buffer_t buffer_target
+  = GL_ELEMENT_ARRAY_BUFFER
+
+type shader_type = int
+let gl_fragment_shader = GL_FRAGMENT_SHADER
+let gl_vertex_shader = GL_VERTEX_SHADER
+
+type 'a gl_type = int
+type sampler
+type int_type = int gl_type
+type bool_type = bool gl_type
+type float_type = float gl_type
+type sampler_type = sampler gl_type
+type attribute_type = float_type
+
+type uniform_type = UT : 'a gl_type -> uniform_type [@@boxed]
+
+let sh_int      : int_type = GL_INT
+let sh_int_vec2 : int_type = GL_INT_VEC2
+let sh_int_vec3 : int_type = GL_INT_VEC3
+let sh_int_vec4 : int_type = GL_INT_VEC4
+
+let sh_bool      : bool_type = GL_BOOL
+let sh_bool_vec2 : bool_type = GL_BOOL_VEC2
+let sh_bool_vec3 : bool_type = GL_BOOL_VEC3
+let sh_bool_vec4 : bool_type = GL_BOOL_VEC4
+
+let sh_float      : float_type = GL_FLOAT
+let sh_float_vec2 : float_type = GL_FLOAT_VEC2
+let sh_float_vec3 : float_type = GL_FLOAT_VEC3
+let sh_float_vec4 : float_type = GL_FLOAT_VEC4
+let sh_float_mat2 : float_type = GL_FLOAT_MAT2
+let sh_float_mat3 : float_type = GL_FLOAT_MAT3
+let sh_float_mat4 : float_type = GL_FLOAT_MAT4
+
+let sh_sampler_2d        : sampler_type = GL_SAMPLER_2D
+let sh_sampler_2d_shadow : sampler_type = GL_SAMPLER_2D_SHADOW
+let sh_sampler_cube      : sampler_type = GL_SAMPLER_CUBE
+
+let tysize : 'a gl_type -> int = function
+  | x when x = sh_int -> 1
+  | x when x = sh_float -> 1
+  | x when x = sh_bool -> 1
+  | x when x = sh_int_vec2 -> 2
+  | x when x = sh_float_vec2 -> 2
+  | x when x = sh_bool_vec2 -> 2
+  | x when x = sh_int_vec3 -> 3
+  | x when x = sh_float_vec3 -> 3
+  | x when x = sh_bool_vec3 -> 3
+  | x when x = sh_int_vec4 -> 4
+  | x when x = sh_float_vec4 -> 4
+  | x when x = sh_bool_vec4 -> 4
+  | x when x = sh_float_mat2 -> 4
+  | x when x = sh_float_mat3 -> 9
+  | x when x = sh_float_mat4 -> 16
+  | x when x = sh_sampler_2d -> failwith "unsupported"
+  | x when x = sh_sampler_2d_shadow -> failwith "unsupported"
+  | x when x = sh_sampler_cube -> failwith "unsupported"
+  | _ -> assert false
+
+let eq_type x y = x = y
+let neq_type x y = x <> y
+
+type cap = int
+let gl_blend = GL_BLEND
+let gl_cull_face = GL_CULL_FACE
+let gl_depth_test = GL_DEPTH_TEST
+let gl_dither = GL_DITHER
+let gl_polygon_offset_fill = GL_POLYGON_OFFSET_FILL
+let gl_sample_alpha_to_coverage = GL_SAMPLE_ALPHA_TO_COVERAGE
+let gl_sample_coverage = GL_SAMPLE_COVERAGE
+let gl_scissor_test = GL_SCISSOR_TEST
+let gl_stencil_test = GL_STENCIL_TEST
+
+type face = int
+let gl_front = GL_FRONT
+let gl_back = GL_BACK
+let gl_front_and_back = GL_FRONT_AND_BACK
+
+type orientation = int
+let gl_cw = GL_CW
+let gl_ccw = GL_CCW
+
+type texture_target = int
+let gl_texture_2d = GL_TEXTURE_2D
+let gl_texture_cube_map = GL_TEXTURE_CUBE_MAP
+
+type texture_image_target = int
+let gl_texture_2d_target = GL_TEXTURE_2D
+let gl_texture_cube_map_positive_x = GL_TEXTURE_CUBE_MAP_POSITIVE_X
+let gl_texture_cube_map_negative_x = GL_TEXTURE_CUBE_MAP_NEGATIVE_X
+let gl_texture_cube_map_positive_y = GL_TEXTURE_CUBE_MAP_POSITIVE_Y
+let gl_texture_cube_map_negative_y = GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
+let gl_texture_cube_map_positive_z = GL_TEXTURE_CUBE_MAP_POSITIVE_Z
+let gl_texture_cube_map_negative_z = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+
+type ('a,'b) imf = int
+type internal_fmt
+type image_fmt
+type buffer_fmt
+type internal_image_format = (image_fmt, internal_fmt) imf
+type renderbuffer_format = (buffer_fmt, internal_fmt) imf
+type image_format = (image_fmt, image_fmt) imf
+
+let gl_alpha = GL_ALPHA
+let gl_rgb = GL_RGB
+let gl_rgba = GL_RGBA
+let gl_luminance = GL_LUMINANCE
+let gl_luminance_alpha = GL_LUMINANCE_ALPHA
+let gl_depth_component16 = GL_DEPTH_COMPONENT16
+let gl_depth_component24 = GL_DEPTH_COMPONENT24
+let gl_depth24_stencil8 = GL_DEPTH24_STENCIL8
+let gl_rgb4 = GL_RGBA4
+let gl_rgb5_a1 = GL_RGB5_A1
+let gl_rgb565 = GL_RGB565
+let gl_stencil_index8 = GL_STENCIL_INDEX8
+
+type cmp_func = int
+let gl_never = GL_NEVER
+let gl_always = GL_ALWAYS
+let gl_equal = GL_EQUAL
+let gl_notequal = GL_NOTEQUAL
+let gl_less = GL_LESS
+let gl_lequal = GL_LEQUAL
+let gl_greater = GL_GREATER
+let gl_gequal = GL_GEQUAL
+
+type stencil_op = int
+let gl_keep = GL_KEEP
+let gl_zero = GL_ZERO
+let gl_replace = GL_REPLACE
+let gl_invert = GL_INVERT
+let gl_incr = GL_INCR
+let gl_decr = GL_DECR
+let gl_incr_wrap = GL_INCR_WRAP
+let gl_decr_wrap = GL_DECR_WRAP
+
+type blend_mode = int
+let gl_func_add = GL_FUNC_ADD
+let gl_func_subtract = GL_FUNC_SUBTRACT
+let gl_func_reverse_subtract = GL_FUNC_REVERSE_SUBTRACT
+
+type 'a blend_func = int
+type dst_blend_func = unit blend_func
+type src
+type src_blend_func = src blend_func
+let gl_blend_zero = GL_ZERO
+let gl_blend_one = GL_ONE
+let gl_src_color = GL_SRC_COLOR
+let gl_one_minus_src_color = GL_ONE_MINUS_SRC_COLOR
+let gl_dst_color = GL_DST_COLOR
+let gl_one_minus_dst_color = GL_ONE_MINUS_DST_COLOR
+let gl_src_alpha = GL_SRC_ALPHA
+let gl_one_minus_src_alpha = GL_ONE_MINUS_SRC_ALPHA
+let gl_dst_alpha = GL_DST_ALPHA
+let gl_one_minus_dst_alpha = GL_ONE_MINUS_DST_ALPHA
+let gl_constant_color = GL_CONSTANT_COLOR
+let gl_one_minus_constant_color = GL_ONE_MINUS_CONSTANT_COLOR
+let gl_constant_alpha = GL_CONSTANT_ALPHA
+let gl_one_minus_constant_alpha = GL_ONE_MINUS_CONSTANT_ALPHA
+let gl_src_alpha_saturate = GL_SRC_ALPHA_SATURATE
+
+type which_buffer = int
+let gl_color_buffer = GL_COLOR_BUFFER_BIT
+let gl_depth_buffer = GL_DEPTH_BUFFER_BIT
+let gl_stencil_buffer = GL_STENCIL_BUFFER_BIT
+
+type renderbuffer_target = int
+let gl_renderbuffer = GL_RENDERBUFFER
+
+type framebuffer_target = int
+let gl_framebuffer = GL_FRAMEBUFFER
+let gl_read_framebuffer = GL_READ_FRAMEBUFFER
+let gl_draw_framebuffer = GL_DRAW_FRAMEBUFFER
+
+type wrap_mode
+type 'a filter
+type min
+type mag
+type min_filter = min filter
+type mag_filter = mag filter
+type 'a texture_value = int
+
+let gl_repeat : wrap_mode texture_value = GL_REPEAT
+let gl_clamp_to_edge : wrap_mode texture_value = GL_CLAMP_TO_EDGE
+
+let gl_linear  : 'a filter texture_value
+  = GL_LINEAR
+let gl_nearest : 'a filter texture_value
+  = GL_NEAREST
+let gl_nearest_mipmap_nearest : min_filter texture_value = GL_NEAREST_MIPMAP_NEAREST
+let gl_nearest_mipmap_linear : min_filter texture_value = GL_NEAREST_MIPMAP_LINEAR
+let gl_linear_mipmap_nearest : min_filter texture_value = GL_LINEAR_MIPMAP_NEAREST
+let gl_linear_mipmap_linear : min_filter texture_value = GL_LINEAR_MIPMAP_LINEAR
+
+type compare_mode
+let gl_compare_none : compare_mode texture_value = GL_NONE
+let gl_compare_ref_to_texture : compare_mode texture_value = GL_COMPARE_REF_TO_TEXTURE
+
+type 'a texture_parameter = int
+let gl_texture_wrap_s : wrap_mode texture_parameter = GL_TEXTURE_WRAP_S
+let gl_texture_wrap_t : wrap_mode texture_parameter = GL_TEXTURE_WRAP_T
+let gl_texture_min_filter : min_filter texture_parameter = GL_TEXTURE_MIN_FILTER
+let gl_texture_mag_filter : mag_filter texture_parameter = GL_TEXTURE_MAG_FILTER
+let gl_texture_compare_mode : compare_mode texture_parameter = GL_TEXTURE_COMPARE_MODE
+
+let eq_tex_parameter
+    : 'a texture_parameter -> 'b texture_parameter -> ('a,'b) eq_type
+  = fun x y -> if x = y then Obj.magic True else False
+
+type 'a attachment = int
+type buffer_at
+type frame_at
+type buffer_attachment = buffer_at attachment
+type framebuffer_attachment = frame_at attachment
+
+let gl_no_buffer = GL_NONE
+let gl_back_buffer = GL_BACK
+let gl_color_attachment0 = GL_COLOR_ATTACHMENT0
+let gl_color_attachment1 = GL_COLOR_ATTACHMENT1
+let gl_color_attachment2 = GL_COLOR_ATTACHMENT2
+let gl_color_attachment3 = GL_COLOR_ATTACHMENT3
+let gl_color_attachment4 = GL_COLOR_ATTACHMENT4
+let gl_color_attachment5 = GL_COLOR_ATTACHMENT5
+let gl_color_attachment6 = GL_COLOR_ATTACHMENT6
+let gl_color_attachment7 = GL_COLOR_ATTACHMENT7
+let gl_color_attachment8 = GL_COLOR_ATTACHMENT8
+let gl_color_attachment9 = GL_COLOR_ATTACHMENT9
+let gl_color_attachment10 = GL_COLOR_ATTACHMENT10
+let gl_color_attachment11 = GL_COLOR_ATTACHMENT11
+let gl_color_attachment12 = GL_COLOR_ATTACHMENT12
+let gl_color_attachment13 = GL_COLOR_ATTACHMENT13
+let gl_color_attachment14 = GL_COLOR_ATTACHMENT14
+let gl_color_attachment15 = GL_COLOR_ATTACHMENT15
+let gl_depth_attachment = GL_DEPTH_ATTACHMENT
+let gl_stencil_attachment = GL_STENCIL_ATTACHMENT
+
+type framebuffer_status = int
+let gl_framebuffer_complete = GL_FRAMEBUFFER_COMPLETE
+let gl_framebuffer_incomplete_attachment = GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT
+let gl_framebuffer_incomplete_dimensions = GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS
+let gl_framebuffer_incomplete_missing_attachment = GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT
+let gl_framebuffer_unsupported = GL_FRAMEBUFFER_UNSUPPORTED
+
+type error = int
+let gl_no_error = GL_NO_ERROR
+let gl_invalid_enum = GL_INVALID_ENUM
+let gl_invalid_framebuffer_operation = GL_INVALID_FRAMEBUFFER_OPERATION
+let gl_invalid_value = GL_INVALID_VALUE
+let gl_invalid_operation = GL_INVALID_OPERATION
+let gl_out_of_memory = GL_OUT_OF_MEMORY

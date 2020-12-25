@@ -20,6 +20,7 @@
 (****************************************************************************)
 
 open Gles3
+open Gles3.Type
 open Buffers
 open Textures
 

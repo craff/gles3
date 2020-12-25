@@ -1,3 +1,5 @@
+open Gles3.Type
+
 let window_width  : int ref   = ref 400 (* Window width.  *)
 let window_height : int ref   = ref 400 (* Window height. *)
 let window_ratio  : float ref = ref 1.0 (* Window ratio.  *)
@@ -47,8 +49,8 @@ let triangles : Gles3.uint_bigarray  = Buffers.to_uint_bigarray
 (* We load and compile our shaders. *)
 let prg : unit Shaders.program =
   let open Shaders in
-  let vertex   = load_shader `vertex_shader   "vertex_light.glsl"   in
-  let fragment = load_shader `fragment_shader "fragment_light.glsl" in
+  let vertex   = load_shader gl_vertex_shader   "vertex_light.glsl"   in
+  let fragment = load_shader gl_fragment_shader "fragment_light.glsl" in
   compile ("light_shader", [vertex ; fragment])
 
 (* Note that [prg] cannot be used until uniforms and atributes are set. *)
@@ -86,18 +88,20 @@ let draw_cube : float -> float -> unit = fun ratio t ->
     Matrix.perspective 45.0 ratio 1.0 5.0
       <*> Matrix.lookat [|0.0;0.0;3.5|] [|0.0;0.0;0.0|] [|1.0;1.0;0.0|]
   in
-  Shaders.draw_uint_elements prg `triangles triangles projection modelView
+  Shaders.draw_uint_elements prg gl_triangles triangles projection modelView
 
 (* The main drawing function. *)
 let draw : unit -> unit = fun () ->
-  Gles3.clear [`color_buffer; `depth_buffer];
+  Gles3.clear [gl_color_buffer; gl_depth_buffer];
   draw_cube !window_ratio (Unix.gettimeofday ());
   Gles3.show_errors "cube";
   Egl.swap_buffers ()
 
 let _ =
   (* Some initialisation of the OpenGL state. *)
-  Gles3.enable `depth_test; Gles3.disable `cull_face; Gles3.cull_face `back;
+  Gles3.enable gl_depth_test;
+  Gles3.disable gl_cull_face;
+  Gles3.cull_face gl_back;
   Gles3.clear_color Gles3.({r=0.1; g=0.1; b=0.1; a=1.0});
   (* When there is nothing to do, we draw. *)
   Egl.set_idle_callback draw;

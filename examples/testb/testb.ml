@@ -1,5 +1,6 @@
 open Egl
 open Gles3
+open Gles3.Type
 open Shaders
 open Buffers
 open Matrix
@@ -28,7 +29,7 @@ let _ =
 let light_shader =
   ("light_shader",
   [{ name = "vertex_main";
-     ty   = `vertex_shader;
+     ty   = gl_vertex_shader;
      src  = "
    uniform mat4 ModelView,Projection;
 
@@ -62,7 +63,7 @@ let light_shader =
      gl_Position = Projection * m_position;
    }"};
    { name = "fragment_main";
-     ty   = `fragment_shader;
+     ty   = gl_fragment_shader;
      src  = "
    uniform vec3 lightPos;
    uniform float specular,shininess;
@@ -107,7 +108,7 @@ let prg = compile light_shader
    notice the flat structure of the array (3 coordinates per point)
    and the repetition of the same points because they will have
    different normals *)
-let vertices = to_float_array_buffer `static_draw
+let vertices = to_float_array_buffer gl_static_draw
   [|0.;0.;0.;
     0.;0.;1.;
     0.;1.;1.;
@@ -143,7 +144,7 @@ let vertices = to_float_array_buffer `static_draw
 let prg = buffer_cst_attr prg "in_position" vertices
 
 (** the normals associated to each vertex, in the same orders *)
-let normals = to_float_array_buffer `static_draw
+let normals = to_float_array_buffer gl_static_draw
   [|
     -1.;0.;0.;
     -1.;0.;0.;
@@ -181,7 +182,7 @@ let prg = buffer_cst_attr prg "in_normal" normals
 
 (** we define the texture coordinates of each vertex
    above 1 is possible as we use repeat *)
-let tex_coordinates = to_float_array_buffer `static_draw
+let tex_coordinates = to_float_array_buffer gl_static_draw
   [|
     0.;0.;
     0.;5.;
@@ -219,21 +220,22 @@ let prg = buffer_cst_attr prg "in_tex_coordinates" tex_coordinates
 
 (** a very 4x4 texture *)
 let image = {
-  width=4; height=4;format=`luminance;data=to_ubyte_bigarray [|128;128;255;255;
-							       128;128;255;255;
-							       255;255;128;128;
-							       255;255;128;128|]
+    width=4; height=4;format=gl_luminance;
+    data=to_ubyte_bigarray [|128;128;255;255;
+			     128;128;255;255;
+			     255;255;128;128;
+			     255;255;128;128|]
 }
 (** tranformed to a texture *)
-let texture = image_to_texture2d image [`texture_min_filter `nearest;
-					`texture_mag_filter `nearest;
-					`texture_wrap_s `repeat;
-					`texture_wrap_t `repeat]
+let texture = image_to_texture2d image [texture_min_filter gl_nearest;
+					texture_mag_filter gl_nearest;
+					texture_wrap_s gl_repeat;
+					texture_wrap_t gl_repeat]
 (** and associated to the corresponding variable *)
 let prg = texture_2d_cst_uniform prg "texture1" texture
 
 (** we define the elements (here 12 triangles), as index in the above array *)
-let elements = to_uint_element_buffer `static_draw
+let elements = to_uint_element_buffer gl_static_draw
   [|0;1;2;    2;3;0;
     4;5;6;    6;7;4;
     8;9;10;   10;11;8;
@@ -273,11 +275,11 @@ let prg = float4v_cst_uniform prg "lightAmbient" [|0.2;0.2;0.2;1.0|]
 
 (** we can now define a function drawing the cube using
    Shaders.draw_uint_elements *)
-let dessine_cube t = draw_buffer_elements prg `triangles elements (projection ()) (modelView t)
+let dessine_cube t = draw_buffer_elements prg gl_triangles elements (projection ()) (modelView t)
 
 (** some last initializations of openGL state *)
 let _ =
-  enable `depth_test;
+  enable gl_depth_test;
   clear_color { r = 0.1; g = 0.1; b = 0.1; a = 1.0 }
 
 (** two references to compute the frame rates *)
@@ -288,7 +290,7 @@ let frames = ref 0
    if the computation of the frame rates *)
 let draw () =
 
-  clear [ `color_buffer ; `depth_buffer];
+  clear [ gl_color_buffer ; gl_depth_buffer];
   let t = Unix.gettimeofday () in
   dessine_cube t;
   swap_buffers ();

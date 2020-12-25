@@ -23,6 +23,268 @@
 
 (** {b Big array types} ***)
 
+module Type : sig
+  type (_,_) eq_type = True : ('a,'a) eq_type | False : ('a,'b) eq_type
+
+  type shape
+  val gl_points : shape
+  val gl_lines  : shape
+  val gl_line_loop : shape
+  val gl_line_strip : shape
+  val gl_triangles : shape
+  val gl_triangle_strip : shape
+  val gl_triangle_fan : shape
+
+  type storage_type
+  val gl_byte : storage_type
+  val gl_ubyte : storage_type
+  val gl_short : storage_type
+  val gl_ushort : storage_type
+  val gl_uint : storage_type
+  val gl_float : storage_type
+
+  type gl_bool
+  val gl_true : gl_bool
+  val gl_false : gl_bool
+
+  type buffer_usage
+  val gl_static_draw : buffer_usage
+  val gl_stream_draw : buffer_usage
+  val gl_dynamic_draw : buffer_usage
+
+  type 'a buffer_target
+  type array_buffer_t
+  type element_array_buffer_t
+  val gl_array_buffer : array_buffer_t buffer_target
+  val gl_element_array_buffer : element_array_buffer_t buffer_target
+
+  type shader_type
+  val gl_fragment_shader : shader_type
+  val gl_vertex_shader : shader_type
+
+  type ('a) gl_type
+  type sampler
+  type int_type = int gl_type
+  type bool_type = bool gl_type
+  type float_type = float gl_type
+  type sampler_type = sampler gl_type
+  type attribute_type = float_type
+
+  type uniform_type = UT : 'a gl_type -> uniform_type [@@boxed]
+
+  val sh_int      : int_type
+  val sh_int_vec2 : int_type
+  val sh_int_vec3 : int_type
+  val sh_int_vec4 : int_type
+
+  val sh_bool      : bool_type
+  val sh_bool_vec2 : bool_type
+  val sh_bool_vec3 : bool_type
+  val sh_bool_vec4 : bool_type
+
+  val sh_float      : float_type
+  val sh_float_vec2 : float_type
+  val sh_float_vec3 : float_type
+  val sh_float_vec4 : float_type
+  val sh_float_mat2 : float_type
+  val sh_float_mat3 : float_type
+  val sh_float_mat4 : float_type
+
+  val sh_sampler_2d        : sampler_type
+  val sh_sampler_2d_shadow : sampler_type
+  val sh_sampler_cube      : sampler_type
+
+  val tysize : 'a gl_type -> int
+  val eq_type : 'a gl_type -> 'b gl_type -> bool (* FIXME: use GADT*)
+  val neq_type : 'a gl_type -> 'b gl_type -> bool (* FIXME: use GADT*)
+
+  type cap
+  val gl_blend : cap
+  val gl_cull_face : cap
+  val gl_depth_test : cap
+  val gl_dither : cap
+  val gl_polygon_offset_fill : cap
+  val gl_sample_alpha_to_coverage : cap
+  val gl_sample_coverage : cap
+  val gl_scissor_test : cap
+  val gl_stencil_test : cap
+
+  type face
+  val gl_front : face
+  val gl_back : face
+  val gl_front_and_back : face
+
+  type orientation
+  val gl_cw : orientation
+  val gl_ccw : orientation
+
+  type texture_target
+  val gl_texture_2d : texture_target
+  val gl_texture_cube_map : texture_target
+
+  type texture_image_target
+  val gl_texture_2d_target : texture_image_target
+  val gl_texture_cube_map_positive_x : texture_image_target
+  val gl_texture_cube_map_negative_x : texture_image_target
+  val gl_texture_cube_map_positive_y : texture_image_target
+  val gl_texture_cube_map_negative_y : texture_image_target
+  val gl_texture_cube_map_positive_z : texture_image_target
+  val gl_texture_cube_map_negative_z : texture_image_target
+
+  type wrap_mode
+  type 'a filter
+  type min
+  type mag
+  type min_filter = min filter
+  type mag_filter = mag filter
+  type 'a texture_value
+
+  val gl_repeat : wrap_mode texture_value
+  val gl_clamp_to_edge : wrap_mode texture_value
+
+  val gl_nearest : 'a filter texture_value
+  val gl_linear  : 'a filter texture_value
+  val gl_nearest_mipmap_nearest : min_filter texture_value
+  val gl_nearest_mipmap_linear : min_filter texture_value
+  val gl_linear_mipmap_nearest : min_filter texture_value
+  val gl_linear_mipmap_linear : min_filter texture_value
+
+  type compare_mode
+  val gl_compare_none : compare_mode texture_value
+  val gl_compare_ref_to_texture : compare_mode texture_value
+
+  type 'a texture_parameter
+  val gl_texture_wrap_s : wrap_mode texture_parameter
+  val gl_texture_wrap_t : wrap_mode texture_parameter
+  val gl_texture_min_filter : min_filter texture_parameter
+  val gl_texture_mag_filter : mag_filter texture_parameter
+  val gl_texture_compare_mode : compare_mode texture_parameter
+
+  val eq_tex_parameter
+      : 'a texture_parameter -> 'b texture_parameter -> ('a,'b) eq_type
+
+  type ('a,'b) imf
+  type internal_fmt
+  type image_fmt
+  type buffer_fmt
+  type internal_image_format = (image_fmt, internal_fmt) imf
+  type renderbuffer_format = (buffer_fmt, internal_fmt) imf
+  type image_format = (image_fmt, image_fmt) imf
+
+  val gl_alpha : (image_fmt,'a) imf
+  val gl_rgb : (image_fmt,'a) imf
+  val gl_rgba : (image_fmt,'a) imf
+  val gl_luminance : (image_fmt,'a) imf
+  val gl_luminance_alpha : (image_fmt,'a) imf
+  val gl_depth_component16 : ('a, internal_fmt) imf
+  val gl_depth_component24 : ('a, internal_fmt) imf
+  val gl_depth24_stencil8 : ('a, internal_fmt) imf
+  val gl_rgb4 : (buffer_fmt, internal_fmt) imf
+  val gl_rgb5_a1 : (buffer_fmt, internal_fmt) imf
+  val gl_rgb565 : (buffer_fmt, internal_fmt) imf
+  val gl_stencil_index8 : (buffer_fmt, internal_fmt) imf
+
+  type cmp_func
+  val gl_never : cmp_func
+  val gl_always : cmp_func
+  val gl_equal : cmp_func
+  val gl_notequal : cmp_func
+  val gl_less : cmp_func
+  val gl_lequal : cmp_func
+  val gl_greater : cmp_func
+  val gl_gequal : cmp_func
+
+  type stencil_op
+  val gl_keep : stencil_op
+  val gl_zero : stencil_op
+  val gl_replace : stencil_op
+  val gl_invert : stencil_op
+  val gl_incr : stencil_op
+  val gl_decr : stencil_op
+  val gl_incr_wrap : stencil_op
+  val gl_decr_wrap : stencil_op
+
+  type blend_mode
+  val gl_func_add : blend_mode
+  val gl_func_subtract : blend_mode
+  val gl_func_reverse_subtract : blend_mode
+
+  type 'a blend_func
+  type dst_blend_func = unit blend_func
+  type src
+  type src_blend_func = src blend_func
+  val gl_blend_zero : 'a blend_func
+  val gl_blend_one : 'a blend_func
+  val gl_src_color : 'a blend_func
+  val gl_one_minus_src_color : 'a blend_func
+  val gl_dst_color : 'a blend_func
+  val gl_one_minus_dst_color : 'a blend_func
+  val gl_src_alpha : 'a blend_func
+  val gl_one_minus_src_alpha : 'a blend_func
+  val gl_dst_alpha : 'a blend_func
+  val gl_one_minus_dst_alpha : 'a blend_func
+  val gl_constant_color : 'a blend_func
+  val gl_one_minus_constant_color : 'a blend_func
+  val gl_constant_alpha : 'a blend_func
+  val gl_one_minus_constant_alpha : 'a blend_func
+  val gl_src_alpha_saturate : src_blend_func
+
+  type which_buffer
+  val gl_color_buffer : which_buffer
+  val gl_depth_buffer : which_buffer
+  val gl_stencil_buffer : which_buffer
+
+  type renderbuffer_target
+  val gl_renderbuffer : renderbuffer_target
+
+  type framebuffer_target
+  val gl_framebuffer : framebuffer_target
+  val gl_read_framebuffer : framebuffer_target
+  val gl_draw_framebuffer : framebuffer_target
+
+  type 'a attachment
+  type buffer_at
+  type frame_at
+  type buffer_attachment = buffer_at attachment
+  type framebuffer_attachment = frame_at attachment
+  val gl_no_buffer : buffer_attachment
+  val gl_back_buffer : buffer_attachment
+  val gl_color_attachment0 : 'a attachment
+  val gl_color_attachment1 : buffer_attachment
+  val gl_color_attachment2 : buffer_attachment
+  val gl_color_attachment3 : buffer_attachment
+  val gl_color_attachment4 : buffer_attachment
+  val gl_color_attachment5 : buffer_attachment
+  val gl_color_attachment6 : buffer_attachment
+  val gl_color_attachment7 : buffer_attachment
+  val gl_color_attachment8 : buffer_attachment
+  val gl_color_attachment9 : buffer_attachment
+  val gl_color_attachment10 : buffer_attachment
+  val gl_color_attachment11 : buffer_attachment
+  val gl_color_attachment12 : buffer_attachment
+  val gl_color_attachment13 : buffer_attachment
+  val gl_color_attachment14 : buffer_attachment
+  val gl_color_attachment15 : buffer_attachment
+  val gl_depth_attachment : framebuffer_attachment
+  val gl_stencil_attachment : framebuffer_attachment
+
+  type framebuffer_status
+  val gl_framebuffer_complete : framebuffer_status
+  val gl_framebuffer_incomplete_attachment : framebuffer_status
+  val gl_framebuffer_incomplete_dimensions : framebuffer_status
+  val gl_framebuffer_incomplete_missing_attachment : framebuffer_status
+  val gl_framebuffer_unsupported : framebuffer_status
+
+  type error
+  val gl_no_error : error
+  val gl_invalid_enum : error
+  val gl_invalid_framebuffer_operation : error
+  val gl_invalid_value : error
+  val gl_invalid_operation : error
+  val gl_out_of_memory : error
+end
+
+open Type
 open Bigarray
 
 type byte_bigarray = (int, int8_signed_elt, c_layout) Genarray.t
@@ -50,13 +312,6 @@ val create_mmapped_float_bigarray : int -> float_bigarray
 (**  {b VERTEX ATTRIBUTES & DRAWING }                                       *)
 (****************************************************************************)
 
-type storage_type = [ `byte | `ubyte | `short | `ushort | `uint | `float ]
-
-type shape =
-  [ `points | `lines | `line_strip | `line_loop
-    | `triangles | `triangle_strip | `triangle_fan
-  ]
-
 val vertex_attrib_1f : index:int -> float -> unit
 val vertex_attrib_2f : index:int -> float -> float -> unit
 val vertex_attrib_3f : index:int -> float -> float -> float -> unit
@@ -83,7 +338,7 @@ val vertex_attrib_ushort_pointer :
     index:int -> size:int -> ?norm:bool ->
     ?stride:int -> ushort_bigarray -> unit
 
-(* only supported if extension GL_OES_element_index_uint is present ?? *)
+(* only supported if extension GL_OES_element_index_int is present ?? *)
 val vertex_attrib_uint_pointer :
     index:int -> size:int -> ?norm:bool ->
     ?stride:int -> uint_bigarray -> unit
@@ -102,7 +357,7 @@ val draw_ubyte_elements : shape -> count:int -> ubyte_bigarray -> unit
 
 val draw_ushort_elements : shape -> count:int -> ushort_bigarray -> unit
 
-(* only supported if extension GL_OES_element_index_uint is present *)
+(* only supported if extension GL_OES_element_index_int is present *)
 val draw_uint_elements : shape -> count:int -> uint_bigarray -> unit
 
 val draw_buffer_elements : shape -> count:int -> typ:storage_type -> int -> unit
@@ -110,9 +365,6 @@ val draw_buffer_elements : shape -> count:int -> typ:storage_type -> int -> unit
 (****************************************************************************)
 (** {b  BUFFERS }                                                           *)
 (****************************************************************************)
-
-type buffer_usage = [ `static_draw | `dynamic_draw | `stream_draw ]
-type buffer_target = [ `array_buffer | `element_array_buffer ]
 
 type buffer
 
@@ -126,28 +378,26 @@ val gen_buffers : int -> buffer array
 val delete_buffer : buffer -> unit
 val delete_buffers : buffer array -> unit
 
-val bind_buffer : target:buffer_target -> buffer -> unit
+val bind_buffer : target:'a buffer_target -> buffer -> unit
 
 val buffer_size :
-    target:buffer_target -> size:int -> usage:buffer_usage -> unit
+    target:'a buffer_target -> size:int -> usage:buffer_usage -> unit
 
 val buffer_data :
-    target:buffer_target ->
+    target:'x buffer_target ->
     ('a, 'b, c_layout) Genarray.t -> usage:buffer_usage -> unit
 
 val buffer_sub_data :
-    target:buffer_target -> ?offset:int ->
+    target:'x buffer_target -> ?offset:int ->
     ('a, 'b, c_layout) Genarray.t -> unit
 
-val get_buffer_size : target:buffer_target -> int
+val get_buffer_size : target:'a buffer_target -> int
 
-val get_buffer_usage : target:buffer_target -> buffer_usage
+val get_buffer_usage : target:'a buffer_target -> buffer_usage
 
 (****************************************************************************)
 (** {b  SHADERS}                                                            *)
 (****************************************************************************)
-
-type shader_type = [ `vertex_shader | `fragment_shader ]
 
 type shader
 
@@ -199,19 +449,8 @@ val get_program_link_status : program -> bool
 (**  {b PROGRAMS ATTRIBUTES & UNIFORMS }                                    *)
 (****************************************************************************)
 
-type int_type = [ `int | `int_vec2 | `int_vec3 | `int_vec4 ]
-type bool_type = [ `bool | `bool_vec2 | `bool_vec3 | `bool_vec4 ]
-type sampler_type = [ `sampler_2d | `sampler_2d_shadow |`sampler_cube ]
-
-type float_type =
-  [ `float | `float_vec2 | `float_vec3 | `float_vec4
-  | `float_mat2 | `float_mat3 | `float_mat4 ]
-
-type attribute_type = float_type
-type uniform_type = [int_type|bool_type|float_type|sampler_type]
-
-val string_of_type : [<uniform_type] -> string
-val glsl_string_of_type : [<uniform_type] -> string
+val string_of_type : 'a gl_type -> string
+val glsl_string_of_type : 'a gl_type -> string
 
 val get_active_attribs : program -> (string * int * attribute_type * int) list
 val get_attrib_location : program -> string -> int
@@ -267,12 +506,6 @@ val uniform_matrix_4fv :
 (**   {b RASTERIZATION }                                                    *)
 (****************************************************************************)
 
-type cap =
-  [ `blend|`cull_face|`depth_test|`dither|`polygon_offset_fill
-  | `sample_alpha_to_coverage|`sample_coverage|`scissor_test|`stencil_test ]
-
-type face = [ `front | `back | `front_and_back ]
-
 val depth_range : near:float -> far:float -> unit
 val viewport : x:int -> y:int -> w:int -> h:int -> unit
 
@@ -282,7 +515,7 @@ val is_enabled : cap -> bool
 
 val line_width : float -> unit
 
-val front_face : [`cw|`ccw] -> unit
+val front_face : orientation -> unit
 val cull_face : face:face -> unit
 
 val polygon_offset : factor:float -> units:float -> unit
@@ -290,26 +523,6 @@ val polygon_offset : factor:float -> units:float -> unit
 (****************************************************************************)
 (**  TEXTURES                                                               *)
 (****************************************************************************)
-
-type texture_target = [ `texture_2d |`texture_cube_map ]
-
-type wrap_mode = [ `repeat | `clamp_to_edge ]
-
-type min_filter =
-  [ `nearest | `linear
-  | `nearest_mipmap_nearest | `nearest_mipmap_linear
-  | `linear_mipmap_nearest | `linear_mipmap_linear ]
-
-type mag_filter = [ `nearest | `linear ]
-
-type compare_mode = [ `none | `compare_ref_to_texture ]
-
-type texture_parameter =
-  [ `texture_wrap_s of wrap_mode
-  | `texture_wrap_t of wrap_mode
-  | `texture_min_filter of min_filter
-  | `texture_compare_mode of compare_mode
-  | `texture_mag_filter of mag_filter ]
 
 type texture
 
@@ -324,25 +537,12 @@ val delete_texture : texture -> unit
 val delete_textures : texture array -> unit
 val active_texture : texture -> unit
 val bind_texture : target:texture_target -> texture -> unit
-val tex_parameter : target:texture_target -> texture_parameter -> unit
+val tex_parameter : target:texture_target -> 'a texture_parameter -> 'a texture_value -> unit
 val generate_mipmap : target:texture_target -> unit
 
 (****************************************************************************)
 (**  {b TEXTURE IMAGES }                                                    *)
 (****************************************************************************)
-
-type texture_image_target =
-  [ `texture_2d
-  | `texture_cube_map_positive_x | `texture_cube_map_negative_x
-  | `texture_cube_map_positive_y | `texture_cube_map_negative_y
-  | `texture_cube_map_positive_z | `texture_cube_map_negative_z ]
-
-type image_format =
-  [ `alpha | `rgb | `rgba | `luminance | `luminance_alpha ]
-
-type internal_image_format =
-  [ `alpha | `rgb | `rgba | `luminance | `luminance_alpha
-  | `depth_component16 | `depth_component24 | `depth24_stencil8 ]
 
 type image = {
     width : int ;
@@ -376,27 +576,6 @@ val copy_tex_sub_image_2d :
 (****************************************************************************)
 
 type rgba = { r : float ; g : float ; b : float ; a : float }
-
-type cmp_func =
-  [ `never | `always | `equal | `notequal
-  | `less | `lequal | `greater | `gequal ]
-
-type stencil_op =
-  [ `keep | `zero | `replace | `invert
-  | `incr | `decr | `incr_wrap | `decr_wrap ]
-
-type blend_mode = [ `func_add | `func_subtract | `func_reverse_subtract ]
-
-type dst_blend_func =
-  [ `zero | `one
-  | `src_color | `one_minus_src_color
-  | `dst_color | `one_minus_dst_color
-  | `src_alpha | `one_minus_src_alpha
-  | `dst_alpha | `one_minus_dst_alpha
-  | `constant_color | `one_minus_constant_color
-  | `constant_alpha | `one_minus_constant_alpha ]
-
-type src_blend_func = [ dst_blend_func | `src_alpha_saturate ]
 
 val rgba : r:float -> g:float -> b:float -> a:float -> rgba
 
@@ -438,8 +617,6 @@ val blend_color : rgba -> unit
 (**  {b WHOLE FRAMEBUFFER OPERATIONS }                                      *)
 (****************************************************************************)
 
-type which_buffer = [ `color_buffer | `depth_buffer | `stencil_buffer ]
-
 val color_mask : red:bool -> green:bool -> blue:bool -> alpha:bool -> unit
 
 val depth_mask : bool -> unit
@@ -459,11 +636,6 @@ val read_pixels : x:int -> y:int -> image -> unit
 (**  {b RENDERBUFFERS   }                                                   *)
 (****************************************************************************)
 
-type renderbuffer_target = [ `renderbuffer ]
-
-type renderbuffer_format =
-    [ `depth_component16 | `depth_component24 | `rgba4 | `rgb5_a1 | `rgb565 | `stencil_index8 ]
-
 type renderbuffer
 
 val null_renderbuffer : renderbuffer
@@ -477,12 +649,7 @@ val gen_renderbuffers : int -> renderbuffer array
 val delete_renderbuffer : renderbuffer -> unit
 val delete_renderbuffers : renderbuffer array -> unit
 
-val draw_buffers : [ `none | `back | `color_attachment0 | `color_attachment1
- | `color_attachment2 | `color_attachment3 | `color_attachment4 | `color_attachment5
- | `color_attachment6 | `color_attachment7 | `color_attachment8 | `color_attachment9
- | `color_attachment10 | `color_attachment11 | `color_attachment12 | `color_attachment13
- | `color_attachment14 | `color_attachment15 ] array -> unit
-
+val draw_buffers : buffer_attachment array -> unit
 
 val bind_renderbuffer : target:renderbuffer_target -> renderbuffer -> unit
 
@@ -493,8 +660,6 @@ val renderbuffer_storage :
 (****************************************************************************)
 (** {b  FRAMEBUFFERS }                                                      *)
 (****************************************************************************)
-
-type framebuffer_target = [ `framebuffer ]
 
 type framebuffer
 
@@ -510,9 +675,6 @@ val delete_framebuffers : framebuffer array -> unit
 
 val bind_framebuffer : target:framebuffer_target -> framebuffer -> unit
 
-type framebuffer_attachment =
-  [ `color_attachment0 | `depth_attachment | `stencil_attachment ]
-
 val framebuffer_renderbuffer :
     target:framebuffer_target -> attach:framebuffer_attachment ->
     target2:renderbuffer_target -> renderbuffer -> unit
@@ -521,23 +683,12 @@ val framebuffer_texture_2d :
     target:framebuffer_target -> attach:framebuffer_attachment ->
     target2:texture_image_target -> texture -> level:int -> unit
 
-type framebuffer_status =
-  [ `framebuffer_complete
-  | `framebuffer_incomplete_attachment
-  | `framebuffer_incomplete_dimensions
-  | `framebuffer_incomplete_missing_attachment
-  | `framebuffer_unsupported ]
-
 val check_framebuffer_status :
     target:framebuffer_target -> framebuffer_status
 
 (****************************************************************************)
 (**  {b MISCELLANEOUS }                                                     *)
 (****************************************************************************)
-
-type error =
-  [ `no_error | `invalid_enum | `invalid_framebuffer_operation
-  | `invalid_value | `invalid_operation | `out_of_memory ]
 
 val error_to_string : error -> string
 val get_error : unit -> error

@@ -20,6 +20,7 @@
 (****************************************************************************)
 
 open Gles3
+open Gles3.Type
 
 (** {b Function for buffer manipulation} *)
 
@@ -36,14 +37,14 @@ type ('a, 'b) buffer = {
   index : Gles3.buffer;
   ty : storage_type;
   usage : buffer_usage;
-  target : 'b;
+  target : 'b buffer_target;
   array : 'a;
   size : int;
 }
 
 (** Two types to forbid mixing buffer usage *)
-type 'a array_buffer =  ('a , [`array_buffer]) buffer
-type 'a element_buffer =  ('a , [`element_array_buffer]) buffer
+type 'a array_buffer =  ('a , array_buffer_t) buffer
+type 'a element_buffer =  ('a , element_array_buffer_t) buffer
 
 (** Functions creating uninitialized buffers *)
 val create_byte_array_buffer : buffer_usage -> int -> byte_bigarray array_buffer

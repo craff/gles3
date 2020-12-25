@@ -1,5 +1,6 @@
 open Egl
 open Gles3
+open Gles3.Type
 open Shaders
 open Buffers
 open Matrix
@@ -26,7 +27,7 @@ let _ =
 let light_shader =
   ("light_shader",
   [{ name = "vertex_main";
-     ty   = `vertex_shader;
+     ty   = gl_vertex_shader;
      src  = "
    uniform mat4 ModelView,Projection;
 
@@ -56,7 +57,7 @@ let light_shader =
      gl_Position = Projection * m_position;
    }"};
    { name = "fragment_main";
-     ty   = `fragment_shader;
+     ty   = gl_fragment_shader;
      src  = "
    uniform vec3 lightPos;
    uniform float specular,shininess;
@@ -246,13 +247,13 @@ let prg = float4v_cst_uniform prg "lightAmbient" [|0.2;0.2;0.2;1.0|]
 
 (** we can now define a function drawing the cube using
    Shaders.draw_uint_elements *)
-let dessine_cube t = draw_uint_elements prg `triangles elements (projection ()) (modelView t)
+let dessine_cube t = draw_uint_elements prg gl_triangles elements (projection ()) (modelView t)
 
 (** some last initializations of openGL state *)
 let _ =
-  enable `depth_test;
-  disable `cull_face;
-  cull_face `back;
+  enable gl_depth_test;
+  disable gl_cull_face;
+  cull_face gl_back;
   clear_color { r = 0.1; g = 0.1; b = 0.1; a = 1.0 }
 
 (** two references to compute the frame rates *)
@@ -262,7 +263,7 @@ let frames = ref 0
 (** the main drawing function, not mush to say, half of it
    if the computation of the frame rates *)
 let draw () =
-  clear [ `color_buffer ; `depth_buffer];
+  clear [ gl_color_buffer ; gl_depth_buffer];
   let t = Unix.gettimeofday () in
   dessine_cube t;
   show_errors "after draw";

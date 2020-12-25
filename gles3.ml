@@ -20,7 +20,9 @@
 (****************************************************************************)
 
 (*** Bigarray types ***)
+module Type = Gles3_type
 
+open Type
 open Bigarray
 
 type byte_bigarray = (int, int8_signed_elt, c_layout) Genarray.t
@@ -39,7 +41,7 @@ let create_float_bigarray len = Genarray.create float32 c_layout [|len|]
 
 (* create a shadow file descriptor *)
 let tempfd () =
-  let name = Filename.temp_file "mmap" "TMP" in
+ let name = Filename.temp_file "mmap" "TMP" in
   try
     let fd = Unix.openfile name [Unix.O_RDWR; Unix.O_CREAT] 0o600 in
     Unix.unlink name;
@@ -82,10 +84,8 @@ external vertex_attrib_fv :
 external enable_vertex_attrib_array : index:(int [@untagged]) -> unit
     = "ml_glEnableVertexAttribArray" "mlU_glEnableVertexAttribArray"
 
-external disable_vertex_attrib_array : index:(int [@untaged]) -> unit
+external disable_vertex_attrib_array : index:(int [@untagged]) -> unit
     = "ml_glDisableVertexAttribArray" "mlU_glDisableVertexAttribArray"
-
-type storage_type = [ `byte | `ubyte | `short | `ushort | `uint | `float ]
 
 external vertex_attrib_byte_pointer_aux :
     index:int -> size:int -> norm:bool ->
@@ -112,20 +112,18 @@ let vertex_attrib_short_pointer ~index ~size ?(norm=false) ?(stride=0) a =
   vertex_attrib_short_pointer_aux ~index ~size ~norm ~stride a
 
 external vertex_attrib_ushort_pointer_aux :
-    index:int -> size:int -> norm:bool ->
-    stride:int -> ushort_bigarray -> unit
+    int -> int -> bool -> int -> ushort_bigarray -> unit
 	= "ml_glVertexAttribUShortPointer"
 
 let vertex_attrib_ushort_pointer ~index ~size ?(norm=false) ?(stride=0) a =
-  vertex_attrib_ushort_pointer_aux ~index ~size ~norm ~stride a
+  vertex_attrib_ushort_pointer_aux index size norm stride a
 
 external vertex_attrib_uint_pointer_aux :
-    index:int -> size:int -> norm:bool ->
-    stride:int -> uint_bigarray -> unit
+    int -> int -> bool -> int -> uint_bigarray -> unit
 	= "ml_glVertexAttribUIntPointer"
 
 let vertex_attrib_uint_pointer ~index ~size ?(norm=false) ?(stride=0) a =
-  vertex_attrib_uint_pointer_aux ~index ~size ~norm ~stride a
+  vertex_attrib_uint_pointer_aux index size norm stride a
 
 external vertex_attrib_float_pointer_aux :
     index:int -> size:int -> norm:bool ->
@@ -136,47 +134,41 @@ let vertex_attrib_float_pointer ~index ~size ?(norm=false) ?(stride=0) a =
   vertex_attrib_float_pointer_aux ~index ~size ~norm ~stride a
 
 external vertex_attrib_buffer_pointer_aux :
-    index:int -> size:int -> typ:storage_type ->
-    norm:bool -> stride:int -> int -> unit
-	= "ml_glVertexAttribBufferPointer_bc" "mlU_glVertexAttribBufferPointer"
+  (int [@untagged]) -> (int [@untagged]) -> (storage_type [@untagged]) ->
+  norm:bool -> (int [@untagged]) -> (int [@untagged]) -> unit
+  = "ml_glVertexAttribBufferPointer" "mlU_glVertexAttribBufferPointer"
 
 let vertex_attrib_buffer_pointer
     ~index ~size ~typ ?(norm=false) ?(stride=0) p =
-  vertex_attrib_buffer_pointer_aux ~index ~size ~typ ~norm ~stride p
-
-type shape =
-  [ `points | `lines | `line_strip | `line_loop
-  | `triangles | `triangle_strip | `triangle_fan ]
+  vertex_attrib_buffer_pointer_aux index size typ norm stride p
 
 external draw_arrays_aux :
-  shape -> first:(int [@untagged]) -> count:(int [@untagged]) -> unit
+  (shape [@untagged]) -> first:(int [@untagged]) -> count:(int [@untagged]) -> unit
     = "ml_glDrawArrays" "mlU_glDrawArrays"
 
 let draw_arrays shape ?(first=0) ~count =
   draw_arrays_aux shape ~first ~count
 
 external draw_ubyte_elements :
-    shape -> count:int -> ubyte_bigarray -> unit
-	= "ml_glDrawUByteElements"
+    (shape [@untagged]) -> count:(int [@untagged]) -> ubyte_bigarray -> unit
+	= "ml_glDrawUByteElements" "mlU_glDrawUByteElements"
 
 external draw_ushort_elements :
-    shape -> count:int -> ushort_bigarray -> unit
-	= "ml_glDrawUShortElements"
+    (shape [@untagged]) -> count:(int [@untagged]) -> ushort_bigarray -> unit
+	= "ml_glDrawUShortElements" "mlU_glDrawUShortElements"
 
 external draw_uint_elements :
-    shape -> count:int -> uint_bigarray -> unit
-	= "ml_glDrawUIntElements"
+    (shape [@untagged]) -> count:(int [@untagged]) -> uint_bigarray -> unit
+	= "ml_glDrawUIntElements" "mlU_glDrawUIntElements"
 
 external draw_buffer_elements :
-    shape -> count:int -> typ:storage_type -> int -> unit
-	= "ml_glDrawBufferElements"
+  (shape [@untagged]) -> count:(int [@untagged])
+  -> typ:(storage_type [@untagged]) -> (int [@untagged]) -> unit
+	= "ml_glDrawBufferElements" "mlU_glDrawBufferElements"
 
 (****************************************************************************)
 (*   BUFFERS                                                                *)
 (****************************************************************************)
-
-type buffer_usage = [ `static_draw | `dynamic_draw | `stream_draw ]
-type buffer_target = [ `array_buffer | `element_array_buffer ]
 
 type buffer = int
 
@@ -191,30 +183,30 @@ external gen_buffers : int -> buffer array = "ml_glGenBuffers"
 external delete_buffer : buffer -> unit = "ml_glDeleteBuffer"
 external delete_buffers : buffer array -> unit = "ml_glDeleteBuffers"
 
-external bind_buffer : target:buffer_target -> (buffer [@untagged]) -> unit
+external bind_buffer : target:('a buffer_target [@untagged]) -> (buffer [@untagged]) -> unit
     = "ml_glBindBuffer" "mlU_glBindBuffer"
 
 external buffer_size :
-    target:buffer_target -> size:int -> usage:buffer_usage -> unit
-	= "ml_glBufferSize"
+    target:('a buffer_target [@untagged]) -> size:(int [@untagged]) -> usage:(buffer_usage [@untagged]) -> unit
+	= "ml_glBufferSize" "mlU_glBufferSize"
 
 external buffer_data :
-    target:buffer_target ->
+    target:'a buffer_target ->
     ('a, 'b, c_layout) Genarray.t -> usage:buffer_usage -> unit
 	= "ml_glBufferData"
 
 external buffer_sub_data_aux :
-    target:buffer_target -> offset:int ->
+    target:'a buffer_target -> offset:int ->
     ('a, 'b, c_layout) Genarray.t -> unit
 	= "ml_glBufferSubData"
 
 let buffer_sub_data ~target ?(offset=0) ba =
   buffer_sub_data_aux ~target ~offset ba
 
-external get_buffer_size : target:buffer_target -> int
+external get_buffer_size : target:'a buffer_target -> int
     = "ml_glGetBufferSize"
 
-external get_buffer_usage : target:buffer_target -> buffer_usage
+external get_buffer_usage : target:'a buffer_target -> buffer_usage
     = "ml_glGetBufferUsage"
 
 (****************************************************************************)
@@ -223,15 +215,13 @@ external get_buffer_usage : target:buffer_target -> buffer_usage
 
 type shader = int
 
-type shader_type = [ `vertex_shader | `fragment_shader ]
-
 external int_of_shader : shader -> int = "%identity"
 external shader_of_int : int -> shader = "%identity"
 let null_shader = shader_of_int 0
 
 external is_shader : (shader [@untagged]) -> bool
   = "ml_glIsShader" "mlU_glIsShader"
-external create_shader : shader_type -> (shader [@untagged])
+external create_shader : (shader_type [@untagged]) -> (shader [@untagged])
   = "ml_glCreateShader" "mlU_glCreateShader"
 external delete_shader : (shader [@untagged]) -> unit
   = "ml_glDeleteShader" "mlU_glDeleteShader"
@@ -279,56 +269,47 @@ external use_program : (program [@untagged]) -> unit =
   "ml_glUseProgram"   "mlU_glUseProgram"
 external validate_program : program -> bool = "ml_glValidateProgram"
 
-type int_type = [ `int | `int_vec2 | `int_vec3 | `int_vec4 ]
-type bool_type = [ `bool | `bool_vec2 | `bool_vec3 | `bool_vec4 ]
-type sampler_type = [ `sampler_2d | `sampler_2d_shadow |`sampler_cube ]
-
-type float_type =
-  [ `float | `float_vec2 | `float_vec3 | `float_vec4
-  | `float_mat2 | `float_mat3 | `float_mat4 ]
-
-type attribute_type = float_type
-type uniform_type = [int_type|bool_type|float_type|sampler_type]
-
 let string_of_type = function
-  | `int -> "int"
-  | `int_vec2 -> "int_vec2"
-  | `int_vec3 -> "int_vec3"
-  | `int_vec4 -> "int_vec4"
-  | `bool -> "bool"
-  | `bool_vec2 -> "bool_vec2"
-  | `bool_vec3 -> "bool_vec3"
-  | `bool_vec4 -> "bool_vec4"
-  | `float -> "float"
-  | `float_vec2 -> "float_vec2"
-  | `float_vec3 -> "float_vec3"
-  | `float_vec4 -> "float_vec4"
-  | `float_mat2 -> "float_mat2"
-  | `float_mat3 -> "float_mat3"
-  | `float_mat4 -> "float_mat4"
-  | `sampler_2d -> "sampler_2d"
-  | `sampler_2d_shadow -> "sampler_2d_shadow"
-  | `sampler_cube -> "sampler_cube"
+  | x when x = sh_int -> "int"
+  | x when x = sh_int_vec2 -> "int_vec2"
+  | x when x = sh_int_vec3 -> "int_vec3"
+  | x when x = sh_int_vec4 -> "int_vec4"
+  | x when x = sh_bool -> "bool"
+  | x when x = sh_bool_vec2 -> "bool_vec2"
+  | x when x = sh_bool_vec3 -> "bool_vec3"
+  | x when x = sh_bool_vec4 -> "bool_vec4"
+  | x when x = sh_float -> "float"
+  | x when x = sh_float_vec2 -> "float_vec2"
+  | x when x = sh_float_vec3 -> "float_vec3"
+  | x when x = sh_float_vec4 -> "float_vec4"
+  | x when x = sh_float_mat2 -> "float_mat2"
+  | x when x = sh_float_mat3 -> "float_mat3"
+  | x when x = sh_float_mat4 -> "float_mat4"
+  | x when x = sh_sampler_2d -> "sampler_2d"
+  | x when x = sh_sampler_2d_shadow -> "sampler_2d_shadow"
+  | x when x = sh_sampler_cube -> "sampler_cube"
+  | _ -> assert false
 
 let glsl_string_of_type = function
-  | `int -> "int"
-  | `int_vec2 -> "ivec2"
-  | `int_vec3 -> "ivec3"
-  | `int_vec4 -> "ivec4"
-  | `bool -> "bool"
-  | `bool_vec2 -> "bvec2"
-  | `bool_vec3 -> "bvec3"
-  | `bool_vec4 -> "bvec4"
-  | `float -> "float"
-  | `float_vec2 -> "vec2"
-  | `float_vec3 -> "vec3"
-  | `float_vec4 -> "vec4"
-  | `float_mat2 -> "mat2"
-  | `float_mat3 -> "mat3"
-  | `float_mat4 -> "mat4"
-  | `sampler_2d -> "sampler2D"
-  | `sampler_2d_shadow -> "sampler_2d_shadow"
-  | `sampler_cube -> "samplerCube"
+  | x when x = sh_int -> "int"
+  | x when x = sh_int_vec2 -> "ivec2"
+  | x when x = sh_int_vec3 -> "ivec3"
+  | x when x = sh_int_vec4 -> "ivec4"
+  | x when x = sh_bool -> "bool"
+  | x when x = sh_bool_vec2 -> "bvec2"
+  | x when x = sh_bool_vec3 -> "bvec3"
+  | x when x = sh_bool_vec4 -> "bvec4"
+  | x when x = sh_float -> "float"
+  | x when x = sh_float_vec2 -> "vec2"
+  | x when x = sh_float_vec3 -> "vec3"
+  | x when x = sh_float_vec4 -> "vec4"
+  | x when x = sh_float_mat2 -> "mat2"
+  | x when x = sh_float_mat3 -> "mat3"
+  | x when x = sh_float_mat4 -> "mat4"
+  | x when x = sh_sampler_2d -> "sampler2D"
+  | x when x = sh_sampler_2d_shadow -> "sampler_2d_shadow"
+  | x when x = sh_sampler_cube -> "samplerCube"
+  | _ -> assert false
 
 external get_active_attribs :
     program -> (string * int * attribute_type * int) list
@@ -569,28 +550,27 @@ let uniform_matrix_4fv ~loc ?count ?(transp=false) a =
 (****************************************************************************)
 
 external depth_range
-         : near:(float [@unboxed]) -> far:(float [@unboxed]) -> unit =
-  "ml_glDepthRangef" "mlU_glDepthRangef"
+         : near:(float [@unboxed]) -> far:(float [@unboxed]) -> unit
+  = "ml_glDepthRangef" "mlU_glDepthRangef"
 external viewport :
   x:(int [@untagged]) -> y:(int [@untagged]) -> w:(int [@untagged])
   -> h:(int [@untagged]) -> unit
   = "ml_glViewport" "mlU_glViewport"
 
-type cap =
-  [ `blend|`cull_face|`depth_test|`dither|`polygon_offset_fill
-  | `sample_alpha_to_coverage|`sample_coverage|`scissor_test|`stencil_test ]
-
-external is_enabled : cap -> bool = "ml_glIsEnabled"
-external enable : cap -> unit = "ml_glEnable"
-external disable : cap -> unit = "ml_glDisable"
+external is_enabled : (cap [@untagged]) -> bool
+  = "ml_glIsEnabled" "mlU_glIsEnabled"
+external enable : (cap [@untagged]) -> unit
+  = "ml_glEnable" "mlU_glEnable"
+external disable : (cap [@untagged]) -> unit
+  = "ml_glDisable" "mlU_glDisable"
 
 external line_width : (float [@unboxed]) -> unit =
   "ml_glLineWidth" "mlU_glLineWidth"
 
-type face = [ `front | `back | `front_and_back ]
-
-external front_face : [`cw|`ccw] -> unit = "ml_glFrontFace"
-external cull_face : face:face -> unit = "ml_glCullFace"
+external front_face : (orientation [@untagged]) -> unit
+  = "ml_glFrontFace" "mlU_glFrontFace"
+external cull_face : face:(face [@untagged]) -> unit
+  = "ml_glCullFace" "mlU_glCullFace"
 
 external polygon_offset
          : factor:(float [@unboxed]) -> units:(float [@unboxed]) -> unit =
@@ -615,19 +595,8 @@ external delete_textures : texture array -> unit = "ml_glDeleteTextures"
 
 external active_texture : texture -> unit = "ml_glActiveTexture"
 
-type texture_target = [ `texture_2d |`texture_cube_map ]
-
-external bind_texture : target:texture_target -> (texture [@untagged]) -> unit
+external bind_texture : target:(texture_target [@untagged]) -> (texture [@untagged]) -> unit
     = "ml_glBindTexture" "mlU_glBindTexture"
-
-type texture_image_target =
-  [ `texture_2d
-  | `texture_cube_map_positive_x | `texture_cube_map_negative_x
-  | `texture_cube_map_positive_y | `texture_cube_map_negative_y
-  | `texture_cube_map_positive_z | `texture_cube_map_negative_z ]
-
-type image_format =
-  [ `alpha | `rgb | `rgba | `luminance | `luminance_alpha ]
 
 type image = {
     width : int ;
@@ -635,10 +604,6 @@ type image = {
     format : image_format ;
     data : ubyte_bigarray ;
   }
-
-type internal_image_format =
-  [ `alpha | `rgb | `rgba | `luminance | `luminance_alpha
-  | `depth_component16 | `depth_component24 | `depth24_stencil8 ]
 
 external tex_image_2d_aux :
     target:texture_image_target -> level:int -> image -> unit
@@ -677,29 +642,13 @@ external copy_tex_sub_image_2d_aux :
 let copy_tex_sub_image_2d ~target ?(level=0) ?(xoffset=0) ?(yoffset=0) rect =
   copy_tex_sub_image_2d_aux ~target ~level ~xoffset ~yoffset rect
 
-type wrap_mode = [ `repeat | `clamp_to_edge ]
+external tex_parameter :
+  target:(texture_target [@untagged])->
+  ('a texture_parameter [@untagged])  -> ('a texture_value [@untagged]) -> unit
+    = "ml_glTexParameteri" "mlU_glTexParameteri"
 
-type min_filter =
-  [ `nearest | `linear
-  | `nearest_mipmap_nearest | `nearest_mipmap_linear
-  | `linear_mipmap_nearest | `linear_mipmap_linear ]
-
-type mag_filter = [ `nearest | `linear ]
-
-type compare_mode = [ `none | `compare_ref_to_texture ]
-
-type texture_parameter =
-  [ `texture_wrap_s of wrap_mode
-  | `texture_wrap_t of wrap_mode
-  | `texture_min_filter of min_filter
-  | `texture_compare_mode of compare_mode
-  | `texture_mag_filter of mag_filter ]
-
-external tex_parameter : target:texture_target -> texture_parameter -> unit
-    = "ml_glTexParameter"
-
-external generate_mipmap : target:texture_target -> unit
-    = "ml_glGenerateMipmap"
+external generate_mipmap : target:(texture_target [@untagged]) -> unit
+    = "ml_glGenerateMipmap" "mlU_glGenerateMipmap"
 
 (****************************************************************************)
 (*   PER-FRAGMENT OPERATIONS                                                *)
@@ -715,59 +664,46 @@ external sample_coverage_aux : (float [@unboxed]) -> invert:bool -> unit =
 
 let sample_coverage ?(invert=false) f = sample_coverage_aux f ~invert
 
-type cmp_func =
-  [ `never | `always | `equal | `notequal
-  | `less | `lequal | `greater | `gequal ]
-
-type stencil_op =
-  [ `keep | `zero | `replace | `invert
-  | `incr | `decr | `incr_wrap | `decr_wrap ]
-
 external stencil_func :
-  func:cmp_func -> ref:(int [@untagged]) -> mask:(int [@untagged]) -> unit
+  func:(cmp_func [@untagged]) -> ref:(int [@untagged])
+  -> mask:(int [@untagged]) -> unit
   = "ml_glStencilFunc" "mlU_glStencilFunc"
 
 external stencil_func_separate :
-  face:face -> func:cmp_func -> ref:(int [@untagged])
-  -> mask:(int [@untagged]) -> unit
+  face:(face [@untagged]) -> func:(cmp_func [@untagged])
+  -> ref:(int [@untagged]) -> mask:(int [@untagged]) -> unit
   = "ml_glStencilFuncSeparate" "mlU_glStencilFuncSeparate"
 
 external stencil_op :
-    sfail:stencil_op ->
-    dpfail:stencil_op -> dppass:stencil_op -> unit
-	= "ml_glStencilOp"
+  sfail:(stencil_op [@untagged]) -> dpfail:(stencil_op [@untagged])
+  -> dppass:(stencil_op [@untagged]) -> unit
+  = "ml_glStencilOp" "mlU_glStencilOp"
 
 external stencil_op_separate :
-    face:face -> sfail:stencil_op ->
-    dpfail:stencil_op -> dppass:stencil_op -> unit
-	= "ml_glStencilOpSeparate"
+  face:(face [@untagged]) -> sfail:(stencil_op [@untagged]) ->
+  dpfail:(stencil_op [@untagged]) -> dppass:(stencil_op [@untagged]) -> unit
+  = "ml_glStencilOpSeparate" "mlU_glStencilOpSeparate"
 
-external depth_func : func:cmp_func -> unit = "ml_glDepthFunc"
+external depth_func :
+  func:(cmp_func [@untagged]) -> unit
+  = "ml_glDepthFunc" "mlU_glDepthFunc"
 
-type blend_mode = [ `func_add | `func_subtract | `func_reverse_subtract ]
-
-external blend_equation : blend_mode -> unit = "ml_glBlendEquation"
+external blend_equation : (blend_mode [@untagged]) -> unit
+  = "ml_glBlendEquation" "mlU_glBlendEquation"
 external blend_equation_separate :
-    rgb:blend_mode -> alpha:blend_mode -> unit = "ml_glBlendEquationSeparate"
+  rgb:(blend_mode [@untagged]) -> alpha:(blend_mode [@untagged]) -> unit
+  = "ml_glBlendEquationSeparate" "mlU_glBlendEquationSeparate"
 
-type dst_blend_func =
-  [ `zero | `one
-  | `src_color | `one_minus_src_color
-  | `dst_color | `one_minus_dst_color
-  | `src_alpha | `one_minus_src_alpha
-  | `dst_alpha | `one_minus_dst_alpha
-  | `constant_color | `one_minus_constant_color
-  | `constant_alpha | `one_minus_constant_alpha ]
-
-type src_blend_func = [ dst_blend_func | `src_alpha_saturate ]
-
-external blend_func : src:src_blend_func -> dst:dst_blend_func -> unit
-    = "ml_glBlendFunc"
+external blend_func :
+  src:(src_blend_func [@untagged]) -> dst:(dst_blend_func [@untagged]) -> unit
+  = "ml_glBlendFunc" "mlU_glBlendFunc"
 
 external blend_func_separate :
-    src_rgb:src_blend_func -> dst_rgb:dst_blend_func ->
-    src_alpha:src_blend_func -> dst_alpha:dst_blend_func -> unit
-	= "ml_glBlendFuncSeparate"
+  src_rgb:(src_blend_func [@untagged]) ->
+  dst_rgb:(dst_blend_func [@untagged]) ->
+  src_alpha:(src_blend_func [@untagged]) ->
+  dst_alpha:(dst_blend_func [@untagged]) -> unit
+	= "ml_glBlendFuncSeparate" "mlU_glBlendFuncSeparate"
 
 type rgba = { r : float ; g : float ; b : float ; a : float }
 
@@ -776,8 +712,6 @@ external blend_color : rgba -> unit = "ml_glBlendColor"
 (****************************************************************************)
 (*   WHOLE FRAMEBUFFER OPERATIONS                                           *)
 (****************************************************************************)
-
-type which_buffer = [ `color_buffer | `depth_buffer | `stencil_buffer ]
 
 let rgba ~r ~g ~b ~a = { r = r ; g = g ; b = b ; a = a }
 
@@ -790,7 +724,7 @@ external stencil_mask : (int [@untagged]) -> unit =
   "ml_glStencilMask" "mlU_glStencilMask"
 
 external stencil_mask_separate :
-  face:face -> (int [@untagged]) -> unit =
+  face:(face [@untagged]) -> (int [@untagged]) -> unit =
   "ml_glStencilMaskSeparate" "mlU_glStencilMaskSeparate"
 
 external clear : which_buffer list -> unit = "ml_glClear"
@@ -807,8 +741,6 @@ external read_pixels : x:int -> y:int -> image -> unit
 (****************************************************************************)
 (*   RENDERBUFFERS                                                          *)
 (****************************************************************************)
-
-type renderbuffer_target = [ `renderbuffer ]
 
 type renderbuffer = int
 
@@ -829,30 +761,22 @@ external delete_renderbuffer : renderbuffer -> unit
 external delete_renderbuffers : renderbuffer array -> unit
     = "ml_glDeleteRenderbuffers"
 
-external draw_buffers : [ `none | `back | `color_attachment0 | `color_attachment1
- | `color_attachment2 | `color_attachment3 | `color_attachment4 | `color_attachment5
- | `color_attachment6 | `color_attachment7 | `color_attachment8 | `color_attachment9
- | `color_attachment10 | `color_attachment11 | `color_attachment12 | `color_attachment13
- | `color_attachment14 | `color_attachment15 ] array -> unit
+external draw_buffers : buffer_attachment array -> unit
     = "ml_glDrawBuffers"
 
 external bind_renderbuffer :
-    target:renderbuffer_target -> (renderbuffer [@untagged]) -> unit
+    target:(renderbuffer_target [@untagged]) -> (renderbuffer [@untagged]) -> unit
 	= "ml_glBindRenderbuffer" "mlU_glBindRenderbuffer"
 
-type renderbuffer_format =
-    [ `depth_component16 | `depth_component24 | `rgba4 | `rgb5_a1 | `rgb565 | `stencil_index8 ]
-
 external renderbuffer_storage :
-    target:renderbuffer_target -> format:renderbuffer_format ->
-    width:(int [@untagged]) -> height:(int [@untagged]) -> unit
+  target:(renderbuffer_target [@untagged]) ->
+  format:(renderbuffer_format [@untagged])->
+  width:(int [@untagged]) -> height:(int [@untagged]) -> unit
   = "ml_glRenderbufferStorage" "mlU_glRenderbufferStorage"
 
 (****************************************************************************)
 (*   FRAMEBUFFERS                                                           *)
 (****************************************************************************)
-
-type framebuffer_target = [ `framebuffer ]
 
 type framebuffer = int
 
@@ -873,55 +797,45 @@ external delete_framebuffers : framebuffer array -> unit
     = "ml_glDeleteFramebuffers"
 
 external bind_framebuffer :
-    target:framebuffer_target -> (framebuffer [@untagged]) -> unit
+    target:(framebuffer_target [@untagged]) -> (framebuffer [@untagged]) -> unit
 	= "ml_glBindFramebuffer" "mlU_glBindFramebuffer"
 
-type framebuffer_attachment =
-  [ `color_attachment0 | `depth_attachment | `stencil_attachment ]
-
 external framebuffer_renderbuffer :
-    target:framebuffer_target -> attach:framebuffer_attachment ->
-    target2:renderbuffer_target -> (renderbuffer [@untagged]) -> unit
-	= "ml_glFramebufferRenderbuffer" "mlU_glFramebufferRenderbuffer"
+  target:(framebuffer_target [@untagged]) ->
+  attach:(framebuffer_attachment [@untagged])->
+  target2:(renderbuffer_target [@untagged]) -> (renderbuffer [@untagged]) -> unit
+  = "ml_glFramebufferRenderbuffer" "mlU_glFramebufferRenderbuffer"
 
 external framebuffer_texture_2d :
-    target:framebuffer_target -> attach:framebuffer_attachment ->
-    target2:texture_image_target ->
-    (texture [@untagged]) -> level:(int [@untagged]) -> unit
-	= "ml_glFramebufferTexture2D" "mlU_glFramebufferTexture2D"
-
-type framebuffer_status =
-  [ `framebuffer_complete
-  | `framebuffer_incomplete_attachment
-  | `framebuffer_incomplete_dimensions
-  | `framebuffer_incomplete_missing_attachment
-  | `framebuffer_unsupported ]
+  target:(framebuffer_target [@untagged]) ->
+  attach:(framebuffer_attachment [@untagged]) ->
+  target2:(texture_image_target [@untagged]) ->
+  (texture [@untagged]) -> level:(int [@untagged]) -> unit
+  = "ml_glFramebufferTexture2D" "mlU_glFramebufferTexture2D"
 
 external check_framebuffer_status :
-    target:framebuffer_target -> framebuffer_status
-	= "ml_glCheckFramebufferStatus"
+    target:(framebuffer_target [@untagged]) -> (framebuffer_status [@untagged])
+	= "ml_glCheckFramebufferStatus" "mlU_glCheckFramebufferStatus"
 
 (****************************************************************************)
 (*   MISCELLANEOUS                                                          *)
 (****************************************************************************)
 
-type error =
-  [ `no_error | `invalid_enum | `invalid_framebuffer_operation
-  | `invalid_value | `invalid_operation | `out_of_memory ]
-
 let error_to_string = function
-  | `no_error -> "no_error"
-  | `invalid_enum -> "invalid_enum"
-  | `invalid_framebuffer_operation -> "invalid_framebuffer_operation"
-  | `invalid_value -> "invalid_value"
-  | `invalid_operation -> "invalid_operation"
-  | `out_of_memory -> "out_of_memory"
+  | x when x = gl_no_error -> "no_error"
+  | x when x = gl_invalid_enum -> "invalid_enum"
+  | x when x = gl_invalid_framebuffer_operation -> "invalid_framebuffer_operation"
+  | x when x = gl_invalid_value -> "invalid_value"
+  | x when x = gl_invalid_operation -> "invalid_operation"
+  | x when x = gl_out_of_memory -> "out_of_memory"
+  | _ -> "unknown gl error"
 
-external get_error : unit -> error = "ml_glGetError"
+external get_error : unit -> (error [@untagged])
+  = "ml_glGetError" "mlU_glGetError"
 
 let rec show_errors msg =
   let error = get_error () in
-  if error <> `no_error then (
+  if error <> gl_no_error then (
     Printf.eprintf "error %s during draw %s\n%!" (error_to_string error) msg;
     show_errors msg)
 

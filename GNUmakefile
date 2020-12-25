@@ -13,8 +13,8 @@ CFLAGS     = -I `ocamlfind ocamlc -where`
 
 GLES3_CLIBS   = -cclib -lGLESv2
 GLES3_CFILES  = ml_gles3.c
-GLES3_MLFILES = gles3.ml vector.ml vector3.ml matrix.ml camera.ml shaders.ml \
-                buffers.ml textures.ml
+GLES3_MLFILES = gles3_type.ml gles3.ml vector.ml vector3.ml matrix.ml camera.ml \
+                shaders.ml buffers.ml textures.ml
 GLES3_OBJS    = $(GLES3_CFILES:.c=.o) $(GLES3_MLFILES:.ml=.cmo) $(GLES3_MLFILES:.ml=.cmx)
 
 EGL_CLIBS   = -cclib -lX11 -cclib -lEGL
@@ -33,11 +33,13 @@ ifneq ($(MAKECMDGOALS),distclean)
 endif
 endif
 
-# Generated C-file
-gles3_tags.h: maketags.ml gles3.mli gles3.ml
-	$(OCAML) $^ > $@
-
-ml_gles3.c: gles3_tags.h
+ml_gles3.c:
+gles3_type.cmi: gles3_type.ml
+gles3_type.cmo: gles3_type.ml
+gles3_type.dep:
+	touch $@
+gles3_type.ml: gles3_type.mlc
+	cpp -P $^ | grep -A 1000 '(\*BEGIN\*)' > $@
 
 #main targets
 gles3.cma gles3.cmxa: $(GLES3_OBJS)
@@ -52,7 +54,7 @@ count:
 clean:
 	- find -type f -name "*~" -exec rm {} \;
 	- rm -f *.cm[oix] *.o \#* \.#* */\#* */\.#*
-	- rm -f gles3_tags.h
+	- rm -f gles3_type.ml
 	- rm -f *.cma *.cmxa *.so *.a *.dep
 	- rm -f examples/*/*.native
 	- rm -rf examples/*/_build

@@ -1,3 +1,5 @@
+open Gles3.Type
+
 (**** Graph stuff with Kruskal's algorithm **********************************)
 
 module UnionFind =
@@ -196,7 +198,6 @@ let _ =
   flush stdout
 
 (**** OpenGL stuff **********************************************************)
-
 let window_width  : int ref   = ref 400 (* Window width.  *)
 let window_height : int ref   = ref 400 (* Window height. *)
 let window_ratio  : float ref = ref 1.0 (* Window ratio.  *)
@@ -268,8 +269,8 @@ let triangles : Gles3.uint_bigarray  = Buffers.to_uint_bigarray
 (* We load and compile our shaders. *)
 let prg : unit Shaders.program =
   let open Shaders in
-  let vertex   = load_shader `vertex_shader   "vertex_light.glsl"   in
-  let fragment = load_shader `fragment_shader "fragment_light.glsl" in
+  let vertex   = load_shader gl_vertex_shader   "vertex_light.glsl"   in
+  let fragment = load_shader gl_fragment_shader "fragment_light.glsl" in
   compile ("light_shader", [vertex ; fragment])
 
 (* We set the uniform parameters of the shader. *)
@@ -356,7 +357,7 @@ let draw_maze : float -> unit = fun ratio ->
       let y =  1.1 *. float_of_int y in
       Matrix.translate x y 0.0
     in
-    Shaders.draw_uint_elements prg_x `triangles triangles
+    Shaders.draw_uint_elements prg_x gl_triangles triangles
       projection modelView;
   in
   let draw_y x y =
@@ -365,7 +366,7 @@ let draw_maze : float -> unit = fun ratio ->
       let y = 1.1 *. float_of_int y +. 0.1 in
       Matrix.translate x y 0.0
     in
-    Shaders.draw_uint_elements prg_y `triangles triangles
+    Shaders.draw_uint_elements prg_y gl_triangles triangles
       projection modelView;
   in
   for x = 0 to maze.w - 1 do draw_x x 0; draw_x x maze.h done;
@@ -382,14 +383,14 @@ let draw_maze : float -> unit = fun ratio ->
       let x = 1.1 *. float_of_int x in
       let y = 1.1 *. float_of_int y in
       let modelView = modelview <*> Matrix.translate x y 0.0 in
-      Shaders.draw_uint_elements prg_c `triangles triangles
+      Shaders.draw_uint_elements prg_c gl_triangles triangles
         projection modelView;
     done
   done
 
 (* The main drawing function. *)
 let draw : unit -> unit = fun () ->
-  Gles3.clear [`color_buffer; `depth_buffer];
+  Gles3.clear [gl_color_buffer; gl_depth_buffer];
   Camera.update camera;
   draw_maze !window_ratio;
   Gles3.show_errors "cube";
@@ -397,7 +398,9 @@ let draw : unit -> unit = fun () ->
 
 let _ =
   (* Some initialisation of the OpenGL state. *)
-  Gles3.enable `depth_test; Gles3.disable `cull_face; Gles3.cull_face `back;
+  Gles3.enable gl_depth_test;
+  Gles3.disable gl_cull_face;
+  Gles3.cull_face gl_back;
   Gles3.clear_color Gles3.({r=0.1; g=0.1; b=0.1; a=1.0});
   (* When there is nothing to do, we draw. *)
   Egl.set_idle_callback draw;

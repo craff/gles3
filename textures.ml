@@ -20,16 +20,25 @@
 (****************************************************************************)
 
 open Gles3
+open Gles3.Type
 
-let need_mipmap =
-  let fn = function
-    | `nearest_mipmap_nearest | `nearest_mipmap_linear
-    | `linear_mipmap_nearest | `linear_mipmap_linear -> true
-    | `nearest | `linear -> false
+type texture_parameter_binding =
+  TPB : 'a texture_parameter * 'a texture_value -> texture_parameter_binding
+
+let texture_wrap_s x = TPB(gl_texture_wrap_s, x)
+let texture_wrap_t x = TPB(gl_texture_wrap_t, x)
+let texture_min_filter x = TPB(gl_texture_min_filter, x)
+let texture_mag_filter x = TPB(gl_texture_mag_filter, x)
+let texture_compare_mode x = TPB(gl_texture_compare_mode, x)
+
+let need_mipmap : texture_parameter_binding -> bool =
+  let fn : min_filter texture_value -> bool = fun x ->
+    if x = gl_nearest || x = gl_linear then false else true
   in
-  function
-  | `texture_min_filter x -> fn x
-  | _ -> false
+  function TPB(p, x) ->
+    match eq_tex_parameter gl_texture_min_filter p with
+    | True -> fn x
+    | False -> false
 
 type gc_texture = {
   tex_index : texture;
@@ -60,51 +69,52 @@ let gen_gc_framebuffer () =
   let res = { framebuffer_index = buf } in
   Gc.finalise (fun _ -> delete_framebuffer buf) res;
   res
-			 
-let image_to_texture2d : image -> ?level:int -> texture_parameter list -> gc_texture =
+
+let image_to_texture2d : image -> ?level:int -> texture_parameter_binding list -> gc_texture =
   fun image ?(level=0) ls ->
     let tex = gen_gc_texture () in
     active_texture tex.tex_index;
-    bind_texture `texture_2d tex.tex_index;
+    bind_texture gl_texture_2d tex.tex_index;
     let need_mipmap_ref = ref false in
-    List.iter (fun param ->
-      tex_parameter `texture_2d param;
-      need_mipmap_ref := need_mipmap param || !need_mipmap_ref) ls;
-    tex_image_2d ~target:`texture_2d ~level image;
-    if !need_mipmap_ref then generate_mipmap `texture_2d;
+    List.iter (function TPB(param,v) as p ->
+      tex_parameter gl_texture_2d param v;
+      need_mipmap_ref := need_mipmap p || !need_mipmap_ref) ls;
+    tex_image_2d ~target:gl_texture_2d_target ~level image;
+    if !need_mipmap_ref then generate_mipmap gl_texture_2d;
     tex
 
 type framebuffer_texture =
     { tex : gc_texture; framebuffer : gc_framebuffer }
-      
+
 let framebuffer_texture width height format ls =
   let render = gen_renderbuffer () in
-  bind_renderbuffer `renderbuffer render;
-  renderbuffer_storage ~target:`renderbuffer ~format:`depth_component16 ~width ~height;
-
+  bind_renderbuffer gl_renderbuffer render;
+  renderbuffer_storage ~target:gl_renderbuffer ~format:gl_depth_component16
+    ~width ~height;
   let tex = gen_gc_texture () in
   active_texture tex.tex_index;
-  bind_texture `texture_2d tex.tex_index;
-  List.iter (fun param ->
-    tex_parameter `texture_2d param) ls;
-  tex_null_image_2d `texture_2d width height format;
+  bind_texture gl_texture_2d tex.tex_index;
+  List.iter (function TPB(param,v) ->
+    tex_parameter gl_texture_2d param v) ls;
+  tex_null_image_2d gl_texture_2d_target width height format;
 
   let buf = gen_gc_framebuffer () in
-  bind_framebuffer `framebuffer buf.framebuffer_index;
-  framebuffer_texture_2d ~target:`framebuffer ~attach:`color_attachment0
-    ~target2:`texture_2d tex.tex_index ~level:0;
-  framebuffer_renderbuffer ~target:`framebuffer ~attach:`depth_attachment
-    ~target2:`renderbuffer render;
+  bind_framebuffer gl_framebuffer buf.framebuffer_index;
+  framebuffer_texture_2d ~target:gl_framebuffer ~attach:gl_color_attachment0
+    ~target2:gl_texture_2d_target tex.tex_index ~level:0;
+  framebuffer_renderbuffer ~target:gl_framebuffer ~attach:gl_depth_attachment
+    ~target2:gl_renderbuffer render;
 
-  let status = check_framebuffer_status `framebuffer in
+  let status = check_framebuffer_status gl_framebuffer in
   (match status with
-    `framebuffer_complete -> ()
-  | `framebuffer_incomplete_attachment -> failwith "incomplete attachement"
-  | `framebuffer_incomplete_dimensions -> failwith "incomplete dimensions"
-  | `framebuffer_incomplete_missing_attachment -> failwith "missing attachement"
-  | `framebuffer_unsupported -> failwith "unsupported");
+    x when x = gl_framebuffer_complete -> ()
+  | x when x = gl_framebuffer_incomplete_attachment -> failwith "incomplete attachement"
+  | x when x = gl_framebuffer_incomplete_dimensions -> failwith "incomplete dimensions"
+  | x when x = gl_framebuffer_incomplete_missing_attachment -> failwith "missing attachement"
+  | x when x = gl_framebuffer_unsupported -> failwith "unsupported"
+  | _ -> failwith "unknown attachment status");
 
-  bind_framebuffer `framebuffer null_framebuffer;
+  bind_framebuffer gl_framebuffer null_framebuffer;
   let res = {tex; framebuffer = buf} in
   Gc.finalise (fun _ -> delete_renderbuffer render) res;
   res
@@ -112,26 +122,25 @@ let framebuffer_texture width height format ls =
 let framebuffer_depth_texture width height format ls =
   let tex = gen_gc_texture () in
   active_texture tex.tex_index;
-  bind_texture `texture_2d tex.tex_index;
-  List.iter (fun param ->
-    tex_parameter `texture_2d param) ls;
-  tex_null_image_2d `texture_2d width height format;
+  bind_texture gl_texture_2d tex.tex_index;
+  List.iter (function TPB(param,v) ->
+    tex_parameter gl_texture_2d param v) ls;
+  tex_null_image_2d gl_texture_2d_target width height format;
 
   let buf = gen_gc_framebuffer () in
-  bind_framebuffer `framebuffer buf.framebuffer_index;
-  framebuffer_texture_2d ~target:`framebuffer ~attach:`depth_attachment
-    ~target2:`texture_2d tex.tex_index ~level:0;
-  draw_buffers [|`none|];
+  bind_framebuffer gl_framebuffer buf.framebuffer_index;
+  framebuffer_texture_2d ~target:gl_framebuffer ~attach:gl_depth_attachment
+    ~target2:gl_texture_2d_target tex.tex_index ~level:0;
+  draw_buffers [| gl_no_buffer |];
 
-  let status = check_framebuffer_status `framebuffer in
+  let status = check_framebuffer_status gl_framebuffer in
   (match status with
-    `framebuffer_complete -> ()
-  | `framebuffer_incomplete_attachment -> failwith "incomplete attachement"
-  | `framebuffer_incomplete_dimensions -> failwith "incomplete dimensions"
-  | `framebuffer_incomplete_missing_attachment -> failwith "missing attachement"
-  | `framebuffer_unsupported -> failwith "unsupported");
+    x when x = gl_framebuffer_complete -> ()
+  | x when x = gl_framebuffer_incomplete_attachment -> failwith "incomplete attachement"
+  | x when x = gl_framebuffer_incomplete_dimensions -> failwith "incomplete dimensions"
+  | x when x = gl_framebuffer_incomplete_missing_attachment -> failwith "missing attachement"
+  | x when x = gl_framebuffer_unsupported -> failwith "unsupported"
+  | _ -> failwith "unknown attachment status");
 
-  bind_framebuffer `framebuffer null_framebuffer;
+  bind_framebuffer gl_framebuffer null_framebuffer;
   {tex; framebuffer = buf}
-
-  

@@ -21,6 +21,7 @@
 
 open Egl
 open Gles3
+open Gles3.Type
 open Shaders
 open Buffers
 open Matrix
@@ -213,8 +214,8 @@ let _ = initialize !gwidth !gheight "test_gles2";
 
 let shadow_shader =
   ("shadow_shader",
-   [ load_shader `vertex_shader   "vertex_shadow.glsl";
-     load_shader `fragment_shader "fragment_shadow.glsl"; ])
+   [ load_shader gl_vertex_shader   "vertex_shadow.glsl";
+     load_shader gl_fragment_shader "fragment_shadow.glsl"; ])
 
 let shade = compile shadow_shader
 
@@ -222,36 +223,36 @@ let shade = compile shadow_shader
    the string are just use to report errors *)
 let light_shader =
   ("light_shader",
-   [ load_shader `vertex_shader   "vertex_light_with_shadow.glsl";
-     load_shader `fragment_shader "fragment_light_with_shadow.glsl"; ])
+   [ load_shader gl_vertex_shader   "vertex_light_with_shadow.glsl";
+     load_shader gl_fragment_shader "fragment_light_with_shadow.glsl"; ])
 
 let implicit_shadow_shader =
   ("implicit_shadow_shader",
-   [ load_shader `vertex_shader "vertex_implicit_shadow.glsl";
-     load_shader `fragment_shader "sphere_shadow.glsl";
-     load_shader `fragment_shader "fragment_implicit_shadow.glsl";
+   [ load_shader gl_vertex_shader "vertex_implicit_shadow.glsl";
+     load_shader gl_fragment_shader "sphere_shadow.glsl";
+     load_shader gl_fragment_shader "fragment_implicit_shadow.glsl";
    ])
 
 let ishade = compile implicit_shadow_shader
 
 let light_implicit_shader =
   ("light_implicit_shader",
-   [ load_shader `vertex_shader "vertex_shadow.glsl";
-     load_shader `fragment_shader "sphere.glsl";
-     load_shader `fragment_shader "fragment_light_implicit_with_shadow.glsl";
+   [ load_shader gl_vertex_shader "vertex_shadow.glsl";
+     load_shader gl_fragment_shader "sphere.glsl";
+     load_shader gl_fragment_shader "fragment_light_implicit_with_shadow.glsl";
    ])
 
 (** we compile the shader with Shaders.compile *)
 let prg = compile light_shader
 let iprg = compile light_implicit_shader
 
-let vertices = to_float_array_buffer `static_draw
+let vertices = to_float_array_buffer gl_static_draw
   [|0.;0.;0.;
     0.;1.;0.;
     1.;1.;0.;
     1.;0.;0.|]
 
-let elements = to_uint_element_buffer `static_draw
+let elements = to_uint_element_buffer gl_static_draw
   [|1;0;2;   2;0;3|]
 
 (** we set the vertices in the shader *)
@@ -259,7 +260,7 @@ let prg = buffer_cst_attr prg "in_position" vertices
 let shade = buffer_cst_attr shade "in_position" vertices
 
 (** the normals associated to each vertex, in the same orders *)
-let normals = to_float_array_buffer `static_draw
+let normals = to_float_array_buffer gl_static_draw
   [|
     0.;0.;1.;
     0.;0.;1.;
@@ -270,7 +271,7 @@ let prg = buffer_cst_attr prg "in_normal" normals
 
 (** we define the texture coordinates of each vertex
    above 1 is possible as we use repeat *)
-let tex_coordinates = to_float_array_buffer `static_draw
+let tex_coordinates = to_float_array_buffer gl_static_draw
   [|
     0.;0.;
     0.;5.;
@@ -282,20 +283,20 @@ let prg = buffer_cst_attr prg "in_tex_coordinates" tex_coordinates
 
 (** a very 4x4 texture *)
 let image = {
-  width=4; height=4;format=`luminance;data=to_ubyte_bigarray [|128;128;255;255;
+  width=4; height=4;format=gl_luminance;data=to_ubyte_bigarray [|128;128;255;255;
 							       128;128;255;255;
 							       255;255;128;128;
 							       255;255;128;128|]
 }
 (** tranformed to a texture *)
-let texture = image_to_texture2d image [`texture_min_filter `nearest;
-					`texture_mag_filter `nearest;
-					`texture_wrap_s `repeat;
-					`texture_wrap_t `repeat]
+let texture = image_to_texture2d image [texture_min_filter gl_nearest;
+					texture_mag_filter gl_nearest;
+					texture_wrap_s gl_repeat;
+					texture_wrap_t gl_repeat]
 (** and associated to the corresponding variable *)
 let prg = texture_2d_cst_uniform prg "texture1" texture
 
-let ivertices = to_float_array_buffer `static_draw
+let ivertices = to_float_array_buffer gl_static_draw
     [|-1.;-1.;-1.;
       -1.;-1.;1.;
       -1.;1.;1.;
@@ -306,7 +307,7 @@ let ivertices = to_float_array_buffer `static_draw
       1.;1.;-1.;
   |]
 
-let ielements = to_uint_element_buffer `static_draw
+let ielements = to_uint_element_buffer gl_static_draw
   [|1;2;0;   0;2;3;
     5;4;6;   6;4;7;
     1;0;5;   5;0;4;
@@ -372,12 +373,13 @@ let iprg = float3v_cst_uniform iprg "eyePos" eyePos
 
 let shadow_map_size = 800
 
-let depthmap = framebuffer_depth_texture shadow_map_size shadow_map_size `depth_component24
-  [`texture_min_filter `linear;
-   `texture_mag_filter `linear;
-   `texture_compare_mode `compare_ref_to_texture;
-   `texture_wrap_s `clamp_to_edge;
-   `texture_wrap_t `clamp_to_edge]
+let depthmap = framebuffer_depth_texture shadow_map_size
+                 shadow_map_size gl_depth_component24
+  [texture_min_filter gl_linear;
+   texture_mag_filter gl_linear;
+   texture_compare_mode gl_compare_ref_to_texture;
+   texture_wrap_s gl_clamp_to_edge;
+   texture_wrap_t gl_clamp_to_edge]
 
 let prg = float_mat4_cst_uniform prg "shadowproj" shadow_projection
 let prg = texture_2d_cst_uniform prg "shadowmap" depthmap.tex
@@ -393,7 +395,7 @@ let dessine_sphere index s =
     let m = mul (translate x y z) (scale r) in
     let im = mul (scale (1. /. r)) (translate (-.x) (-.y) (-.z)) in
     let n = idt3 in
-    draw_buffer_elements iprg `triangles ielements (projection ()) m im n
+    draw_buffer_elements iprg gl_triangles ielements (projection ()) m im n
 
 let shadow_sphere index s =
   let open Bigarray.Array1 in
@@ -404,19 +406,19 @@ let shadow_sphere index s =
     let r = s.rayon in
     let m = mul (translate x y z) (scale r) in
     let im = mul (scale (1. /. r)) (translate (-.x) (-.y) (-.z)) in
-    draw_buffer_elements ishade `triangles ielements m im
+    draw_buffer_elements ishade gl_triangles ielements m im
 
 
 let dessine_sol () =
   let m = mul Vector3.(translate (-0.5 *. size) (-0.5 *. size) 0.) (scale (2.0 *. size)) in
-  draw_buffer_elements prg `triangles elements (projection ()) m
+  draw_buffer_elements prg gl_triangles elements (projection ()) m
 
 let dessine_shadow = ref false
 
 (** some last initializations of openGL state *)
 let _ =
-  enable `depth_test;
-  disable `cull_face;
+  enable gl_depth_test;
+  disable gl_cull_face;
   clear_color { r = 0.1; g = 0.1; b = 0.1; a = 1.0 }
 
 (** call back for key and mouse, just for testing *)
@@ -548,20 +550,20 @@ let frames = ref 0
    if the computation of the frame rates *)
 let draw () =
   let t = Unix.gettimeofday () in
-  bind_framebuffer `framebuffer depthmap.framebuffer.framebuffer_index;
-  clear [  `color_buffer ; `depth_buffer];
+  bind_framebuffer gl_framebuffer depthmap.framebuffer.framebuffer_index;
+  clear [  gl_color_buffer ; gl_depth_buffer];
   viewport ~x:0 ~y:0 ~w:shadow_map_size ~h:shadow_map_size;
-  cull_face ~face:`front;
+  cull_face ~face:gl_front;
   Array.iteri shadow_sphere spheres;
   show_errors "after shadow";
-  bind_framebuffer `framebuffer null_framebuffer;
+  bind_framebuffer gl_framebuffer null_framebuffer;
 
-  clear [  `color_buffer ; `depth_buffer];
+  clear [  gl_color_buffer ; gl_depth_buffer];
   viewport ~x:0 ~y:0 ~w:!gwidth ~h:!gheight;
   if !dessine_shadow then (
     Array.iteri shadow_sphere spheres;
   ) else (
-    cull_face ~face:`back;
+    cull_face ~face:gl_back;
     dessine_sol ();
     Array.iteri dessine_sphere spheres;
   );

@@ -20,9 +20,18 @@
 (****************************************************************************)
 
 open Gles3
+open Gles3.Type
 
 (** highlevel functions to initialise texture (only
     texture 2D are supported yet) *)
+
+type texture_parameter_binding
+
+val texture_wrap_s : wrap_mode texture_value -> texture_parameter_binding
+val texture_wrap_t : wrap_mode texture_value -> texture_parameter_binding
+val texture_min_filter : min_filter texture_value -> texture_parameter_binding
+val texture_mag_filter : mag_filter texture_value -> texture_parameter_binding
+val texture_compare_mode : compare_mode texture_value -> texture_parameter_binding
 
 type gc_texture = {
   tex_index : texture;
@@ -39,15 +48,15 @@ type gc_renderbuffer = {
 val gen_gc_texture : unit -> gc_texture
 val gen_gc_framebuffer	: unit -> gc_framebuffer
 val gen_gc_renderbuffer	: unit -> gc_renderbuffer
-				    
-val image_to_texture2d : image -> ?level:int -> texture_parameter list -> gc_texture
+
+val image_to_texture2d : image -> ?level:int -> texture_parameter_binding list -> gc_texture
 (** transform an image into a 2D texture *)
 
 type framebuffer_texture =
     { tex : gc_texture; framebuffer : gc_framebuffer }
 
-val framebuffer_texture : int -> int -> internal_image_format -> texture_parameter list ->
+val framebuffer_texture : int -> int -> internal_image_format -> texture_parameter_binding list ->
   framebuffer_texture
 
-val framebuffer_depth_texture : int -> int -> internal_image_format -> texture_parameter list ->
+val framebuffer_depth_texture : int -> int -> internal_image_format -> texture_parameter_binding list ->
   framebuffer_texture

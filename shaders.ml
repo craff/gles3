@@ -20,6 +20,7 @@
 (****************************************************************************)
 
 open Gles3
+open Gles3.Type
 open Buffers
 open Textures
 
@@ -103,7 +104,7 @@ let compile : ?version:string -> ?precision:string -> string * shader list -> un
   fun ?(version="300 es") ?(precision="highp") (prgname, shaders) ->
   let prg = create_program () in
   let fragment_shaders, vertex_shaders = List.partition
-    (fun s -> s.ty = `fragment_shader) shaders
+    (fun s -> s.ty = gl_fragment_shader) shaders
   in
   let fn ty shaders =
     let header = Printf.sprintf "#version %s\nprecision %s float;\n" version precision in
@@ -120,8 +121,8 @@ let compile : ?version:string -> ?precision:string -> string * shader list -> un
     attach_shader prg shader;
     shader
   in
-  let vertex_shader = fn `vertex_shader vertex_shaders in
-  let fragment_shader = fn `fragment_shader fragment_shaders in
+  let vertex_shader = fn gl_vertex_shader vertex_shaders in
+  let fragment_shader = fn gl_fragment_shader fragment_shaders in
 
   link_program prg;
   if not (get_program_link_status prg) then (
@@ -174,9 +175,9 @@ let draw_uint_elements prg shape a =
 let draw_buffer_elements prg shape (buf:'a element_buffer) =
   check_complete prg;
   prg.value prg.fixed (fun () ->
-      bind_buffer `element_array_buffer buf.index ;
+      bind_buffer gl_element_array_buffer buf.index ;
       draw_buffer_elements shape ~count:buf.size ~typ:buf.ty 0;
-      bind_buffer `element_array_buffer null_buffer)
+      bind_buffer gl_element_array_buffer null_buffer)
 
 let assoc_rm name l =
   let rec fn acc = function
@@ -184,16 +185,6 @@ let assoc_rm name l =
     | (name',index,ty,size) as x::l ->
        if name = name' then ((ty,size,index), List.rev_append acc l) else fn (x::acc) l
   in fn [] l
-
-let tysize = function
-  | `int | `float | `bool -> 1
-  | `int_vec2 | `float_vec2 | `bool_vec2 -> 2
-  | `int_vec3 | `float_vec3 | `bool_vec3 -> 3
-  | `int_vec4 | `float_vec4 | `bool_vec4 -> 4
-  | `float_mat2 -> 4
-  | `float_mat3 -> 9
-  | `float_mat4 -> 16
-  | `sampler_2d | `sampler_2d_shadow | `sampler_cube -> failwith "unsupported"
 
 let (//) a b = if a mod b <> 0 then raise Exit; a/b
 
@@ -272,19 +263,22 @@ let uint_cst_attr = fun prg -> gen_cst_attr vertex_attrib_uint_pointer prg
 let float_cst_attr = fun prg -> gen_cst_attr vertex_attrib_float_pointer prg
 let buffer_cst_attr = fun prg ?(norm=false) ?(stride=0) name buffer ->
   gen_cst_attr (fun ~index ~size ?(norm=false) ?(stride=0) buf ->
-		bind_buffer `array_buffer buf;
+		bind_buffer gl_array_buffer buf;
 		vertex_attrib_buffer_pointer ~index ~size ~typ:buffer.Buffers.ty ~norm ~stride 0;
-		bind_buffer `array_buffer null_buffer)
+		bind_buffer gl_array_buffer null_buffer)
 	       prg name ~norm ~stride buffer.index
 
-let gen_uniform1 = fun ty (fn: loc:int -> 'a -> unit) prg name ->
+let gen_uniform1
+    : type a b. a gl_type -> (loc:int -> a -> unit) ->
+           b program -> string -> (a -> b) program
+  = fun ty fn prg name ->
   try
-    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
-    if ty <> ty' then (
+    let (UT ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if neq_type ty ty' then (
       Printf.eprintf "ERROR: bad type for uniforms %s for %s\n%!" name prg.name;
       failwith "Bad type");
     let value fixed cont a =
-      let cont () = fn ~loc:index a; prg.value fixed cont; cont () in
+      let cont () = fn ~loc:index a; cont () in
       prg.value fixed cont
     in
     { prg with uniforms; value }
@@ -296,8 +290,8 @@ let gen_uniform1 = fun ty (fn: loc:int -> 'a -> unit) prg name ->
 
 let gen_cst_uniform1 = fun ty (fn: loc:int -> 'a -> unit) prg name a ->
   try
-    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
-    if ty <> ty' then (
+    let (UT ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if neq_type ty ty' then (
       Printf.eprintf "ERROR: bad type for uniforms %s for %s" name prg.name;
       failwith "Bad type");
     let init () = fn ~loc:index a; prg.fixed.init () in
@@ -309,8 +303,8 @@ let gen_cst_uniform1 = fun ty (fn: loc:int -> 'a -> unit) prg name a ->
 
 let gen_uniform2 = fun ty (fn: loc:int -> 'a -> 'a -> unit) prg name ->
   try
-    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
-    if ty <> ty' then (
+    let (UT ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if neq_type ty ty' then (
       Printf.eprintf "ERROR: bad type for uniforms %s for %s\n%!" name prg.name;
       failwith "Bad type");
     let value fixed cont a b =
@@ -326,8 +320,8 @@ let gen_uniform2 = fun ty (fn: loc:int -> 'a -> 'a -> unit) prg name ->
 
 let gen_cst_uniform2 = fun ty (fn: loc:int -> 'a -> 'a -> unit) prg name a b ->
   try
-    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
-    if ty <> ty' then (
+    let (UT ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if neq_type ty ty' then (
       Printf.eprintf "ERROR: bad type for uniforms %s for %s" name prg.name;
       failwith "Bad type");
     let init () = fn ~loc:index a b; prg.fixed.init () in
@@ -339,8 +333,8 @@ let gen_cst_uniform2 = fun ty (fn: loc:int -> 'a -> 'a -> unit) prg name a b ->
 
 let gen_uniform3 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> unit) prg name ->
   try
-    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
-    if ty <> ty' then (
+    let (UT ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if neq_type ty ty' then (
       Printf.eprintf "ERROR: bad type for uniforms %s for %s\n%!" name prg.name;
       failwith "Bad type");
     let value fixed cont a b c =
@@ -355,8 +349,8 @@ let gen_uniform3 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> unit) prg name ->
 
 let gen_cst_uniform3 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> unit) prg name a b c ->
   try
-    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
-    if ty <> ty' then (
+    let (UT ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if neq_type ty ty' then (
       Printf.eprintf "ERROR: bad type for uniforms %s for %s" name prg.name;
       failwith "Bad type");
     let init () = fn ~loc:index a b c; prg.fixed.init () in
@@ -368,8 +362,8 @@ let gen_cst_uniform3 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> unit) prg name a
 
 let gen_uniform4 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> 'a -> unit) prg name ->
   try
-    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
-    if ty <> ty' then (
+    let (UT ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if neq_type ty ty' then (
       Printf.eprintf "ERROR: bad type for uniforms %s for %s\n%!" name prg.name;
       failwith "Bad type");
     let value fixed cont a b c d =
@@ -384,8 +378,8 @@ let gen_uniform4 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> 'a -> unit) prg name
 
 let gen_cst_uniform4 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> 'a -> unit) prg name a b c d ->
   try
-    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
-    if ty <> ty' then (
+    let (UT ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if neq_type ty ty' then (
       Printf.eprintf "ERROR: bad type for uniforms %s for %s" name prg.name;
       failwith "Bad type");
     let init () = fn ~loc:index a b c d; prg.fixed.init () in
@@ -395,37 +389,37 @@ let gen_cst_uniform4 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> 'a -> unit) prg 
       Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
       prg
 
-let int1_uniform prg name = gen_uniform1 `int uniform_1i prg name
-let bool1_uniform prg name = gen_uniform1 `bool uniform_1b prg name
-let float1_uniform prg name = gen_uniform1 `float uniform_1f prg name
-let int2_uniform prg name = gen_uniform2 `int uniform_2i prg name
-let bool2_uniform prg name = gen_uniform2 `bool uniform_2b prg name
-let float2_uniform prg name = gen_uniform2 `float uniform_2f prg name
-let int3_uniform prg name = gen_uniform3 `int uniform_3i prg name
-let bool3_uniform prg name = gen_uniform3 `bool uniform_3b prg name
-let float3_uniform prg name = gen_uniform3 `float uniform_3f prg name
-let int4_uniform prg name = gen_uniform4 `int uniform_4i prg name
-let bool4_uniform prg name = gen_uniform4 `bool uniform_4b prg name
-let float4_uniform prg name = gen_uniform4 `float uniform_4f prg name
+let int1_uniform prg name = gen_uniform1 sh_int uniform_1i prg name
+let bool1_uniform prg name = gen_uniform1 sh_bool uniform_1b prg name
+let float1_uniform prg name = gen_uniform1 sh_float uniform_1f prg name
+let int2_uniform prg name = gen_uniform2 sh_int uniform_2i prg name
+let bool2_uniform prg name = gen_uniform2 sh_bool uniform_2b prg name
+let float2_uniform prg name = gen_uniform2 sh_float uniform_2f prg name
+let int3_uniform prg name = gen_uniform3 sh_int uniform_3i prg name
+let bool3_uniform prg name = gen_uniform3 sh_bool uniform_3b prg name
+let float3_uniform prg name = gen_uniform3 sh_float uniform_3f prg name
+let int4_uniform prg name = gen_uniform4 sh_int uniform_4i prg name
+let bool4_uniform prg name = gen_uniform4 sh_bool uniform_4b prg name
+let float4_uniform prg name = gen_uniform4 sh_float uniform_4f prg name
 
-let int1_cst_uniform prg name a = gen_cst_uniform1 `int uniform_1i prg name a
-let bool1_cst_uniform prg name a = gen_cst_uniform1 `bool uniform_1b prg name a
-let float1_cst_uniform prg name a = gen_cst_uniform1 `float uniform_1f prg name a
-let int2_cst_uniform prg name a b = gen_cst_uniform2 `int uniform_2i prg name a b
-let bool2_cst_uniform prg name a b = gen_cst_uniform2 `bool uniform_2b prg name a b
-let float2_cst_uniform prg name a b = gen_cst_uniform2 `float uniform_2f prg name a b
-let int3_cst_uniform prg name a b c = gen_cst_uniform3 `int uniform_3i prg name a b c
-let bool3_cst_uniform prg name a b c = gen_cst_uniform3 `bool uniform_3b prg name a b c
-let float3_cst_uniform prg name a b c = gen_cst_uniform3 `float uniform_3f prg name a b c
-let int4_cst_uniform prg name a b c d = gen_cst_uniform4 `int uniform_4i prg name a b c d
-let bool4_cst_uniform prg name a b c d = gen_cst_uniform4 `bool uniform_4b prg name a b c d
-let float4_cst_uniform prg name a b c d = gen_cst_uniform4 `float uniform_4f prg name a b c d
+let int1_cst_uniform prg name a = gen_cst_uniform1 sh_int uniform_1i prg name a
+let bool1_cst_uniform prg name a = gen_cst_uniform1 sh_bool uniform_1b prg name a
+let float1_cst_uniform prg name a = gen_cst_uniform1 sh_float uniform_1f prg name a
+let int2_cst_uniform prg name a b = gen_cst_uniform2 sh_int uniform_2i prg name a b
+let bool2_cst_uniform prg name a b = gen_cst_uniform2 sh_bool uniform_2b prg name a b
+let float2_cst_uniform prg name a b = gen_cst_uniform2 sh_float uniform_2f prg name a b
+let int3_cst_uniform prg name a b c = gen_cst_uniform3 sh_int uniform_3i prg name a b c
+let bool3_cst_uniform prg name a b c = gen_cst_uniform3 sh_bool uniform_3b prg name a b c
+let float3_cst_uniform prg name a b c = gen_cst_uniform3 sh_float uniform_3f prg name a b c
+let int4_cst_uniform prg name a b c d = gen_cst_uniform4 sh_int uniform_4i prg name a b c d
+let bool4_cst_uniform prg name a b c d = gen_cst_uniform4 sh_bool uniform_4b prg name a b c d
+let float4_cst_uniform prg name a b c d = gen_cst_uniform4 sh_float uniform_4f prg name a b c d
 
 
 let gen_uniform = fun ty (fn: loc:int -> ?count:int -> 'a array -> unit) prg name ->
   try
-    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
-    if ty <> ty' then (
+    let (UT ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if neq_type ty ty' then (
       Printf.eprintf "ERROR: bad type for uniforms %s for %s\n%!" name prg.name;
       failwith "Bad type");
     let size = tysize ty in
@@ -447,8 +441,8 @@ let gen_uniform = fun ty (fn: loc:int -> ?count:int -> 'a array -> unit) prg nam
 
 let gen_cst_uniform = fun ty (fn: loc:int -> ?count:int -> 'a array -> unit) prg name a ->
   try
-    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
-    if ty <> ty' then (
+    let (UT ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if neq_type ty ty' then (
       Printf.eprintf "ERROR: bad type for uniforms %s for %s" name prg.name;
       failwith "Bad type");
     let size = tysize ty in
@@ -464,43 +458,43 @@ let gen_cst_uniform = fun ty (fn: loc:int -> ?count:int -> 'a array -> unit) prg
       Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
       prg
 
-let int1v_uniform = fun prg name -> gen_uniform `int uniform_1iv prg name
-let int2v_uniform = fun prg name -> gen_uniform `int_vec2 uniform_2iv prg name
-let int3v_uniform = fun prg name -> gen_uniform `int_vec3 uniform_3iv prg name
-let int4v_uniform = fun prg name -> gen_uniform `int_vec4 uniform_4iv prg name
-let bool1v_uniform = fun prg name -> gen_uniform `bool uniform_1bv prg name
-let bool2v_uniform = fun prg name -> gen_uniform `bool_vec2 uniform_2bv prg name
-let bool3v_uniform = fun prg name -> gen_uniform `bool_vec3 uniform_3bv prg name
-let bool4v_uniform = fun prg name -> gen_uniform `bool_vec4 uniform_4bv prg name
-let float1v_uniform = fun prg name -> gen_uniform `float uniform_1fv prg name
-let float2v_uniform = fun prg name -> gen_uniform `float_vec2 uniform_2fv prg name
-let float3v_uniform = fun prg name -> gen_uniform `float_vec3 uniform_3fv prg name
-let float4v_uniform = fun prg name -> gen_uniform `float_vec4 uniform_4fv prg name
+let int1v_uniform = fun prg name -> gen_uniform sh_int uniform_1iv prg name
+let int2v_uniform = fun prg name -> gen_uniform sh_int_vec2 uniform_2iv prg name
+let int3v_uniform = fun prg name -> gen_uniform sh_int_vec3 uniform_3iv prg name
+let int4v_uniform = fun prg name -> gen_uniform sh_int_vec4 uniform_4iv prg name
+let bool1v_uniform = fun prg name -> gen_uniform sh_bool uniform_1bv prg name
+let bool2v_uniform = fun prg name -> gen_uniform sh_bool_vec2 uniform_2bv prg name
+let bool3v_uniform = fun prg name -> gen_uniform sh_bool_vec3 uniform_3bv prg name
+let bool4v_uniform = fun prg name -> gen_uniform sh_bool_vec4 uniform_4bv prg name
+let float1v_uniform = fun prg name -> gen_uniform sh_float uniform_1fv prg name
+let float2v_uniform = fun prg name -> gen_uniform sh_float_vec2 uniform_2fv prg name
+let float3v_uniform = fun prg name -> gen_uniform sh_float_vec3 uniform_3fv prg name
+let float4v_uniform = fun prg name -> gen_uniform sh_float_vec4 uniform_4fv prg name
 
-let int1v_cst_uniform = fun prg name -> gen_cst_uniform `int uniform_1iv prg name
-let int2v_cst_uniform = fun prg name -> gen_cst_uniform `int_vec2 uniform_2iv prg name
-let int3v_cst_uniform = fun prg name -> gen_cst_uniform `int_vec3 uniform_3iv prg name
-let int4v_cst_uniform = fun prg name -> gen_cst_uniform `int_vec4 uniform_4iv prg name
-let bool1v_cst_uniform = fun prg name -> gen_cst_uniform `bool uniform_1bv prg name
-let bool2v_cst_uniform = fun prg name -> gen_cst_uniform `bool_vec2 uniform_2bv prg name
-let bool3v_cst_uniform = fun prg name -> gen_cst_uniform `bool_vec3 uniform_3bv prg name
-let bool4v_cst_uniform = fun prg name -> gen_cst_uniform `bool_vec4 uniform_4bv prg name
-let float1v_cst_uniform = fun prg name -> gen_cst_uniform `float uniform_1fv prg name
-let float2v_cst_uniform = fun prg name -> gen_cst_uniform `float_vec2 uniform_2fv prg name
-let float3v_cst_uniform = fun prg name -> gen_cst_uniform `float_vec3 uniform_3fv prg name
-let float4v_cst_uniform = fun prg name -> gen_cst_uniform `float_vec4 uniform_4fv prg name
+let int1v_cst_uniform = fun prg name -> gen_cst_uniform sh_int uniform_1iv prg name
+let int2v_cst_uniform = fun prg name -> gen_cst_uniform sh_int_vec2 uniform_2iv prg name
+let int3v_cst_uniform = fun prg name -> gen_cst_uniform sh_int_vec3 uniform_3iv prg name
+let int4v_cst_uniform = fun prg name -> gen_cst_uniform sh_int_vec4 uniform_4iv prg name
+let bool1v_cst_uniform = fun prg name -> gen_cst_uniform sh_bool uniform_1bv prg name
+let bool2v_cst_uniform = fun prg name -> gen_cst_uniform sh_bool_vec2 uniform_2bv prg name
+let bool3v_cst_uniform = fun prg name -> gen_cst_uniform sh_bool_vec3 uniform_3bv prg name
+let bool4v_cst_uniform = fun prg name -> gen_cst_uniform sh_bool_vec4 uniform_4bv prg name
+let float1v_cst_uniform = fun prg name -> gen_cst_uniform sh_float uniform_1fv prg name
+let float2v_cst_uniform = fun prg name -> gen_cst_uniform sh_float_vec2 uniform_2fv prg name
+let float3v_cst_uniform = fun prg name -> gen_cst_uniform sh_float_vec3 uniform_3fv prg name
+let float4v_cst_uniform = fun prg name -> gen_cst_uniform sh_float_vec4 uniform_4fv prg name
 
 let gen_mat_uniform = fun ty (fn: loc:int -> ?count:int -> ?transp:bool -> 'a array -> unit) prg ?(transp=false) name ->
   try
-    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
-    if ty <> ty' then (
+    let (UT ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if neq_type ty ty' then (
       Printf.eprintf "ERROR: bad type for uniforms %s for %s" name prg.name;
       failwith "Bad type");
     let size = tysize ty in
     let value fixed cont a =
       let cont () =
         let count = Array.length a / size in
-        (try fn ~loc:index ~count a;
+        (try fn ~loc:index ~count ~transp a;
          with Failure s ->
 	   failwith (Printf.sprintf "%s for %s in %s" s name prg.name));
         cont ()
@@ -517,14 +511,14 @@ let gen_mat_uniform = fun ty (fn: loc:int -> ?count:int -> ?transp:bool -> 'a ar
 
 let gen_cst_mat_uniform = fun ty (fn: loc:int -> ?count:int -> ?transp:bool -> 'a array -> unit) prg ?(transp=false)  name a ->
   try
-    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
-    if ty <> ty' then (
+    let (UT ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    if neq_type ty ty' then (
       Printf.eprintf "ERROR: bad type for uniforms %s for %s" name prg.name;
       failwith "Bad type");
     let size = tysize ty in
     let init () =
       let count = Array.length a / size in
-      (try fn ~loc:index ~count a;
+      (try fn ~loc:index ~count ~transp a;
        with Failure s ->
 	 failwith (Printf.sprintf "%s for %s in %s" s name prg.name));
       prg.fixed.init ()
@@ -535,21 +529,21 @@ let gen_cst_mat_uniform = fun ty (fn: loc:int -> ?count:int -> ?transp:bool -> '
       Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
       prg
 
-let float_mat2_uniform = fun prg name -> gen_mat_uniform `float_mat2 uniform_matrix_2fv prg name
-let float_mat3_uniform = fun prg name -> gen_mat_uniform `float_mat3 uniform_matrix_3fv prg name
-let float_mat4_uniform = fun prg name -> gen_mat_uniform `float_mat4 uniform_matrix_4fv prg name
+let float_mat2_uniform = fun prg name -> gen_mat_uniform sh_float_mat2 uniform_matrix_2fv prg name
+let float_mat3_uniform = fun prg name -> gen_mat_uniform sh_float_mat3 uniform_matrix_3fv prg name
+let float_mat4_uniform = fun prg name -> gen_mat_uniform sh_float_mat4 uniform_matrix_4fv prg name
 
-let float_mat2_cst_uniform = fun prg name -> gen_cst_mat_uniform `float_mat2 uniform_matrix_2fv prg name
-let float_mat3_cst_uniform = fun prg name -> gen_cst_mat_uniform `float_mat3 uniform_matrix_3fv prg name
-let float_mat4_cst_uniform = fun prg name -> gen_cst_mat_uniform `float_mat4 uniform_matrix_4fv prg name
+let float_mat2_cst_uniform = fun prg name -> gen_cst_mat_uniform sh_float_mat2 uniform_matrix_2fv prg name
+let float_mat3_cst_uniform = fun prg name -> gen_cst_mat_uniform sh_float_mat3 uniform_matrix_3fv prg name
+let float_mat4_cst_uniform = fun prg name -> gen_cst_mat_uniform sh_float_mat4 uniform_matrix_4fv prg name
 
 let texture_2d_uniform =
   fun prg name ->
   try
-    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    let (UT ty',_size,index), uniforms = assoc_rm name prg.uniforms in
     let ty = match ty' with
-      | `sampler_2d -> `texture_2d
-      | `sampler_2d_shadow -> `texture_2d
+      | x when eq_type x sh_sampler_2d -> gl_texture_2d
+      | x when eq_type x sh_sampler_2d_shadow -> gl_texture_2d
       | _ ->
 	 Printf.eprintf "ERROR: bad type for uniforms %s for %s" name prg.name;
 	failwith "Bad type"
@@ -576,10 +570,10 @@ let texture_2d_uniform =
 let texture_2d_cst_uniform =
   fun prg name texture ->
   try
-    let (ty',_size,index), uniforms = assoc_rm name prg.uniforms in
+    let (UT ty',_size,index), uniforms = assoc_rm name prg.uniforms in
     let ty = match ty' with
-      | `sampler_2d -> `texture_2d
-      | `sampler_2d_shadow -> `texture_2d
+      | x when eq_type x sh_sampler_2d -> gl_texture_2d
+      | x when eq_type x sh_sampler_2d_shadow -> gl_texture_2d
       | _ ->
 	 Printf.eprintf "ERROR: bad type for uniforms %s for %s" name prg.name;
 	failwith "Bad type"

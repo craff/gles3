@@ -1,5 +1,6 @@
 open Egl
 open Gles3
+open Gles3.Type
 open Shaders
 open Buffers
 open Matrix
@@ -24,8 +25,8 @@ let _ =
 
 let shadow_shader =
   ("shadow_shader",
-   [ load_shader `vertex_shader   "vertex_shadow.glsl";
-     load_shader `fragment_shader "fragment_shadow.glsl"; ])
+   [ load_shader gl_vertex_shader   "vertex_shadow.glsl";
+     load_shader gl_fragment_shader "fragment_shadow.glsl"; ])
 
 
 let shade = compile shadow_shader
@@ -34,8 +35,8 @@ let shade = compile shadow_shader
    the string are just use to report errors *)
 let light_shader =
   ("light_shader",
-   [ load_shader `vertex_shader   "vertex_light_with_shadow.glsl";
-     load_shader `fragment_shader "fragment_light_with_shadow.glsl"; ])
+   [ load_shader gl_vertex_shader   "vertex_light_with_shadow.glsl";
+     load_shader gl_fragment_shader "fragment_light_with_shadow.glsl"; ])
 
 (** we compile the shader with Shaders.compile *)
 let prg = compile light_shader
@@ -47,7 +48,7 @@ let prg = compile light_shader
    notice the flat structure of the array (3 coordinates per point)
    and the repetition of the same points because they will have
    different normals *)
-let vertices = to_float_array_buffer `static_draw
+let vertices = to_float_array_buffer gl_static_draw
   [|0.;0.;0.;
     0.;0.;1.;
     0.;1.;1.;
@@ -85,7 +86,7 @@ let shade = buffer_cst_attr shade "in_position" vertices
 
 
 (** the normals associated to each vertex, in the same orders *)
-let normals = to_float_array_buffer `static_draw
+let normals = to_float_array_buffer gl_static_draw
   [|
     -1.;0.;0.;
     -1.;0.;0.;
@@ -123,7 +124,7 @@ let prg = buffer_cst_attr prg "in_normal" normals
 
 (** we define the texture coordinates of each vertex
    above 1 is possible as we use repeat *)
-let tex_coordinates = to_float_array_buffer `static_draw
+let tex_coordinates = to_float_array_buffer gl_static_draw
   [|
     0.;0.;
     0.;5.;
@@ -161,21 +162,22 @@ let prg = buffer_cst_attr prg "in_tex_coordinates" tex_coordinates
 
 (** a very 4x4 texture *)
 let image = {
-  width=4; height=4;format=`luminance;data=to_ubyte_bigarray [|128;128;255;255;
-							       128;128;255;255;
-							       255;255;128;128;
-							       255;255;128;128|]
+    width=4; height=4;format=gl_luminance;
+    data=to_ubyte_bigarray [|128;128;255;255;
+			     128;128;255;255;
+			     255;255;128;128;
+			     255;255;128;128|]
 }
 (** tranformed to a texture *)
-let texture = image_to_texture2d image [`texture_min_filter `nearest;
-					`texture_mag_filter `nearest;
-					`texture_wrap_s `repeat;
-					`texture_wrap_t `repeat]
+let texture = image_to_texture2d image [texture_min_filter gl_nearest;
+					texture_mag_filter gl_nearest;
+					texture_wrap_s gl_repeat;
+					texture_wrap_t gl_repeat]
 (** and associated to the corresponding variable *)
 let prg = texture_2d_cst_uniform prg "texture1" texture
 
 (** we define the elements (here 12 triangles), as index in the above array *)
-let elements = to_uint_element_buffer `static_draw
+let elements = to_uint_element_buffer gl_static_draw
   [|
     0;1;2;2;3;0;
     4;5;6;6;7;4;
@@ -230,13 +232,13 @@ let prg = float3v_cst_uniform prg "lightPos" lightPos
 let prg = float4v_cst_uniform prg "lightDiffuse" [|0.7;0.7;0.7;1.0|]
 let prg = float4v_cst_uniform prg "lightAmbient" [|0.2;0.2;0.2;1.0|]
 
-			      
-let depthmap = framebuffer_depth_texture 512 512 `depth_component24
-  [`texture_min_filter `linear;
-   `texture_mag_filter `linear;
-   `texture_compare_mode `compare_ref_to_texture;
-   `texture_wrap_s `clamp_to_edge;
-   `texture_wrap_t `clamp_to_edge]
+
+let depthmap = framebuffer_depth_texture 512 512 gl_depth_component24
+  [texture_min_filter gl_linear;
+   texture_mag_filter gl_linear;
+   texture_compare_mode gl_compare_ref_to_texture;
+   texture_wrap_s gl_clamp_to_edge;
+   texture_wrap_t gl_clamp_to_edge]
 
 let prg = float_mat4_cst_uniform prg "shadowproj" shadow_projection
 let prg = texture_2d_cst_uniform prg "shadowmap" depthmap.tex
@@ -244,8 +246,8 @@ let prg = texture_2d_cst_uniform prg "shadowmap" depthmap.tex
 (** we can now define a function drawing the cube using
    Shaders.draw_uint_elements *)
 let dessine_cubes t =
-  cull_face ~face:`back;
-  let f = draw_buffer_elements prg `triangles elements (projection ()) in
+  cull_face ~face:gl_back;
+  let f = draw_buffer_elements prg gl_triangles elements (projection ()) in
   f (modelView t);
   f (modelViewA t);
   f (modelViewB t);
@@ -255,8 +257,8 @@ let dessine_cubes t =
   f (modelViewF t)
 
 let shadow_cubes t =
-  cull_face ~face:`front;
-  let f = draw_buffer_elements shade `triangles elements in
+  cull_face ~face:gl_front;
+  let f = draw_buffer_elements shade gl_triangles elements in
   f (modelView t);
   f (modelViewA t);
   f (modelViewB t);
@@ -269,8 +271,8 @@ let dessine_shadow = ref false
 
 (** some last initializations of openGL state *)
 let _ =
-  enable `depth_test;
-  enable `cull_face;
+  enable gl_depth_test;
+  enable gl_cull_face;
   clear_color { r = 0.1; g = 0.1; b = 0.1; a = 1.0 }
 
 (** two references to compute the frame rates *)
@@ -281,14 +283,14 @@ let frames = ref 0
    if the computation of the frame rates *)
 let draw () =
   let t = Unix.gettimeofday () in
-  bind_framebuffer `framebuffer depthmap.framebuffer.framebuffer_index;
-  clear [  `depth_buffer];
+  bind_framebuffer gl_framebuffer depthmap.framebuffer.framebuffer_index;
+  clear [gl_depth_buffer];
   viewport ~x:0 ~y:0 ~w:512 ~h:512;
   shadow_cubes t;
   show_errors "after shadow";
-  bind_framebuffer `framebuffer null_framebuffer;
+  bind_framebuffer gl_framebuffer null_framebuffer;
 
-  clear [  `color_buffer ; `depth_buffer];
+  clear [ gl_color_buffer ; gl_depth_buffer];
   viewport ~x:0 ~y:0 ~w:!gwidth ~h:!gheight;
   if !dessine_shadow then shadow_cubes t else dessine_cubes t;
   swap_buffers ();

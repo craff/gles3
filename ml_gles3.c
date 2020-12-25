@@ -34,100 +34,105 @@
 
 /*** SIMPLE C -> ML WRAPPERS ***/
 
-#define ML_0(cname)			\
-  void ml_##cname ()	\
+#define ML_0(cname)\
+  void ml_##cname ()\
   { cname() ; return ; }
 
-#define ML_1(cname, conv1)		    \
-  void ml_##cname (value v1)	    \
-  { cname(conv1(v1)) ; return ; }
-
-#define ML_1U(cname, typ1)		    \
-  void mlU_##cname (typ1 v1)	    \
+#define ML_1(cname, conv1)\
+  void ml_##cname (value v1)\
+  { CAMLparam1(v1); cname(conv1(v1)) ; CAMLreturn0 ; }
+#define ML_1U(cname, typ1)\
+  void mlU_##cname (typ1 v1)\
   { cname(v1) ; return ; }
 
 #define ML_2(cname, conv1, conv2)		       \
   void ml_##cname (value v1, value v2)       \
-  { cname(conv1(v1), conv2(v2)) ; return ; }
+  { CAMLparam2(v1,v2); cname(conv1(v1), conv2(v2)) ; CAMLreturn0 ; }
 #define ML_2UU(cname, typ1, typ2)		       \
   void mlU_##cname (typ1 v1, typ2 v2)       \
   { cname(v1, v2) ; return ; }
 #define ML_2UV(cname, typ1, conv2)		       \
   void mlU_##cname (typ1 v1, value v2)       \
-  { cname(v1, conv2(v2)) ; return ; }
+  { CAMLparam1(v2); cname(v1, conv2(v2)) ; CAMLreturn0 ; }
 #define ML_2VU(cname, conv1, typ2)		       \
   void mlU_##cname (value v1, typ2 v2)       \
-  { cname(conv1(v1), v2) ; return ; }
+  { CAMLparam1(v1); cname(conv1(v1), v2) ; CAMLreturn0 ; }
 
 #define ML_3(cname, conv1, conv2, conv3)			  \
   void ml_##cname (value v1, value v2, value v3)	  \
-  { cname(conv1(v1), conv2(v2), conv3(v3)) ; return ; }
+  { CAMLparam3(v1,v2,v3);  cname(conv1(v1), conv2(v2), conv3(v3)) ; CAMLreturn0 ; }
 #define ML_3UUU(cname, typ1, typ2, typ3)			  \
   void mlU_##cname (typ1 v1, typ2 v2, typ3 v3)	  \
   { cname(v1, v2, v3) ; return ; }
 #define ML_3VUU(cname, conv1, typ2, typ3)			  \
   void mlU_##cname (value v1, typ2 v2, typ3 v3)	  \
-  { cname(conv1(v1), v2, v3) ; return ; }
+  { CAMLparam1(v1); cname(conv1(v1), v2, v3) ; CAMLreturn0 ; }
 #define ML_3UUV(cname, typ1, typ2, conv3)			  \
   void mlU_##cname (typ1 v1, typ2 v2, value v3)	  \
-  { cname(v1, v2, conv3(v3)) ; return ; }
+  { CAMLparam1(v3); cname(v1, v2, conv3(v3)) ; CAMLreturn0 ; }
 
 #define ML_4(cname, conv1, conv2, conv3, conv4)				\
   void ml_##cname (value v1, value v2, value v3, value v4)	\
-  { cname(conv1(v1), conv2(v2), conv3(v3), conv4(v4)) ;	return ; }
+  { CAMLparam4(v1,v2,v3,v4);\
+    cname(conv1(v1), conv2(v2), conv3(v3), conv4(v4)) ;	CAMLreturn0 ; }
 #define ML_4UUUU(cname, typ1, typ2, typ3, typ4)				\
   void mlU_##cname (typ1 v1, typ2 v2, typ3 v3, typ4 v4)	\
   { cname(v1, v2, v3, v4) ;	return ; }
-#define ML_4VVUU(cname, conv1, conv2, typ3, typ4)				\
-  void mlU_##cname (value v1, value v2, typ3 v3, typ4 v4)	\
-  { cname(conv1(v1), conv2(v2), v3, v4) ;	return ; }
-#define ML_4VVVU(cname, conv1, conv2, conv3, typ4)				\
-  void mlU_##cname (value v1, value v2, value v3, typ4 v4)	\
-  { cname(conv1(v1), conv2(v2), conv3(v3), v4) ;	return ; }
+#define ML_4UVUU(cname, typ1, conv2, typ3, typ4)				\
+  void mlU_##cname (typ1 v1, value v2, typ3 v3, typ4 v4)	\
+  { CAMLparam1(v2); cname(v1, conv2(v2), v3, v4) ; CAMLreturn0 ; }
+#define ML_4UVVU(cname, typ1, conv2, conv3, typ4)				\
+  void mlU_##cname (typ1 v1, value v2, value v3, typ4 v4)	\
+  { CAMLparam2(v2,v3); cname(v1, conv2(v2), conv3(v3), v4) ; CAMLreturn0 ; }
 
 #define ML_5(cname, conv1, conv2, conv3, conv4, conv5)			\
   void ml_##cname (value v1, value v2, value v3, value v4, value v5) \
-  { cname(conv1(v1), conv2(v2), conv3(v3), conv4(v4), conv5(v5)) ;	\
-    return ; }
+  { CAMLparam5(v1,v2,v3,v4,v5);\
+    cname(conv1(v1), conv2(v2), conv3(v3), conv4(v4), conv5(v5)) ;	\
+    CAMLreturn0 ; }
 #define ML_5UUUUU(cname, typ1, typ2, typ3, typ4, typ5)			\
   void mlU_##cname (typ1 v1, typ2 v2, typ3 v3, typ4 v4, typ5 v5) \
   { cname(v1, v2, v3, v4, v5) ;	return ; }
-#define ML_5VVVUU(cname, conv1, conv2, conv3, typ4, typ5)			\
-  void mlU_##cname (value v1, value v2, value v3, typ4 v4, typ5 v5) \
-  { cname(conv1(v1), conv2(v2), conv3(v3), v4, v5) ;	\
-    return ; }
+#define ML_5UVUUU(cname, typ1, conv2, typ3, typ4, typ5)			\
+  void mlU_##cname (typ1 v1, value v2, typ3 v3, typ4 v4, typ5 v5) \
+  { CAMLparam1(v2); cname(v1, conv2(v2), v3, v4, v5) ; \
+    CAMLreturn0 ; }
 
 #define ML_0R(cname, convr)	       \
   CAMLprim value ml_##cname ()  \
-  { return convr(cname()) ; }
+  { CAMLparam0(); CAMLreturn(convr(cname())) ; }
 #define ML_0RU(cname, typr)	       \
   typr mlU_##cname ()  \
-  { return cname() ; }
+  { CAMLparam0(); CAMLreturnT(typr, cname()) ; }
 
 #define ML_1R(cname, conv1, convr)	\
   CAMLprim value ml_##cname (value v1)	\
-  { return convr(cname(conv1(v1))) ; }
+  { CAMLparam0(); CAMLreturn(convr(cname(conv1(v1)))) ; }
+#define ML_1RUU(cname, typ1, typr)	\
+  typr mlU_##cname (typ1 v1)	\
+  { return(cname(v1)) ; }
 #define ML_1RUV(cname, typ1, convr)	\
   CAMLprim value mlU_##cname (typ1 v1)	\
-  { return convr(cname(v1)) ; }
+  { CAMLparam0(); CAMLreturn(convr(cname(v1))) ; }
 #define ML_1RVU(cname, conv1, typr)	\
   typr mlU_##cname (value v1)	\
-  { return cname(conv1(v1)) ; }
+  { CAMLparam1(v1); CAMLreturnT(typr, cname(conv1(v1))) ; }
 
 #define ML_2R(cname, conv1, conv2, convr)	   \
   CAMLprim value ml_##cname (value v1, value v2)   \
-  { return convr(cname(conv1(v1), conv2(v2))) ; }
+  { CAMLparam2(v1,v2); CAMLreturn (convr(cname(conv1(v1), conv2(v2)))) ; }
 #define ML_2RUVU(cname, typ1, conv2, typr)	   \
   typr mlU_##cname (typ1 v1, value v2)   \
-  { return cname(v1, conv2(v2)) ; }
+  { CAMLparam1(v2); CAMLreturnT(typr, cname(v1, conv2(v2))) ; }
 
 #define ML_3R(cname, conv1, conv2, conv3, convr)	      \
   CAMLprim value ml_##cname (value v1, value v2, value v3)    \
-  { return convr(cname(conv1(v1), conv2(v2), conv3(v3))) ; }
+  { CAMLparam3(v1,v2,v3); CAMLreturn(convr(cname(conv1(v1), conv2(v2), conv3(v3)))) ; }
 
-#define ML_4R(cname, conv1, conv2, conv3, conv4, convr)			\
-  CAMLprim value ml_##cname (value v1, value v2, value v3, value v4)    \
-  { return convr(cname(conv1(v1), conv2(v2), conv3(v3), conv4(v4))) ; }
+#define ML_4R(cname, conv1, conv2, conv3, conv4, convr)\
+  CAMLprim value ml_##cname (value v1, value v2, value v3, value v4)\
+  { CAMLparam4(v1,v2,v3,v4);\
+    CAMLreturn(convr(cname(conv1(v1), conv2(v2), conv3(v3), conv4(v4)))); }
 
 #define GLES_FAIL(msg)   failwith("Gles3." msg)
 
@@ -170,76 +175,6 @@ static long Caml_ba_data_bsize_val(value v)
 
 #define Float_val(v)       ((GLfloat)Double_val(v))
 #define Float_field(v, i)  ((GLfloat)Double_field(v, i))
-
-/****************************************************************************/
-/*   CONVERTING ML-TAGS TO/FROM C-ENUMS                                     */
-/****************************************************************************/
-
-struct record {
-    int key;
-    GLenum data;
-} ;
-
-static struct record input_table[] = {
-#include "gles3_tags.h"
-  /* defines TAG_NUMBER, TABLE_SIZE and TABLE_MASK */
-} ;
-
-static struct record *tag_table = NULL ;
-
-static void make_tag_table(void)
-{
-  int i, hash, probe ;
-  int sum_probe = 0 ;
-  int max_probe = 0 ;
-  tag_table = stat_alloc (TABLE_SIZE * sizeof(struct record)) ;
-  memset ((char *)tag_table, 0, TABLE_SIZE * sizeof(struct record)) ;
-  for (i = 0; i < TAG_NUMBER; i++) {
-    hash = (input_table[i].key ^ TABLE_MASK) % TABLE_SIZE ;
-    if(hash < 0) hash += TABLE_SIZE ;
-    probe = 0 ;
-    while(tag_table[hash].key != 0) {
-      hash++ ; probe++ ;
-      if (hash == TABLE_SIZE) hash = 0 ;
-    }
-    tag_table[hash].key = input_table[i].key ;
-    tag_table[hash].data = input_table[i].data ;
-    sum_probe += probe ;
-    if(probe > max_probe) max_probe = probe ;
-  }
-  /*
-  fprintf(stderr, "Built hash table: %d/%d entries, mask = 0x%X\n",
-	  TAG_NUMBER, TABLE_SIZE, TABLE_MASK) ;
-  fprintf(stderr, "Probes: max = %d, sum = %d, avg = %.3f\n",
-	  max_probe, sum_probe, (float)sum_probe / TAG_NUMBER) ;
-  */
-}
-
-GLenum Enum_val(value val)
-{
-  int tag = Int_val(val) ;
-  int hash = (tag ^ TABLE_MASK) % TABLE_SIZE ;
-  if(hash < 0) hash += TABLE_SIZE ;
-  if(!tag_table) make_tag_table() ;
-  while(tag_table[hash].key != tag) {
-    if (tag_table[hash].key == 0) failwith("Gles2: Unknown ML tag") ;
-    hash++ ;
-    if(hash == TABLE_SIZE) hash = 0 ;
-  }
-  return tag_table[hash].data ;
-}
-
-value Val_enum(GLenum enu)
-{
-  int hash ;
-  if(!tag_table) make_tag_table() ;
-  for(hash = 0; hash < TABLE_SIZE; hash++)
-    if(tag_table[hash].data == enu)
-      return Val_int(tag_table[hash].key) ;
-  char msg[256];
-  sprintf(msg, "Gles: Unknown GL enum: %x",enu);
-  failwith(msg) ;
-}
 
 /****************************************************************************/
 /*   VERTEX ATTRIBUTES & DRAWING                                            */
@@ -357,67 +292,84 @@ CAMLprim value ml_glVertexAttribFloatPointer(value vi, value vs, value vn,
   CAMLreturn(Val_unit) ;
 }
 
-CAMLprim value ml_glVertexAttribBufferPointer(value vi, value vs, value vt,
-					      value vn, value vr, value vd)
+CAMLprim value mlU_glVertexAttribBufferPointer(intnat index, intnat size, intnat type,
+					      value vn, intnat stride, intnat vd)
 {
-  CAMLparam5(vi, vs, vt, vn, vr) ;
-  CAMLxparam1(vd) ;
-  GLint index = Int_val(vi) ;
-  GLint size = Int_val(vs) ;
-  GLenum type = Enum_val(vt) ;
+  CAMLparam1(vn) ;
   GLboolean norm = Bool_val(vn) ;
-  GLsizei stride = Int_val(vr) ;
-  void *data = (void *)Long_val(vd) ;
+  void *data = (void *)vd ;
   glVertexAttribPointer(index, size, type, norm, stride, data) ;
   CAMLreturn(Val_unit) ;
 }
 
-CAMLprim value ml_glVertexAttribBufferPointer_bc(value *argv, int argn)
+CAMLprim value ml_glVertexAttribBufferPointer(value *argv, int argn)
 {
   CAMLparamN(argv,argn);
-  CAMLreturn(ml_glVertexAttribBufferPointer(argv[0], argv[1], argv[2],
-					    argv[3], argv[4], argv[5])) ;
+  CAMLreturn(
+    mlU_glVertexAttribBufferPointer(
+      Int_val(argv[0]), Int_val(argv[1]), Int_val(argv[2]),
+      argv[3], Int_val(argv[4]), argv[5])) ;
 }
 
-ML_3(glDrawArrays, Enum_val, Int_val, Int_val) ;
-ML_3VUU(glDrawArrays, Enum_val, intnat, intnat) ;
+ML_3(glDrawArrays, Int_val, Int_val, Int_val) ;
+ML_3UUU(glDrawArrays, intnat, intnat, intnat) ;
 
-CAMLprim value ml_glDrawUByteElements(value vm, value vc, value vd)
+void mlU_glDrawUByteElements(intnat mode, intnat count, value vd)
 {
-  CAMLparam3(vm, vc, vd) ;
-  GLenum mode = Enum_val(vm) ;
-  GLsizei count = Int_val(vc) ;
+  CAMLparam1(vd) ;
   void *data = Caml_ba_data_val(vd) ;
   glDrawElements(mode, count, GL_UNSIGNED_BYTE, data) ;
-  CAMLreturn(Val_unit) ;
+  CAMLreturn0 ;
 }
 
-CAMLprim value ml_glDrawUShortElements(value vm, value vc, value vd)
+void ml_glDrawUByteElements(value vm, value vc, value vd)
 {
-  CAMLparam3(vm, vc, vd) ;
-  GLenum mode = Enum_val(vm) ;
-  GLsizei count = Int_val(vc) ;
+  CAMLparam3(vm,vc,vd);
+  mlU_glDrawUByteElements(Int_val(vm), Int_val(vc), vd);
+  CAMLreturn0 ;
+}
+
+void mlU_glDrawUShortElements(intnat mode, intnat count, value vd)
+{
+  CAMLparam1(vd) ;
   void *data = Caml_ba_data_val(vd) ;
   glDrawElements(mode, count, GL_UNSIGNED_SHORT, data) ;
-  CAMLreturn(Val_unit) ;
+  CAMLreturn0 ;
 }
 
-CAMLprim value ml_glDrawUIntElements(value vm, value vc, value vd)
+void ml_glDrawUShortElements(value vm, value vc, value vd)
 {
   CAMLparam3(vm, vc, vd) ;
-  GLenum mode = Enum_val(vm) ;
-  GLsizei count = Int_val(vc) ;
+  mlU_glDrawUShortElements(Int_val(vm), Int_val(vc), vd) ;
+  CAMLreturn0 ;
+}
+
+void mlU_glDrawUIntElements(intnat mode, intnat count, value vd)
+{
+  CAMLparam1(vd) ;
   void *data = Caml_ba_data_val(vd) ;
   glDrawElements(mode, count, GL_UNSIGNED_INT, data) ;
-  CAMLreturn(Val_unit) ;
+  CAMLreturn0 ;
+}
+
+void ml_glDrawUIntElements(value vm, value vc, value vd)
+{
+  CAMLparam3(vm, vc, vd) ;
+  mlU_glDrawUIntElements(Int_val(vm), Int_val(vc), vd) ;
+  CAMLreturn0 ;
+}
+
+void mlU_glDrawBufferElements(intnat mode, intnat count, intnat type, intnat data)
+{
+  glDrawElements(mode, count, type, (void*) data) ;
 }
 
 CAMLprim value ml_glDrawBufferElements(value vm, value vc, value vt, value vd)
 {
   CAMLparam4(vm, vc, vt, vd) ;
-  GLenum mode = Enum_val(vm) ;
+  GLenum mode = Int_val(vm) ;
   GLsizei count = Int_val(vc) ;
-  GLenum type = Enum_val(vt) ;
+  GLenum type = Int_val(vt) ;
   void *data = (void *)Long_val(vd) ;
   glDrawElements(mode, count, type, data) ;
   CAMLreturn(Val_unit) ;
@@ -470,15 +422,20 @@ CAMLprim value ml_glDeleteBuffers(value vv)
   CAMLreturn(Val_unit) ;
 }
 
-ML_2(glBindBuffer, Enum_val, Int_val) ;
-ML_2VU(glBindBuffer, Enum_val, intnat) ;
+ML_2(glBindBuffer, Int_val, Int_val) ;
+ML_2UU(glBindBuffer, intnat, intnat) ;
+
+void mlU_glBufferSize(intnat target, intnat size, intnat usage)
+{
+  glBufferData(target, size, NULL, usage) ;
+}
 
 CAMLprim value ml_glBufferSize(value vt, value vs, value vu)
 {
   CAMLparam3(vt, vs, vu) ;
-  GLenum target = Enum_val(vt) ;
+  GLenum target = Int_val(vt) ;
   GLint size = Int_val(vs) ;
-  GLenum usage = Enum_val(vu) ;
+  GLenum usage = Int_val(vu) ;
   glBufferData(target, size, NULL, usage) ;
   CAMLreturn(Val_unit) ;
 }
@@ -486,10 +443,10 @@ CAMLprim value ml_glBufferSize(value vt, value vs, value vu)
 CAMLprim value ml_glBufferData(value vt, value vd, value vu)
 {
   CAMLparam3(vt, vd, vu) ;
-  GLenum target = Enum_val(vt) ;
+  GLenum target = Int_val(vt) ;
   int size = Caml_ba_data_bsize_val(vd) ;
   void *data = Caml_ba_data_val(vd) ;
-  GLenum usage = Enum_val(vu) ;
+  GLenum usage = Int_val(vu) ;
   glBufferData(target, size, data, usage) ;
   CAMLreturn(Val_unit) ;
 }
@@ -497,7 +454,7 @@ CAMLprim value ml_glBufferData(value vt, value vd, value vu)
 CAMLprim value ml_glBufferSubData(value vt, value vo, value vd)
 {
   CAMLparam3(vt, vo, vd) ;
-  GLenum target = Enum_val(vt) ;
+  GLenum target = Int_val(vt) ;
   int offset = Int_val(vo) ;
   int size = Caml_ba_data_bsize_val(vd) ;
   void *data = Caml_ba_data_val(vd) ;
@@ -508,7 +465,7 @@ CAMLprim value ml_glBufferSubData(value vt, value vo, value vd)
 CAMLprim value ml_glGetBufferSize(value vt)
 {
   CAMLparam1(vt) ;
-  GLenum target = Enum_val(vt) ;
+  GLenum target = Int_val(vt) ;
   GLint param ;
   glGetBufferParameteriv(target, GL_BUFFER_SIZE, &param) ;
   CAMLreturn(Val_int(param)) ;
@@ -517,7 +474,7 @@ CAMLprim value ml_glGetBufferSize(value vt)
 CAMLprim value ml_glGetBufferUsage(value vt)
 {
   CAMLparam1(vt) ;
-  GLenum target = Enum_val(vt) ;
+  GLenum target = Int_val(vt) ;
   GLint param ;
   glGetBufferParameteriv(target, GL_BUFFER_USAGE, &param) ;
   CAMLreturn(Val_int(param)) ;
@@ -529,8 +486,8 @@ CAMLprim value ml_glGetBufferUsage(value vt)
 
 ML_1R(glIsShader, Int_val, Val_bool) ;
 ML_1RUV(glIsShader, intnat, Val_bool) ;
-ML_1R(glCreateShader, Enum_val, Val_int) ;
-ML_1RVU(glCreateShader, Enum_val, intnat) ;
+ML_1R(glCreateShader, Int_val, Val_int) ;
+ML_1RUU(glCreateShader, intnat, intnat) ;
 ML_1(glDeleteShader, Int_val) ;
 ML_1U(glDeleteShader, intnat) ;
 
@@ -556,7 +513,7 @@ CAMLprim value ml_glGetShaderType(value vs)
   GLuint shad = Int_val(vs) ;
   GLint type ;
   glGetShaderiv(shad, GL_SHADER_TYPE, &type) ;
-  CAMLreturn(Val_enum(type)) ;
+  CAMLreturn(Val_int(type)) ;
 }
 
 CAMLprim value ml_glGetShaderDeleteStatus(value vs)
@@ -649,7 +606,7 @@ CAMLprim value ml_glGetActiveAttribs(value vp)
     triple = caml_alloc_tuple(4) ;
     Store_field(triple, 0, caml_copy_string(buffer)) ;
     Store_field(triple, 1, Val_int(j)) ;
-    Store_field(triple, 2, Val_enum(type)) ;
+    Store_field(triple, 2, Val_int(type)) ;
     Store_field(triple, 3, Val_int(size)) ;
     cons = caml_alloc_tuple(2) ;
     Store_field(cons, 0, triple) ;
@@ -667,7 +624,7 @@ ML_3UUV(glBindAttribLocation, intnat, intnat, String_val) ;
 CAMLprim value ml_glGetActiveUniforms(value vp)
 {
   CAMLparam1(vp) ;
-  CAMLlocal3(list, cons, triple) ;
+  CAMLlocal4(list, cons, triple,ut) ;
   GLuint prog = Int_val(vp) ;
   const int bufsiz = 256 ;
   char buffer[bufsiz] ;
@@ -679,9 +636,11 @@ CAMLprim value ml_glGetActiveUniforms(value vp)
     glGetActiveUniform(prog, i, bufsiz, NULL, &size, &type, buffer) ;
     int j = glGetUniformLocation(prog,buffer);
     triple = caml_alloc_tuple(4) ;
+    ut     = caml_alloc(1,0) ;
     Store_field(triple, 0, caml_copy_string(buffer)) ;
     Store_field(triple, 1, Val_int(j)) ;
-    Store_field(triple, 2, Val_enum(type)) ;
+    Store_field(ut, 0, Val_int(type)) ;
+    Store_field(triple, 2, ut) ;
     Store_field(triple, 3, Val_int(size)) ;
     cons = caml_alloc_tuple(2) ;
     Store_field(cons, 0, triple) ;
@@ -938,14 +897,19 @@ ML_2UU(glDepthRangef, double, double) ;
 ML_4(glViewport, Int_val, Int_val, Int_val, Int_val) ;
 ML_4UUUU(glViewport, intnat, intnat, intnat, intnat) ;
 
-ML_1R(glIsEnabled, Enum_val, Val_bool) ;
-ML_1(glEnable, Enum_val) ;
-ML_1(glDisable, Enum_val) ;
+ML_1R(glIsEnabled, Int_val, Val_bool) ;
+ML_1RUV(glIsEnabled, intnat, Val_bool) ;
+ML_1(glEnable, Int_val) ;
+ML_1U(glEnable, intnat) ;
+ML_1(glDisable, Int_val) ;
+ML_1U(glDisable, intnat) ;
 
 ML_1(glLineWidth, Float_val) ;
 ML_1U(glLineWidth, double) ;
-ML_1(glFrontFace, Enum_val) ;
-ML_1(glCullFace, Enum_val) ;
+ML_1(glFrontFace, Int_val) ;
+ML_1U(glFrontFace, intnat) ;
+ML_1(glCullFace, Int_val) ;
+ML_1U(glCullFace, intnat) ;
 ML_2(glPolygonOffset, Float_val, Float_val) ;
 ML_2UU(glPolygonOffset, double, double) ;
 
@@ -996,8 +960,8 @@ CAMLprim value ml_glDeleteTextures(value vv)
   CAMLreturn(Val_unit) ;
 }
 
-ML_2(glBindTexture, Enum_val, Int_val) ;
-ML_2VU(glBindTexture, Enum_val, intnat) ;
+ML_2(glBindTexture, Int_val, Int_val) ;
+ML_2UU(glBindTexture, intnat, intnat) ;
 
 CAMLprim value ml_glActiveTexture(value vi)
 {
@@ -1056,11 +1020,11 @@ CAMLprim value ml_glTexImage2D(value vt, value vl, value vimg)
 {
   CAMLparam3(vt, vl, vimg) ;
   CAMLlocal1(ba) ;
-  GLenum target = Enum_val(vt) ;
+  GLenum target = Int_val(vt) ;
   GLint level = Int_val(vl) ;
   GLint width = Int_val(Field(vimg, 0)) ;
   GLint height = Int_val(Field(vimg, 1)) ;
-  GLenum format = Enum_val(Field(vimg, 2)) ;
+  GLenum format = Int_val(Field(vimg, 2)) ;
   ba = Field(vimg, 3) ;
   if(Caml_ba_data_bsize_val(ba) < width * height * pixel_bsize(format))
     GLES_FAIL("tex_image_2d: too few data bytes") ;
@@ -1073,11 +1037,11 @@ CAMLprim value ml_glTexImage2D(value vt, value vl, value vimg)
 CAMLprim value ml_glTexNullImage2D(value vt, value vl, value vw, value vh, value vif)
 {
   CAMLparam5(vt, vl, vw, vh, vif) ;
-  GLenum target = Enum_val(vt) ;
+  GLenum target = Int_val(vt) ;
   GLint level = Int_val(vl) ;
   GLint width = Int_val(vw) ;
   GLint height = Int_val(vh) ;
-  GLenum internal_format = Enum_val(vif) ;
+  GLenum internal_format = Int_val(vif) ;
   GLenum format = format_from_internal(internal_format);
   GLenum type = type_from_internal(internal_format);
   glTexImage2D(target, level, internal_format, width, height, 0,
@@ -1090,13 +1054,13 @@ CAMLprim value ml_glTexSubImage2D(value vt, value vl,
 {
   CAMLparam5(vt, vl, vx, vy, vimg) ;
   CAMLlocal1(ba) ;
-  GLenum target = Enum_val(vt) ;
+  GLenum target = Int_val(vt) ;
   GLint level = Int_val(vl) ;
   GLint xoffset = Int_val(vx) ;
   GLint yoffset = Int_val(vy) ;
   GLint width = Int_val(Field(vimg, 0)) ;
   GLint height = Int_val(Field(vimg, 1)) ;
-  GLenum format = Enum_val(Field(vimg, 2)) ;
+  GLenum format = Int_val(Field(vimg, 2)) ;
   ba = Field(vimg, 3) ;
   if(Caml_ba_data_bsize_val(ba) < width * height * pixel_bsize(format))
     GLES_FAIL("tex_image_2d: too few data bytes") ;
@@ -1110,9 +1074,9 @@ CAMLprim value ml_glCopyTexImage2D(value vt, value vl, value vf, value vr)
 {
   CAMLparam4(vt, vl, vf, vr) ;
   CAMLlocal1(ba) ;
-  GLenum target = Enum_val(vt) ;
+  GLenum target = Int_val(vt) ;
   GLint level = Int_val(vl) ;
-  GLenum format = Enum_val(vf) ;
+  GLenum format = Int_val(vf) ;
   GLint x = Int_val(Field(vr, 0)) ;
   GLint y = Int_val(Field(vr, 1)) ;
   GLint width = Int_val(Field(vr, 2)) ;
@@ -1126,7 +1090,7 @@ CAMLprim value ml_glCopyTexSubImage2D(value vt, value vl,
 {
   CAMLparam5(vt, vl, vx, vy, vr) ;
   CAMLlocal1(ba) ;
-  GLenum target = Enum_val(vt) ;
+  GLenum target = Int_val(vt) ;
   GLint level = Int_val(vl) ;
   GLint xoffset = Int_val(vx) ;
   GLint yoffset = Int_val(vy) ;
@@ -1138,17 +1102,11 @@ CAMLprim value ml_glCopyTexSubImage2D(value vt, value vl,
   CAMLreturn(Val_unit) ;
 }
 
-CAMLprim value ml_glTexParameter(value vt, value vp)
-{
-  CAMLparam2(vt, vp) ;
-  GLenum target = Enum_val(vt) ;
-  GLenum param = Enum_val(Field(vp, 0)) ;
-  GLenum val = Enum_val(Field(vp, 1)) ;
-  glTexParameteri(target, param, val) ;
-  CAMLreturn(Val_unit) ;
-}
+ML_3(glTexParameteri, Int_val, Int_val, Int_val) ;
+ML_3UUU(glTexParameteri, intnat, intnat, intnat) ;
 
-ML_1(glGenerateMipmap, Enum_val) ;
+ML_1(glGenerateMipmap, Int_val) ;
+ML_1U(glGenerateMipmap, intnat) ;
 
 /****************************************************************************/
 /*   PER-FRAGMENT OPERATIONS                                                */
@@ -1160,20 +1118,27 @@ ML_4UUUU(glScissor, intnat, intnat, intnat, intnat) ;
 ML_2(glSampleCoverage, Float_val, Bool_val) ;
 ML_2UV(glSampleCoverage, double, Bool_val) ;
 
-ML_3(glStencilFunc, Enum_val, Int_val, Int_val) ;
-ML_3VUU(glStencilFunc, Enum_val, intnat, intnat) ;
-ML_4(glStencilFuncSeparate, Enum_val, Enum_val, Int_val, Int_val) ;
-ML_4VVUU(glStencilFuncSeparate, Enum_val, Enum_val, intnat, intnat) ;
-ML_3(glStencilOp, Enum_val, Enum_val, Enum_val) ;
-ML_4(glStencilOpSeparate, Enum_val, Enum_val, Enum_val, Enum_val) ;
+ML_3(glStencilFunc, Int_val, Int_val, Int_val) ;
+ML_3UUU(glStencilFunc, intnat, intnat, intnat) ;
+ML_4(glStencilFuncSeparate, Int_val, Int_val, Int_val, Int_val) ;
+ML_4UUUU(glStencilFuncSeparate, intnat, intnat, intnat, intnat) ;
+ML_3(glStencilOp, Int_val, Int_val, Int_val) ;
+ML_3UUU(glStencilOp, intnat, intnat, intnat) ;
+ML_4(glStencilOpSeparate, Int_val, Int_val, Int_val, Int_val) ;
+ML_4UUUU(glStencilOpSeparate, intnat, intnat, intnat, intnat) ;
 
-ML_1(glDepthFunc, Enum_val) ;
+ML_1(glDepthFunc, Int_val) ;
+ML_1U(glDepthFunc, intnat) ;
 
-ML_1(glBlendEquation, Enum_val) ;
-ML_2(glBlendEquationSeparate, Enum_val, Enum_val) ;
+ML_1(glBlendEquation, Int_val) ;
+ML_1U(glBlendEquation, intnat) ;
+ML_2(glBlendEquationSeparate, Int_val, Int_val) ;
+ML_2UU(glBlendEquationSeparate, intnat, intnat) ;
 
-ML_2(glBlendFunc, Enum_val, Enum_val) ;
-ML_4(glBlendFuncSeparate, Enum_val, Enum_val, Enum_val, Enum_val) ;
+ML_2(glBlendFunc, Int_val, Int_val) ;
+ML_2UU(glBlendFunc, intnat, intnat) ;
+ML_4(glBlendFuncSeparate, Int_val, Int_val, Int_val, Int_val) ;
+ML_4UUUU(glBlendFuncSeparate, intnat, intnat, intnat, intnat) ;
 
 CAMLprim value ml_glBlendColor(value vc)
 {
@@ -1194,8 +1159,8 @@ ML_4(glColorMask, Bool_val, Bool_val, Bool_val, Bool_val) ;
 ML_1(glDepthMask, Bool_val) ;
 ML_1(glStencilMask, Int_val) ;
 ML_1U(glStencilMask, intnat) ;
-ML_2(glStencilMaskSeparate, Enum_val, Int_val) ;
-ML_2VU(glStencilMaskSeparate, Enum_val, intnat) ;
+ML_2(glStencilMaskSeparate, Int_val, Int_val) ;
+ML_2UU(glStencilMaskSeparate, intnat, intnat) ;
 
 CAMLprim value ml_glClear(value vl)
 {
@@ -1203,7 +1168,7 @@ CAMLprim value ml_glClear(value vl)
   value vp = vl;
   GLint accu =0 ;
   while(Is_block(vp)) {
-    accu |= Enum_val(Field(vp, 0)) ;
+    accu |= Int_val(Field(vp, 0)) ;
     vp = Field(vp, 1) ;
   }
   glClear(accu) ;
@@ -1234,7 +1199,7 @@ CAMLprim value ml_glReadPixels(value vx, value vy, value vimg)
   GLint y = Int_val(vy) ;
   GLint width = Int_val(Field(vimg, 0)) ;
   GLint height = Int_val(Field(vimg, 1)) ;
-  GLenum format = Enum_val(Field(vimg, 2)) ;
+  GLenum format = Int_val(Field(vimg, 2)) ;
   ba = Field(vimg, 3) ;
   if(Caml_ba_data_bsize_val(ba) < width * height * pixel_bsize(format))
     GLES_FAIL("read_pixels: too few data bytes") ;
@@ -1290,22 +1255,23 @@ CAMLprim value ml_glDeleteRenderbuffers(value vv)
   CAMLreturn(Val_unit) ;
 }
 
-CAMLprim value ml_glDrawBuffers(value vv)
+void ml_glDrawBuffers(value vv)
 {
   CAMLparam1(vv) ;
   GLint i, n = Wosize_val(vv) ;
   GLenum buf[n] ;
   for(i = 0; i < n; i++)
-    buf[i] = Enum_val(Field(vv, i)) ;
+    buf[i] = Int_val(Field(vv, i)) ;
   glDrawBuffers(n, buf) ;
-  CAMLreturn(Val_unit) ;
+  CAMLreturn0 ;
 }
 
-ML_2(glBindRenderbuffer, Enum_val, Int_val) ;
-ML_2VU(glBindRenderbuffer, Enum_val, intnat) ;
-ML_4(glRenderbufferStorage, Enum_val, Enum_val, Int_val, Int_val) ;
-ML_4VVUU(glRenderbufferStorage, Enum_val, Enum_val, intnat, intnat) ;
-ML_1R(glCheckFramebufferStatus, Enum_val, Val_enum) ;
+ML_2(glBindRenderbuffer, Int_val, Int_val) ;
+ML_2UU(glBindRenderbuffer, intnat, intnat) ;
+ML_4(glRenderbufferStorage, Int_val, Int_val, Int_val, Int_val) ;
+ML_4UUUU(glRenderbufferStorage, intnat, intnat, intnat, intnat) ;
+ML_1R(glCheckFramebufferStatus, Int_val, Val_int) ;
+ML_1RUU(glCheckFramebufferStatus, intnat, intnat) ;
 
 /****************************************************************************/
 /*   FRAMEBUFFERS                                                           */
@@ -1354,24 +1320,19 @@ CAMLprim value ml_glDeleteFramebuffers(value vv)
   CAMLreturn(Val_unit) ;
 }
 
-ML_2(glBindFramebuffer, Enum_val, Int_val) ;
-ML_2VU(glBindFramebuffer, Enum_val, intnat) ;
-ML_4(glFramebufferRenderbuffer, Enum_val, Enum_val, Enum_val, Int_val) ;
-ML_4VVVU(glFramebufferRenderbuffer, Enum_val, Enum_val, Enum_val, intnat) ;
-ML_5(glFramebufferTexture2D, Enum_val, Enum_val, Enum_val, Int_val, Int_val) ;
-ML_5VVVUU(glFramebufferTexture2D, Enum_val, Enum_val, Enum_val, intnat, intnat) ;
+ML_2(glBindFramebuffer, Int_val, Int_val) ;
+ML_2UU(glBindFramebuffer, intnat, intnat) ;
+ML_4(glFramebufferRenderbuffer, Int_val, Int_val, Int_val, Int_val) ;
+ML_4UUUU(glFramebufferRenderbuffer, intnat, intnat, intnat, intnat) ;
+ML_5(glFramebufferTexture2D, Int_val, Int_val, Int_val, Int_val, Int_val) ;
+ML_5UUUUU(glFramebufferTexture2D, intnat, intnat, intnat, intnat, intnat) ;
 
 /****************************************************************************/
 /*   MISCELLANEOUS                                                          */
 /****************************************************************************/
 
-CAMLprim value ml_glGetError(value v)
-{
-  CAMLparam1(v) ;
-  GLenum r = glGetError() ;
-  if (r == GL_NO_ERROR) CAMLreturn(Val_int(176986634)); /* GL_NO_ERROR = GL_FALSE = GL_ZERO !!! */
-  CAMLreturn(Val_enum(r)) ;
-}
+ML_0R(glGetError, Val_int)
+ML_0RU(glGetError, intnat)
 
 CAMLprim value ml_glGetVendor(value v)
 {
