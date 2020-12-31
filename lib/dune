@@ -1,0 +1,19 @@
+(rule
+ (targets gles3_type.ml)
+ (deps gles3_type.mlc)
+ (action
+  (with-stdout-to gles3_type.ml
+  (ignore-stderr
+  (bash "cpp -P gles3_type.mlc | grep -A 1000 '(\\*BEGIN\\*)'")))))
+
+(library
+ (name gles3)
+ (public_name gles3)
+ (synopsis "OpenGL ES 3 bindings")
+ (modules :standard)
+ (wrapped false)
+ (flags (:standard -w -6-27-32 -thread))
+ (c_library_flags (:standard -lGLESv2 -lX11 -lEGL))
+ (foreign_stubs (language c) (names ml_gles3))
+ (foreign_stubs (language c) (names ml_egl))
+ (libraries stdlib-shims str unix bigarray))

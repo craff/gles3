@@ -1,0 +1,5 @@
+(executable
+ (name testb)
+ (public_name testb)
+ (flags (:standard -w -6-27-50))
+ (libraries gles3))

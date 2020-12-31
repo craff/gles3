@@ -130,7 +130,7 @@ let compile : ?version:string -> ?precision:string -> string * shader list -> un
     raise Compile_error
   );
   let cmp (s1,_,_,_) (s2,_,_,_) = compare s1 s2 in
-  let rec res = {
+  let res = {
     fixed = {
       program = prg;
       init = (fun () -> ());

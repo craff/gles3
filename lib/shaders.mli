@@ -42,13 +42,13 @@ open Textures
       are in the point/line/triangle and for the interpolation.
 
       The simplest posible vertex shader is therefore:
-      ======================================
+      {[
       in vec3 in_position;
       void main()
       {
         gl_Position = (in_position, 1.0);
       }
-      ======================================
+      ]}
       Which takes an attribute variables (see below) in_position as a vector
       with 3 coordinates and passes it directly to the fragment
       shader. gl_Position is a 4 vector: GLES/OpenGL uses projective

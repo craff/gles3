@@ -1,0 +1,6 @@
+(executable
+ (name spheres)
+ (public_name spheres)
+ (flags (:standard -w -6-27-50-33))
+ (optional) ; only compiled if ancient is present.
+ (libraries gles3 ancient))
