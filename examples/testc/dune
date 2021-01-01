@@ -4,38 +4,7 @@
  (flags (:standard -w -6-27-50))
  (libraries gles3))
 
-(rule
- (targets vertex_shadow.ml)
- (deps vertex_shadow.glsl)
- (action (with-stdout-to vertex_shadow.ml (progn
-    (echo "let str = String.trim \"") ; hack to remove newlight.
-    (cat vertex_shadow.glsl)
-    (echo "\"\n")
-    ))))
-
-(rule
- (targets fragment_shadow.ml)
- (deps fragment_shadow.glsl)
- (action (with-stdout-to fragment_shadow.ml (progn
-    (echo "let str = String.trim \"") ; hack to remove newlight.
-    (cat fragment_shadow.glsl)
-    (echo "\"\n")
-    ))))
-
-(rule
- (targets vertex_light_with_shadow.ml)
- (deps vertex_light_with_shadow.glsl)
- (action (with-stdout-to vertex_light_with_shadow.ml (progn
-    (echo "let str = String.trim \"") ; hack to remove newlight.
-    (cat vertex_light_with_shadow.glsl)
-    (echo "\"\n")
-    ))))
-
-(rule
- (targets fragment_light_with_shadow.ml)
- (deps fragment_light_with_shadow.glsl)
- (action (with-stdout-to fragment_light_with_shadow.ml (progn
-    (echo "let str = String.trim \"") ; hack to remove newlight.
-    (cat fragment_light_with_shadow.glsl)
-    (echo "\"\n")
-    ))))
+(rule (action (with-stdout-to vertex_shadow.ml (run glsl_to_ml vertex_shadow.glsl))))
+(rule (action (with-stdout-to fragment_shadow.ml (run glsl_to_ml fragment_shadow.glsl))))
+(rule (action (with-stdout-to vertex_light_with_shadow.ml (run glsl_to_ml vertex_light_with_shadow.glsl))))
+(rule (action (with-stdout-to fragment_light_with_shadow.ml (run glsl_to_ml fragment_light_with_shadow.glsl))))
