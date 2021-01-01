@@ -3,3 +3,21 @@
  (public_name maze)
  (flags (:standard -w -6-27))
  (libraries gles3))
+
+(rule
+ (targets fragment_light.ml)
+ (deps fragment_light.glsl)
+ (action (with-stdout-to fragment_light.ml (progn
+    (echo "let str = String.trim \"") ; hack to remove newlight.
+    (cat fragment_light.glsl)
+    (echo "\"\n")
+    ))))
+
+(rule
+ (targets vertex_light.ml)
+ (deps vertex_light.glsl)
+ (action (with-stdout-to vertex_light.ml (progn
+    (echo "let str = String.trim \"") ; hack to remove newlight.
+    (cat vertex_light.glsl)
+    (echo "\"\n")
+    ))))
