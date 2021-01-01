@@ -3,3 +3,13 @@
  (public_name testd)
  (flags (:standard -w -6-27-50))
  (libraries gles3))
+
+(rule (action (with-stdout-to vertex_shadow.ml (run glsl_to_ml vertex_shadow.glsl))))
+(rule (action (with-stdout-to fragment_shadow.ml (run glsl_to_ml fragment_shadow.glsl))))
+(rule (action (with-stdout-to vertex_light_with_shadow.ml (run glsl_to_ml vertex_light_with_shadow.glsl))))
+(rule (action (with-stdout-to fragment_light_with_shadow.ml (run glsl_to_ml fragment_light_with_shadow.glsl))))
+(rule (action (with-stdout-to vertex_implicit_shadow.ml (run glsl_to_ml vertex_implicit_shadow.glsl))))
+(rule (action (with-stdout-to solve.ml (run glsl_to_ml solve.glsl))))
+(rule (action (with-stdout-to fragment_implicit_shadow.ml (run glsl_to_ml fragment_implicit_shadow.glsl))))
+(rule (action (with-stdout-to ellipsoid.ml (run glsl_to_ml ellipsoid.glsl))))
+(rule (action (with-stdout-to fragment_light_implicit_with_shadow.ml (run glsl_to_ml fragment_light_implicit_with_shadow.glsl))))

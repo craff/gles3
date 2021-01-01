@@ -109,7 +109,7 @@ let compile : ?version:string -> ?precision:string -> string * shader list -> un
   let fn ty shaders =
     let header = Printf.sprintf "#version %s\nprecision %s float;\n" version precision in
     let shader_srcs = Array.of_list (header :: List.mapi (fun i s ->
-      Printf.sprintf "#line 1 %d\n" (i+1) ^ s.src) shaders) in
+      Printf.sprintf "\n#line 1 %d\n" (i+1) ^ s.src) shaders) in
     let shader = create_shader ty in
     let _ = shader_source shader shader_srcs in
     let _ = compile_shader shader in

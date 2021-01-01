@@ -25,8 +25,8 @@ let _ =
 
 let shadow_shader =
   ("shadow_shader",
-   [ load_shader gl_vertex_shader   "vertex_shadow.glsl";
-     load_shader gl_fragment_shader "fragment_shadow.glsl"; ])
+   [ of_string gl_vertex_shader   Vertex_shadow.str;
+     of_string gl_fragment_shader Fragment_shadow.str; ])
 
 let shade = compile shadow_shader
 
@@ -34,25 +34,25 @@ let shade = compile shadow_shader
    the string are just use to report errors *)
 let light_shader =
   ("light_shader",
-   [ load_shader gl_vertex_shader   "vertex_light_with_shadow.glsl";
-     load_shader gl_fragment_shader "fragment_light_with_shadow.glsl"; ])
+   [ of_string gl_vertex_shader   Vertex_light_with_shadow.str;
+     of_string gl_fragment_shader Fragment_light_with_shadow.str; ])
 
 let implicit_shadow_shader =
   ("implicit_shadow_shader",
-   [ load_shader gl_vertex_shader "vertex_implicit_shadow.glsl";
-     load_shader gl_fragment_shader "ellipsoid.glsl";
-     load_shader gl_fragment_shader "solve.glsl";
-     load_shader gl_fragment_shader "fragment_implicit_shadow.glsl";
+   [ of_string gl_vertex_shader Vertex_implicit_shadow.str;
+     of_string gl_fragment_shader Ellipsoid.str;
+     of_string gl_fragment_shader Solve.str;
+     of_string gl_fragment_shader Fragment_implicit_shadow.str;
    ])
 
 let ishade = compile implicit_shadow_shader
 
 let light_implicit_shader =
   ("light_implicit_shader",
-   [ load_shader gl_vertex_shader "vertex_shadow.glsl";
-     load_shader gl_fragment_shader "ellipsoid.glsl";
-     load_shader gl_fragment_shader "solve.glsl";
-     load_shader gl_fragment_shader "fragment_light_implicit_with_shadow.glsl";
+   [ of_string gl_vertex_shader Vertex_shadow.str;
+     of_string gl_fragment_shader Ellipsoid.str;
+     of_string gl_fragment_shader Solve.str;
+     of_string gl_fragment_shader Fragment_light_implicit_with_shadow.str;
    ])
 
 (** we compile the shader with Shaders.compile *)

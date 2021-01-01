@@ -1,5 +1,3 @@
-
-
 uniform mat4 InvModelView;
 
 vec3 solve(vec3 eyePos, vec3 pos) {

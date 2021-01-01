@@ -3,3 +3,6 @@
  (public_name curves)
  (flags (:standard -w -6))
  (libraries gles3))
+
+(rule (action (with-stdout-to fragment_light.ml (run glsl_to_ml fragment_light.glsl))))
+(rule (action (with-stdout-to vertex_light.ml (run glsl_to_ml vertex_light.glsl))))

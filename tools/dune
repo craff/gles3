@@ -1,0 +1,3 @@
+(executable
+ (name glsl_to_ml)
+ (public_name glsl_to_ml))
