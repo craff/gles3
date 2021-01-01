@@ -11,4 +11,3 @@ vec3 solve(vec3 eyePos, vec3 pos) {
   vec3 x = pos - l * v;
   return(x);
 }
-// end, newline needed when no main ?
