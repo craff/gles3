@@ -17,3 +17,4 @@ vec3 solve(vec3 eyePos, vec3 pos) {
 vec3 df(vec3 pos) {
   return(pos);
 }
+// end, newline needed when no main ?
