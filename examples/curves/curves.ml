@@ -31,8 +31,8 @@ let lines : Gles3.uint_bigarray  = Buffers.to_uint_bigarray
 (* We load and compile our shaders. *)
 let prg : unit Shaders.program =
   let open Shaders in
-  let vertex   = load_shader gl_vertex_shader   "vertex_light.glsl"   in
-  let fragment = load_shader gl_fragment_shader "fragment_light.glsl" in
+  let vertex   = of_string gl_vertex_shader  Vertex_light.str  in
+  let fragment = of_string gl_fragment_shader Fragment_light.str in
   compile ("light_shader", [vertex ; fragment])
 
 (* Note that [prg] cannot be used until uniforms and atributes are set. *)
