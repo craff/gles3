@@ -1,0 +1,5 @@
+(executable
+ (name maze)
+ (public_name maze)
+ (flags (:standard -w -6-27))
+ (libraries gles3))

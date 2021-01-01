@@ -1,0 +1,5 @@
+(executable
+ (name flying_cube)
+ (public_name flying_cube)
+ (flags (:standard -w -6))
+ (libraries gles3))
