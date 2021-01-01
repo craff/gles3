@@ -25,8 +25,8 @@ let _ =
 
 let shadow_shader =
   ("shadow_shader",
-   [ load_shader gl_vertex_shader   "vertex_shadow.glsl";
-     load_shader gl_fragment_shader "fragment_shadow.glsl"; ])
+   [ of_string gl_vertex_shader   Vertex_shadow.str;
+     of_string gl_fragment_shader Fragment_shadow.str; ])
 
 
 let shade = compile shadow_shader
@@ -35,8 +35,8 @@ let shade = compile shadow_shader
    the string are just use to report errors *)
 let light_shader =
   ("light_shader",
-   [ load_shader gl_vertex_shader   "vertex_light_with_shadow.glsl";
-     load_shader gl_fragment_shader "fragment_light_with_shadow.glsl"; ])
+   [ of_string gl_vertex_shader   Vertex_light_with_shadow.str;
+     of_string gl_fragment_shader Fragment_light_with_shadow.str; ])
 
 (** we compile the shader with Shaders.compile *)
 let prg = compile light_shader
