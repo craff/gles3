@@ -537,7 +537,7 @@ void ml_egl_main_loop()
 			    &ml_button, &ml_state, &ml_x, &ml_y);
 	}
       break ;
-    case MotionNotify: break;
+    case MotionNotify:
       if(event.xmotion.display == xdisplay &&
 	 event.xmotion.window == xwindow &&
 	 motion_notify_callback != default_callback)
