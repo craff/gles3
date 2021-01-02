@@ -35,6 +35,9 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#define caml_modify_generational_global_root(r,v) *r = v
+#define caml_register_generational_global_root(r) caml_register_global_root(r)
+
 static int initialized = 0 ;
 
 static Display *xdisplay = NULL ;
