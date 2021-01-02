@@ -341,6 +341,18 @@ let _ =
   in
   Egl.set_key_release_callback handle_key_release
 
+let _ =
+  let handle_leave_window ~state ~x ~y =
+    camera.r_speed <- 0.0;
+    camera.r_speed <- 0.0;
+    camera.t_speed <- 0.0;
+    camera.t_speed <- 0.0;
+    camera.u_speed <- 0.0;
+    camera.u_speed <- 0.0;
+    camera.speed   <- 0.0
+  in
+  Egl.set_leave_window_callback handle_leave_window
+
 (* Drawing function for the cube (depending on window ratio and time). *)
 let draw_maze : float -> unit = fun ratio ->
   let (<*>) = Matrix.mul in
