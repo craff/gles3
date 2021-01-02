@@ -153,7 +153,7 @@ let check_complete prg =
       Printf.eprintf "ERROR: Missing attribute %s for %s\n%!" name prg.name) prg.attributes;
     List.iter (fun (name,_,_,_) ->
       Printf.eprintf "ERROR: Missing uniform %s for %s\n%!" name prg.name) prg.uniforms;
-    failwith "Missing attributes of uniform"
+    failwith "Missing attributes or uniform"
   end
 
 let draw_arrays prg shape ?(first=0) count =
