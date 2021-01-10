@@ -511,7 +511,7 @@ void ml_egl_set_enter_window_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Egl.set_motion_notify_callback: not initialized") ;
+    failwith("Egl.set_enter_window_callback: not initialized") ;
   caml_modify_generational_global_root(&enter_window_callback, v) ;
   XEventMask = XEventMask | EnterWindowMask ;
   XSelectInput(xdisplay, xwindow, XEventMask);
@@ -522,7 +522,7 @@ void ml_egl_unset_enter_window_callback()
 {
   CAMLparam0() ;
   if(!initialized)
-    failwith("Egl.unset_motion_notify_callback: not initialized") ;
+    failwith("Egl.unset_enter_window_callback: not initialized") ;
   caml_modify_generational_global_root(&enter_window_callback, default_callback) ;
   XEventMask = XEventMask & ~EnterWindowMask ;
   XSelectInput(xdisplay, xwindow, XEventMask);
@@ -533,7 +533,7 @@ void ml_egl_set_leave_window_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Egl.set_motion_notify_callback: not initialized") ;
+    failwith("Egl.set_leave_window_callback: not initialized") ;
   caml_modify_generational_global_root(&leave_window_callback, v) ;
   XEventMask = XEventMask | LeaveWindowMask ;
   XSelectInput(xdisplay, xwindow, XEventMask);
@@ -544,7 +544,7 @@ void ml_egl_unset_leave_window_callback()
 {
   CAMLparam0() ;
   if(!initialized)
-    failwith("Egl.unset_motion_notify_callback: not initialized") ;
+    failwith("Egl.unset_leave_window_callback: not initialized") ;
   caml_modify_generational_global_root(&leave_window_callback, default_callback) ;
   XEventMask = XEventMask & ~LeaveWindowMask ;
   XSelectInput(xdisplay, xwindow, XEventMask);
