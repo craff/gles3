@@ -341,6 +341,25 @@ let _ =
   in
   Egl.set_key_release_callback handle_key_release
 
+let _ =
+  let last_x = ref 0 in
+  let last_y = ref 0 in
+  let valid = ref false in
+  let handle_motion ~state ~x ~y =
+    if !valid then
+      let dx = x - !last_x in
+      let dy = y - !last_y in
+      last_x := x; last_y := y;
+      let alpha_x = float_of_int dx /. 100.0 in
+      let alpha_y = -. (float_of_int dy /. 100.0) in
+      Printf.printf "Position: (%i, %i) (%i, %i) (%f, %f)\n%!" x y dx dy alpha_x alpha_y;
+      rotate_right camera alpha_x;
+      rotate_up camera alpha_y;
+    else
+      (last_x := x; last_y := y; valid := true)
+  in
+  Egl.set_motion_notify_callback handle_motion
+
 (* Drawing function for the cube (depending on window ratio and time). *)
 let draw_maze : float -> unit = fun ratio ->
   let (<*>) = Matrix.mul in
