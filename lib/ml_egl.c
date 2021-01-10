@@ -32,8 +32,16 @@
 #include <caml/callback.h>
 #include <caml/fail.h>
 #include <caml/threads.h>
+#include <caml/version.h>
 #include <sys/time.h>
 #include <unistd.h>
+
+#if OCAML_VERSION_MAJOR <= 4
+#if OCAML_VERSION_MINOR < 9
+#define caml_modify_generational_global_root(r,v) *r = v
+#define caml_register_generational_global_root(r) caml_register_global_root(r)
+#endif
+#endif
 
 static int initialized = 0 ;
 
