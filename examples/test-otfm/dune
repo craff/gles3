@@ -1,0 +1,5 @@
+(executable
+ (name test_otfm)
+ (public_name test_otfm)
+ (flags (:standard -w -6-27))
+ (libraries gles3 otfm unicodelib))
