@@ -1,5 +1,7 @@
+open Unicodelib
 
-
+(* lecture du ficher de la font. Un map_file dans une string ou
+une Bytes.t serait bcp mieux! *)
 let read_font fname =
   let ch = open_in fname in
   let size = in_channel_length ch in
@@ -9,8 +11,10 @@ let read_font fname =
 
 let font = read_font "/usr/share/fonts/liberation-fonts-ttf-2.1.2/LiberationMono-Regular.ttf"
 
+(* lecture de la font avec otfm *)
 let dfont : Otfm.decoder = Otfm.decoder (`String font)
 
+(* helper for the result type of otfm *)
 let get_result = function
     | Error e -> Format.eprintf "%a\n%!" Otfm.pp_error e; exit 1
     | Ok n -> n
@@ -19,12 +23,12 @@ let get_opt_result = function
     | Error e -> Format.eprintf "%a\n%!" Otfm.pp_error e; exit 1
     | Ok (Some n) -> n
     | Ok None -> Format.eprintf "NO RESULT\n%!"; exit 1
-open Unicodelib
 
+(* lecture du nom de la fonte *)
 let name = get_opt_result (Otfm.postscript_name dfont)
-
 let _ = Printf.printf "name: %s\n%!" name
 
+(* one va chercher toutes les glyphes de la fonte *)
 let get_glyphs dfont =
   let fn acc kind (u1,u2) id =
     match kind with
@@ -39,8 +43,13 @@ let get_glyphs dfont =
   let (_,ids) = get_result (Otfm.cmap dfont fn []) in
   let cmp (u1,_) (u2,_) = compare u1 u2 in
   List.sort cmp ids
+let glyphs = get_glyphs dfont
+let _ = Printf.printf "%d glyphs\n%!" (List.length glyphs)
 
-let bezier_split ls =
+
+(* transformation de la liste (bool*int*int) list en une liste
+de courbe de Bézier normalement degrée 1, 2 ou 3 *)
+let bezier_split : (bool*int*int) list -> (int*int) list list = fun ls ->
   let rec fn first acc1 acc2 l =
     match l with
     | [] -> List.rev (List.rev (first::acc2)::acc1)
@@ -54,10 +63,12 @@ let bezier_split ls =
   | (false,_,_)::_ -> assert false
   | (true,x,y)::l -> fn (x,y) [] [(x,y)] l
 
-let glyphs = get_glyphs dfont
-
-let _ = Printf.printf "%d glyphs\n%!" (List.length glyphs)
-
+(* transform a string into a list of information about the char
+   up to the Bezier curve.
+   TODO: cache the work for each char
+         build the textude for each char
+         read the kerning information
+ *)
 let string_to_ids str =
   List.rev (UTF8.fold (fun acc chr ->
                 let n = Uchar.to_int chr in
@@ -72,6 +83,7 @@ let string_to_ids str =
 
 let hw = string_to_ids "Hello World été"
 
+(* printing description to test *)
 let print_descr ch (descr, (minx,miny,maxx,maxy)) =
   Printf.printf "bb:(%d,%d,%d,%d) " minx miny maxx maxy;
   match descr with
