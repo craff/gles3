@@ -1351,3 +1351,18 @@ CAMLprim value ml_glGetMaxTextures(value v)
 
 ML_0(glFlush) ;
 ML_0(glFinish) ;
+
+CAMLprim value ml_glGetShaderPrecision(value vs, value vp)
+{
+  CAMLparam2(vs,vp) ;
+  CAMLlocal1(res);
+  GLint s = Int_val(vs) ;
+  GLint p = Int_val(vp) ;
+  GLint range[2], prec;
+  glGetShaderPrecisionFormat(s,p,range,&prec);
+  res = caml_alloc_tuple(3) ;
+  Store_field(res, 0, Val_int(range[0])) ;
+  Store_field(res, 1, Val_int(range[1])) ;
+  Store_field(res, 2, Val_int(prec)) ;
+  CAMLreturn(res) ;
+}

@@ -911,3 +911,9 @@ external flush : unit -> unit = "ml_glFlush" [@@noalloc]
 external finish : unit -> unit = "ml_glFinish" [@@noalloc]
 
 external get_max_textures : unit -> int = "ml_glGetMaxTextures" [@@noalloc]
+
+type precision_info =
+  { min : int; max : int; precision : int }
+
+external get_shader_precision : shader_type -> precision -> precision_info
+  = "ml_glGetShaderPrecision"

@@ -285,3 +285,11 @@ let gl_invalid_framebuffer_operation = GL_INVALID_FRAMEBUFFER_OPERATION
 let gl_invalid_value = GL_INVALID_VALUE
 let gl_invalid_operation = GL_INVALID_OPERATION
 let gl_out_of_memory = GL_OUT_OF_MEMORY
+
+type precision = int
+let gl_high_float = GL_HIGH_FLOAT
+let gl_medium_float = GL_MEDIUM_FLOAT
+let gl_low_float = GL_LOW_FLOAT
+let gl_high_int = GL_HIGH_INT
+let gl_medium_int = GL_MEDIUM_INT
+let gl_low_int = GL_LOW_INT

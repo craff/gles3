@@ -282,6 +282,15 @@ module Type : sig
   val gl_invalid_value : error
   val gl_invalid_operation : error
   val gl_out_of_memory : error
+
+  type precision
+  val gl_high_float : precision
+  val gl_medium_float : precision
+  val gl_low_float : precision
+  val gl_high_int : precision
+  val gl_medium_int : precision
+  val gl_low_int : precision
+
 end
 
 open Type
@@ -706,3 +715,8 @@ val get_extensions : unit -> string
 
 val flush : unit -> unit
 val finish : unit -> unit
+
+type precision_info =
+  { min : int; max : int; precision : int }
+
+val get_shader_precision : shader_type -> precision -> precision_info
