@@ -58,6 +58,7 @@ static int main_loop_continue = 0 ;
 
 /* Callbacks */
 
+long XEventMask = StructureNotifyMask; // Always have this, to always receive delete
 static value default_callback = Val_unit ;
 static value idle_callback = Val_unit ;
 static value reshape_callback = Val_unit ;
@@ -67,6 +68,9 @@ static value key_release_callback = Val_unit ;
 static value button_press_callback = Val_unit ;
 static value button_release_callback = Val_unit ;
 static value motion_notify_callback = Val_unit ;
+static value enter_window_callback = Val_unit ;
+static value leave_window_callback = Val_unit ;
+static value change_focus_callback = Val_unit ;
 
 /*** Callback utilities ***/
 
@@ -154,6 +158,9 @@ static int IOErrorHandler(Display *dpy)
   caml_modify_generational_global_root(&button_press_callback, default_callback) ;
   caml_modify_generational_global_root(&button_release_callback, default_callback) ;
   caml_modify_generational_global_root(&motion_notify_callback, default_callback) ;
+  caml_modify_generational_global_root(&enter_window_callback, default_callback) ;
+  caml_modify_generational_global_root(&leave_window_callback, default_callback) ;
+  caml_modify_generational_global_root(&change_focus_callback, default_callback) ;
 
   context = EGL_NO_CONTEXT ;
   surface = EGL_NO_SURFACE ;
@@ -252,9 +259,7 @@ CAMLprim value ml_egl_initialize(value vf, value vc, value vw, value vh, value v
 				0, 0, width, height, 0, 0, 0) ;
   if(xwindow == None)
     init_fail("cannot create X window") ;
-  XSelectInput(xdisplay, xwindow,
-	       StructureNotifyMask|KeyPressMask|KeyReleaseMask|
-	       ButtonPressMask|ButtonReleaseMask|PointerMotionMask) ;
+  XSelectInput(xdisplay, xwindow, XEventMask);
   XMapWindow(xdisplay, xwindow) ;
   XStoreName(xdisplay, xwindow, String_val(vn)) ;
 
@@ -333,6 +338,9 @@ CAMLprim value ml_egl_initialize(value vf, value vc, value vw, value vh, value v
   caml_register_generational_global_root(&button_press_callback) ;
   caml_register_generational_global_root(&button_release_callback) ;
   caml_register_generational_global_root(&motion_notify_callback) ;
+  caml_register_generational_global_root(&enter_window_callback) ;
+  caml_register_generational_global_root(&leave_window_callback) ;
+  caml_register_generational_global_root(&change_focus_callback) ;
 
   initialized = 1 ;
 
@@ -354,9 +362,11 @@ void ml_egl_set_idle_callback(value v)
 
 void ml_egl_unset_idle_callback()
 {
+  CAMLparam0() ;
   if(!initialized)
-    failwith("Egl.set_idle_callback: not initialized") ;
+    failwith("Egl.unset_idle_callback: not initialized") ;
   caml_modify_generational_global_root(&idle_callback, default_callback) ;
+  CAMLreturn0;
 }
 
 void ml_egl_set_reshape_callback(value v)
@@ -365,6 +375,15 @@ void ml_egl_set_reshape_callback(value v)
   if(!initialized)
     failwith("Egl.set_reshape_callback: not initialized") ;
   caml_modify_generational_global_root(&reshape_callback, v) ;
+  CAMLreturn0 ;
+}
+
+void ml_egl_unset_reshape_callback(value v)
+{
+  CAMLparam0() ;
+  if(!initialized)
+    failwith("Egl.unset_reshape_callback: not initialized") ;
+  caml_modify_generational_global_root(&reshape_callback, default_callback) ;
   CAMLreturn0 ;
 }
 
@@ -377,12 +396,34 @@ void ml_egl_set_delete_callback(value v)
   CAMLreturn0 ;
 }
 
+void ml_egl_unset_delete_callback()
+{
+  CAMLparam0() ;
+  if(!initialized)
+    failwith("Egl.unset_delete_callback: not initialized") ;
+  caml_modify_generational_global_root(&delete_callback, default_callback) ;
+  CAMLreturn0 ;
+}
+
 void ml_egl_set_key_press_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
     failwith("Egl.set_key_press_callback: not initialized") ;
   caml_modify_generational_global_root(&key_press_callback, v) ;
+  XEventMask = XEventMask | KeyPressMask;
+  XSelectInput(xdisplay, xwindow, XEventMask);
+  CAMLreturn0 ;
+}
+
+void ml_egl_unset_key_press_callback()
+{
+  CAMLparam0() ;
+  if(!initialized)
+    failwith("Egl.unset_key_press_callback: not initialized") ;
+  caml_modify_generational_global_root(&key_press_callback, default_callback) ;
+  XEventMask = XEventMask & ~KeyPressMask;
+  XSelectInput(xdisplay, xwindow, XEventMask);
   CAMLreturn0 ;
 }
 
@@ -392,6 +433,19 @@ void ml_egl_set_key_release_callback(value v)
   if(!initialized)
     failwith("Egl.set_key_release_callback: not initialized") ;
   caml_modify_generational_global_root(&key_release_callback, v) ;
+  XEventMask = XEventMask | KeyReleaseMask;
+  XSelectInput(xdisplay, xwindow, XEventMask);
+  CAMLreturn0 ;
+}
+
+void ml_egl_unset_key_release_callback()
+{
+  CAMLparam0() ;
+  if(!initialized)
+    failwith("Egl.unset_key_release_callback: not initialized") ;
+  caml_modify_generational_global_root(&key_release_callback, default_callback) ;
+  XEventMask = XEventMask & ~KeyReleaseMask;
+  XSelectInput(xdisplay, xwindow, XEventMask);
   CAMLreturn0 ;
 }
 
@@ -401,6 +455,19 @@ void ml_egl_set_button_press_callback(value v)
   if(!initialized)
     failwith("Egl.set_button_press_callback: not initialized") ;
   caml_modify_generational_global_root(&button_press_callback, v) ;
+  XEventMask = XEventMask | ButtonPressMask;
+  XSelectInput(xdisplay, xwindow, XEventMask);
+  CAMLreturn0 ;
+}
+
+void ml_egl_unset_button_press_callback()
+{
+  CAMLparam0() ;
+  if(!initialized)
+    failwith("Egl.unset_button_press_callback: not initialized") ;
+  caml_modify_generational_global_root(&button_press_callback, default_callback) ;
+  XEventMask = XEventMask & ~ButtonPressMask;
+  XSelectInput(xdisplay, xwindow, XEventMask);
   CAMLreturn0 ;
 }
 
@@ -410,6 +477,19 @@ void ml_egl_set_button_release_callback(value v)
   if(!initialized)
     failwith("Egl.set_button_release_callback: not initialized") ;
   caml_modify_generational_global_root(&button_release_callback, v) ;
+  XEventMask = XEventMask | ButtonReleaseMask;
+  XSelectInput(xdisplay, xwindow, XEventMask);
+  CAMLreturn0 ;
+}
+
+void ml_egl_unset_button_release_callback()
+{
+  CAMLparam0() ;
+  if(!initialized)
+    failwith("Egl.unset_button_release_callback: not initialized") ;
+  caml_modify_generational_global_root(&button_release_callback, default_callback) ;
+  XEventMask = XEventMask & ~ButtonReleaseMask;
+  XSelectInput(xdisplay, xwindow, XEventMask);
   CAMLreturn0 ;
 }
 
@@ -419,6 +499,85 @@ void ml_egl_set_motion_notify_callback(value v)
   if(!initialized)
     failwith("Egl.set_motion_notify_callback: not initialized") ;
   caml_modify_generational_global_root(&motion_notify_callback, v) ;
+  XEventMask = XEventMask | PointerMotionMask ;
+  XSelectInput(xdisplay, xwindow, XEventMask);
+  CAMLreturn0 ;
+}
+
+void ml_egl_unset_motion_notify_callback()
+{
+  CAMLparam0() ;
+  if(!initialized)
+    failwith("Egl.unset_motion_notify_callback: not initialized") ;
+  caml_modify_generational_global_root(&motion_notify_callback, default_callback) ;
+  XEventMask = XEventMask & ~PointerMotionMask ;
+  XSelectInput(xdisplay, xwindow, XEventMask);
+  CAMLreturn0 ;
+}
+
+void ml_egl_set_enter_window_callback(value v)
+{
+  CAMLparam1(v) ;
+  if(!initialized)
+    failwith("Egl.set_enter_window_callback: not initialized") ;
+  caml_modify_generational_global_root(&enter_window_callback, v) ;
+  XEventMask = XEventMask | EnterWindowMask ;
+  XSelectInput(xdisplay, xwindow, XEventMask);
+  CAMLreturn0 ;
+}
+
+void ml_egl_unset_enter_window_callback()
+{
+  CAMLparam0() ;
+  if(!initialized)
+    failwith("Egl.unset_enter_window_callback: not initialized") ;
+  caml_modify_generational_global_root(&enter_window_callback, default_callback) ;
+  XEventMask = XEventMask & ~EnterWindowMask ;
+  XSelectInput(xdisplay, xwindow, XEventMask);
+  CAMLreturn0 ;
+}
+
+void ml_egl_set_leave_window_callback(value v)
+{
+  CAMLparam1(v) ;
+  if(!initialized)
+    failwith("Egl.set_leave_window_callback: not initialized") ;
+  caml_modify_generational_global_root(&leave_window_callback, v) ;
+  XEventMask = XEventMask | LeaveWindowMask ;
+  XSelectInput(xdisplay, xwindow, XEventMask);
+  CAMLreturn0 ;
+}
+
+void ml_egl_unset_leave_window_callback()
+{
+  CAMLparam0() ;
+  if(!initialized)
+    failwith("Egl.unset_leave_window_callback: not initialized") ;
+  caml_modify_generational_global_root(&leave_window_callback, default_callback) ;
+  XEventMask = XEventMask & ~LeaveWindowMask ;
+  XSelectInput(xdisplay, xwindow, XEventMask);
+  CAMLreturn0 ;
+}
+
+void ml_egl_set_change_focus_callback(value v)
+{
+  CAMLparam1(v) ;
+  if(!initialized)
+    failwith("Egl.set_change_focus_callback: not initialized") ;
+  caml_modify_generational_global_root(&change_focus_callback, v) ;
+  XEventMask = XEventMask | FocusChangeMask ;
+  XSelectInput(xdisplay, xwindow, XEventMask);
+  CAMLreturn0 ;
+}
+
+void ml_egl_unset_change_focus_callback()
+{
+  CAMLparam0() ;
+  if(!initialized)
+    failwith("Egl.set_change_focus_callback: not initialized") ;
+  caml_modify_generational_global_root(&change_focus_callback, default_callback) ;
+  XEventMask = XEventMask & ~FocusChangeMask ;
+  XSelectInput(xdisplay, xwindow, XEventMask);
   CAMLreturn0 ;
 }
 
@@ -523,7 +682,7 @@ void ml_egl_main_loop()
 	 button_press_callback != default_callback)
 	{
 	  value ml_button = Val_int(event.xbutton.button - Button1);
-	  value ml_state = Val_int(event.xkey.state);
+	  value ml_state = Val_int(event.xbutton.state);
 	  value ml_x = Val_int(event.xbutton.x);
 	  value ml_y = Val_int(event.xbutton.y);
 	  protect_callback4("button press callback",
@@ -537,7 +696,7 @@ void ml_egl_main_loop()
 	 button_release_callback != default_callback)
 	{
 	  value ml_button = Val_int(event.xbutton.button - Button1);
-	  value ml_state = Val_int(event.xkey.state);
+	  value ml_state = Val_int(event.xbutton.state);
 	  value ml_x = Val_int(event.xbutton.x);
 	  value ml_y = Val_int(event.xbutton.y);
 	  protect_callback4("button release callback",
@@ -550,7 +709,7 @@ void ml_egl_main_loop()
 	 event.xmotion.window == xwindow &&
 	 motion_notify_callback != default_callback)
 	{
-	  value ml_state = Val_int(event.xkey.state);
+	  value ml_state = Val_int(event.xmotion.state);
 	  value ml_x = Val_int(event.xmotion.x);
 	  value ml_y = Val_int(event.xmotion.y);
 
@@ -558,6 +717,45 @@ void ml_egl_main_loop()
 			    &ml_state, &ml_x, &ml_y);
 	}
       break ;
+    case EnterNotify:
+      if(event.xcrossing.display == xdisplay &&
+	 event.xcrossing.window == xwindow &&
+	 enter_window_callback != default_callback)
+	{
+	  value ml_state = Val_int(event.xcrossing.state);
+	  value ml_x = Val_int(event.xcrossing.x);
+	  value ml_y = Val_int(event.xcrossing.y);
+
+	  protect_callback3("enter window callback", &enter_window_callback,
+			    &ml_state, &ml_x, &ml_y);
+	}
+      break ;
+    case LeaveNotify:
+      if(event.xcrossing.display == xdisplay &&
+	 event.xcrossing.window == xwindow &&
+	 leave_window_callback != default_callback)
+	{
+	  value ml_state = Val_int(event.xcrossing.state);
+	  value ml_x = Val_int(event.xcrossing.x);
+	  value ml_y = Val_int(event.xcrossing.y);
+
+	  protect_callback3("leave window callback", &leave_window_callback,
+			    &ml_state, &ml_x, &ml_y);
+	}
+      break ;
+    case FocusIn:
+    case FocusOut:
+      if(event.xfocus.display == xdisplay &&
+	 event.xfocus.window == xwindow &&
+	 leave_window_callback != default_callback)
+	{
+	  value ml_in = Val_bool(event.xfocus.type == FocusIn);
+
+	  protect_callback("change focus callback", &leave_window_callback,
+			    &ml_in );
+	}
+      break ;
+
     default: break ;
     }
   }

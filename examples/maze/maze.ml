@@ -342,6 +342,21 @@ let _ =
   Egl.set_key_release_callback handle_key_release
 
 let _ =
+  let handle_leave_window ~state ~x ~y =
+    Printf.printf "leave window event\n%!";
+    camera.r_speed <- 0.0;
+    camera.r_speed <- 0.0;
+    camera.t_speed <- 0.0;
+    camera.t_speed <- 0.0;
+    camera.u_speed <- 0.0;
+    camera.u_speed <- 0.0;
+    camera.speed   <- 0.0
+  in
+  Egl.set_leave_window_callback handle_leave_window;
+  let handle_enter_window ~state ~x ~y =
+    Printf.printf "enter window event\n%!"
+  in
+  Egl.set_enter_window_callback handle_enter_window;
   let last_x = ref 0 in
   let last_y = ref 0 in
   let valid = ref false in
