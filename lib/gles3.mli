@@ -360,7 +360,7 @@ val vertex_attrib_buffer_pointer :
     index:int -> size:int -> typ:storage_type ->
     ?norm:bool -> ?stride:int -> int -> unit
 
-val draw_arrays : shape -> ?first:int -> count:int -> unit
+val draw_arrays : ?first:int -> count:int -> shape -> unit
 
 val draw_ubyte_elements : shape -> count:int -> ubyte_bigarray -> unit
 

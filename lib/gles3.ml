@@ -166,7 +166,7 @@ external draw_arrays_aux
            count:(int [@untagged]) -> unit
   = "ml_glDrawArrays" "mlU_glDrawArrays" [@@noalloc]
 
-let draw_arrays shape ?(first=0) ~count =
+let draw_arrays ?(first=0) ~count shape =
   draw_arrays_aux shape ~first ~count
 
 external draw_ubyte_elements
