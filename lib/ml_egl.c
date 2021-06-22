@@ -252,7 +252,7 @@ CAMLprim value ml_egl_initialize(value vf, value vc, value vw, value vh, value v
 				0, 0, width, height, 0, 0, 0) ;
   if(xwindow == None)
     init_fail("cannot create X window") ;
-  XSelectInput(xdisplay, xwindow,
+  XSelectInput(xdisplay, xwindow, VisibilityChangeMask|
 	       StructureNotifyMask|KeyPressMask|KeyReleaseMask|
 	       ButtonPressMask|ButtonReleaseMask|PointerMotionMask) ;
   XMapWindow(xdisplay, xwindow) ;
@@ -466,6 +466,19 @@ void ml_egl_main_loop()
 	{
 	  width = event.xconfigure.width ;
 	  height = event.xconfigure.height ;
+	  value ml_width = Val_int(width);
+	  value ml_height = Val_int(height);
+	  protect_callback2("reshape callback",
+			    &reshape_callback,
+			    &ml_width, &ml_height) ;
+	}
+      break ;
+    case VisibilityNotify:
+      if(event.xvisibility.display == xdisplay &&
+	 event.xvisibility.window == xwindow &&
+	 event.xvisibility.state != VisibilityFullyObscured &&
+	 reshape_callback != default_callback)
+	{
 	  value ml_width = Val_int(width);
 	  value ml_height = Val_int(height);
 	  protect_callback2("reshape callback",
