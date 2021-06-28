@@ -61,6 +61,10 @@ module Type : sig
   type shader_type
   val gl_fragment_shader : shader_type
   val gl_vertex_shader : shader_type
+  val gl_compute_shader : shader_type
+  val gl_tess_control_shader : shader_type
+  val gl_tess_evaluation_shader : shader_type
+  val gl_geometry_shader : shader_type
 
   type ('a) gl_type
   type sampler

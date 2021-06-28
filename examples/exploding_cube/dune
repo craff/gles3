@@ -1,0 +1,9 @@
+(executable
+ (name exploding_cube)
+ (public_name exploding_cube)
+ (flags (:standard -w -6))
+ (libraries gles3))
+
+(rule (action (with-stdout-to fragment_light.ml (run glsl_to_ml fragment_light.glsl))))
+(rule (action (with-stdout-to vertex_light.ml (run glsl_to_ml vertex_light.glsl))))
+(rule (action (with-stdout-to geometry_shader.ml (run glsl_to_ml geometry_shader.glsl))))

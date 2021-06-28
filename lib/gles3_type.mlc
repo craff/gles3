@@ -1,4 +1,4 @@
-#include <GLES3/gl3.h>
+#include <GLES3/gl32.h>
 
 (*BEGIN*)
 type shape = int
@@ -40,6 +40,10 @@ let gl_element_array_buffer  : element_array_buffer_t buffer_target
 type shader_type = int
 let gl_fragment_shader = GL_FRAGMENT_SHADER
 let gl_vertex_shader = GL_VERTEX_SHADER
+let gl_compute_shader = GL_COMPUTE_SHADER
+let gl_tess_control_shader = GL_TESS_CONTROL_SHADER
+let gl_tess_evaluation_shader = GL_TESS_EVALUATION_SHADER
+let gl_geometry_shader = GL_GEOMETRY_SHADER
 
 type 'a gl_type = int
 type sampler

@@ -30,7 +30,7 @@
 #include <caml/bigarray.h>
 #include <caml/fail.h>
 #include <caml/threads.h>
-#include <GLES3/gl3.h>
+#include <GLES3/gl32.h>
 
 /*** SIMPLE C -> ML WRAPPERS ***/
 

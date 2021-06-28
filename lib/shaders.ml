@@ -101,10 +101,11 @@ let error_replace (shaders:shader list) msg =
 
 exception Compile_error
 let compile : ?version:string -> ?precision:string -> string * shader list -> unit program =
-  fun ?(version="300 es") ?(precision="highp") (prgname, shaders) ->
+  fun ?(version="320 es") ?(precision="highp") (prgname, shaders) ->
   let prg = create_program () in
-  let fragment_shaders, vertex_shaders = List.partition
-    (fun s -> s.ty = gl_fragment_shader) shaders
+  let types = List.sort_uniq compare (List.map (fun s -> s.ty) shaders) in
+  let grouped_shaders =
+    List.map (fun ty -> (ty, List.filter (fun s -> s.ty = ty) shaders)) types
   in
   let fn ty shaders =
     let header = Printf.sprintf "#version %s\nprecision %s float;\n" version precision in
@@ -121,8 +122,9 @@ let compile : ?version:string -> ?precision:string -> string * shader list -> un
     attach_shader prg shader;
     shader
   in
-  let vertex_shader = fn gl_vertex_shader vertex_shaders in
-  let fragment_shader = fn gl_fragment_shader fragment_shaders in
+  let compiled_shaders =
+    List.map (fun (ty, shaders) -> fn ty shaders) grouped_shaders
+  in
 
   link_program prg;
   if not (get_program_link_status prg) then (
@@ -143,8 +145,7 @@ let compile : ?version:string -> ?precision:string -> string * shader list -> un
   } in
   Gc.finalise (fun _ ->
     delete_program prg;
-    delete_shader vertex_shader;
-    delete_shader fragment_shader) res;
+    List.iter delete_shader compiled_shaders) res;
   res
 
 let check_complete prg =
