@@ -79,9 +79,9 @@ let draw_cube : float -> float -> unit = fun ratio t ->
   in
   let projection =
     Matrix.perspective 45.0 ratio 0.5 10.0
-      <*> Matrix.lookat [|0.0;0.0;3.5|] [|0.0;0.0;0.0|] [|1.0;1.0;0.0|]
+      <*> Matrix.lookat [|0.0;0.0;5.|] [|0.0;0.0;0.0|] [|1.0;1.0;0.0|]
   in
-  let e_factor = cos(3.*.t) /. 2.0 in
+  let e_factor = cos(3.*.t) +. 1.0 in
   Shaders.draw_uint_elements prg gl_triangles triangles
     e_factor projection modelView
 
