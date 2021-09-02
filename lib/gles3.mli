@@ -41,7 +41,17 @@ module Type : sig
   val gl_short : storage_type
   val gl_ushort : storage_type
   val gl_uint : storage_type
+  val gl_int : storage_type
+  val gl_half_float : storage_type
   val gl_float : storage_type
+  val gl_ushort565 : storage_type
+  val gl_ushort4444 : storage_type
+  val gl_ushort5551 : storage_type
+  val gl_uint2101010r : storage_type
+  val gl_uint10f11f11fr : storage_type
+  val gl_uint5999r : storage_type
+  val gl_uint248r : storage_type
+  val gl_float32_uint248r : storage_type
 
   type gl_bool
   val gl_true : gl_bool
@@ -175,18 +185,52 @@ module Type : sig
   type renderbuffer_format = (buffer_fmt, internal_fmt) imf
   type image_format = (image_fmt, image_fmt) imf
 
-  val gl_alpha : (image_fmt,'a) imf
+  val gl_red : (image_fmt,'a) imf
+  val gl_red_integer : (image_fmt,'a) imf
+  val gl_rg : (image_fmt,'a) imf
+  val gl_rg_integer : (image_fmt,'a) imf
   val gl_rgb : (image_fmt,'a) imf
   val gl_rgba : (image_fmt,'a) imf
+  val gl_rgba_integer : (image_fmt,'a) imf
+  val gl_depth_component : (image_fmt,'a) imf
+  val gl_depth_stencil : (image_fmt,'a) imf
+  val gl_stencil_index : (image_fmt,'a) imf
+  val gl_alpha : (image_fmt,'a) imf
   val gl_luminance : (image_fmt,'a) imf
   val gl_luminance_alpha : (image_fmt,'a) imf
+
   val gl_depth_component16 : ('a, internal_fmt) imf
   val gl_depth_component24 : ('a, internal_fmt) imf
+  val gl_depth_component32f : ('a, internal_fmt) imf
   val gl_depth24_stencil8 : ('a, internal_fmt) imf
-  val gl_rgb4 : (buffer_fmt, internal_fmt) imf
-  val gl_rgb5_a1 : (buffer_fmt, internal_fmt) imf
+  val gl_depth32f_stencil8 : ('a, internal_fmt) imf
+  val gl_stencil_index8 : ('a, internal_fmt) imf
+
+  val gl_r8 : (buffer_fmt, internal_fmt) imf
+  val gl_r8i : (buffer_fmt, internal_fmt) imf
+  val gl_r8ui : (buffer_fmt, internal_fmt) imf
+  val gl_r16i : (buffer_fmt, internal_fmt) imf
+  val gl_r16ui : (buffer_fmt, internal_fmt) imf
+  val gl_r32i : (buffer_fmt, internal_fmt) imf
+  val gl_r32ui : (buffer_fmt, internal_fmt) imf
+  val gl_rg8 : (buffer_fmt, internal_fmt) imf
+  val gl_rg8i : (buffer_fmt, internal_fmt) imf
+  val gl_rg8ui : (buffer_fmt, internal_fmt) imf
+  val gl_rg16i : (buffer_fmt, internal_fmt) imf
+  val gl_rg16ui : (buffer_fmt, internal_fmt) imf
+  val gl_rg32i : (buffer_fmt, internal_fmt) imf
+  val gl_rg32ui : (buffer_fmt, internal_fmt) imf
+  val gl_rgb8 : (buffer_fmt, internal_fmt) imf
   val gl_rgb565 : (buffer_fmt, internal_fmt) imf
-  val gl_stencil_index8 : (buffer_fmt, internal_fmt) imf
+  val gl_rgba8 : (buffer_fmt, internal_fmt) imf
+  val gl_srgb8_alpha8 : (buffer_fmt, internal_fmt) imf
+  val gl_rgb5_a1 : (buffer_fmt, internal_fmt) imf
+  val gl_rgba4 : (buffer_fmt, internal_fmt) imf
+  val gl_rgb10_a2 : (buffer_fmt, internal_fmt) imf
+  val gl_rgba16i : (buffer_fmt, internal_fmt) imf
+  val gl_rgba16ui : (buffer_fmt, internal_fmt) imf
+  val gl_rgba32i : (buffer_fmt, internal_fmt) imf
+  val gl_rgba32ui : (buffer_fmt, internal_fmt) imf
 
   type cmp_func
   val gl_never : cmp_func
