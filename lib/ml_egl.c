@@ -35,6 +35,7 @@
 #include <caml/version.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <strings.h>
 
 #if OCAML_VERSION_MAJOR <= 4
 #if OCAML_VERSION_MINOR < 9
@@ -232,6 +233,20 @@ void ml_egl_terminate()
 
 #define init_fail(s)  (free_resources(), failwith("Egl.initialize: " s))
 
+void showConfig(EGLConfig *config) {
+  EGLint red_size, green_size, blue_size, alpha_size ;
+  EGLint depth_size, stencil_size, samples ;
+  eglGetConfigAttrib(display, *config, EGL_RED_SIZE, &red_size) ;
+  eglGetConfigAttrib(display, *config, EGL_GREEN_SIZE, &green_size) ;
+  eglGetConfigAttrib(display, *config, EGL_BLUE_SIZE, &blue_size) ;
+  eglGetConfigAttrib(display, *config, EGL_ALPHA_SIZE, &alpha_size) ;
+  eglGetConfigAttrib(display, *config, EGL_DEPTH_SIZE, &depth_size) ;
+  eglGetConfigAttrib(display, *config, EGL_STENCIL_SIZE, &stencil_size) ;
+  eglGetConfigAttrib(display, *config, EGL_SAMPLES, &samples) ;
+  printf("RED:%d, GREEN:%d, BLUE:%d, ALPHA:%d, DEPTH:%d, STENCIL:%d, SAMPLES:%d\n",
+	 red_size, green_size, blue_size, alpha_size, depth_size, stencil_size, samples);
+  fflush(stdout);
+}
 CAMLprim value ml_egl_initialize(value vf, value vc, value vw, value vh, value vn)
 {
   CAMLparam5(vf, vc, vw, vh, vn) ;
@@ -287,9 +302,30 @@ CAMLprim value ml_egl_initialize(value vf, value vc, value vw, value vh, value v
   attribs[17] = (attribs[15] == 0 ? 0 : 1) ;
   attribs[18] = EGL_NONE ;
   int nconf ;
-  if(!eglChooseConfig(display, attribs, &config, 1, &nconf) || nconf != 1)
+  if(!eglChooseConfig(display, attribs, NULL, 0, &nconf) || nconf < 1)
     init_fail("cannot choose EGL config") ;
+  printf("num conf %d\n",nconf); fflush(stdout);
+  EGLConfig *configs = (EGLConfig*) malloc( nconf * sizeof(EGLConfig));
+  if(!eglChooseConfig(display, attribs, configs, nconf, &nconf) || nconf < 1)
+    init_fail("cannot choose EGL config") ;
+  int best_i = 0;
+  EGLint best_depth, best_samples;
+  eglGetConfigAttrib(display, configs[0], EGL_DEPTH_SIZE, &best_depth) ;
+  eglGetConfigAttrib(display, configs[0], EGL_SAMPLES, &best_samples) ;
+  for(int i=1;i<nconf;i++) {
+    EGLint depth, samples;
+    eglGetConfigAttrib(display, configs[i], EGL_DEPTH_SIZE, &depth) ;
+    eglGetConfigAttrib(display, configs[i], EGL_SAMPLES, &samples) ;
+    if (depth > best_depth) {
+      best_i = i; best_depth = depth; best_samples = samples;
+    }
+    else if (depth = best_depth && samples > best_samples) {
+      best_i = i; best_samples = samples;
+    }
+  }
 
+  bcopy(&(configs[best_i]),&config,sizeof(EGLConfig));
+  free(configs); showConfig(&config);
   /* Create EGL Surface */
   surface = eglCreateWindowSurface(display, config, xwindow, NULL) ;
   if(surface == EGL_NO_SURFACE)
