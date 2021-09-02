@@ -37,10 +37,6 @@ depends: [
   "stdlib-shims"
 ]
 
-depopts: [
-  "ancient" { >= "0.9.1" }
-]
-
 build: [
   [ "dune" "subst" ]
   [ "dune" "build" "-p" name "-j" jobs ]
