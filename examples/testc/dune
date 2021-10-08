@@ -2,9 +2,8 @@
  (name testc)
  (public_name testc)
  (flags (:standard -w -6-27-50))
- (libraries gles3))
-
-(rule (action (with-stdout-to vertex_shadow.ml (run glsl_to_ml vertex_shadow.glsl))))
-(rule (action (with-stdout-to fragment_shadow.ml (run glsl_to_ml fragment_shadow.glsl))))
-(rule (action (with-stdout-to vertex_light_with_shadow.ml (run glsl_to_ml vertex_light_with_shadow.glsl))))
-(rule (action (with-stdout-to fragment_light_with_shadow.ml (run glsl_to_ml fragment_light_with_shadow.glsl))))
+ (libraries gles3)
+ (preprocess (per_module
+   ((action (run glsl_to_ml %{input-file}))
+     vertex_shadow fragment_shadow
+     vertex_light_with_shadow fragment_light_with_shadow ))))
