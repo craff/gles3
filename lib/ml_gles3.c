@@ -106,7 +106,7 @@
   typr mlU_##cname (typ1 v1, value v2)   \
   { CAMLparam1(v2); CAMLreturnT(typr, cname(v1, conv2(v2))) ; }
 
-#define GLES_FAIL(msg)   failwith("Gles3." msg)
+#define GLES_FAIL(msg)   caml_failwith("Gles3." msg)
 
 /*** Big arrays ***/
 
@@ -121,7 +121,7 @@ static long Caml_ba_length_val(value v)
 
 static long Caml_ba_elt_bsize_val(value v)
 {
-  switch(Caml_ba_array_val(v)->flags & BIGARRAY_KIND_MASK) {
+  switch(Caml_ba_array_val(v)->flags & CAML_BA_KIND_MASK) {
   case CAML_BA_FLOAT32: return 4 ;
   case CAML_BA_FLOAT64: return 8 ;
   case CAML_BA_SINT8: return 1 ;

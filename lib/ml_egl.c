@@ -222,7 +222,7 @@ static void free_resources()
 void ml_egl_terminate()
 {
   if(!initialized)
-    failwith("Egl.terminate: not initialized") ;
+    caml_failwith("Egl.terminate: not initialized") ;
   free_resources() ;
   initialized = 0 ; /* already done above */
 }
@@ -231,7 +231,7 @@ void ml_egl_terminate()
 /*   INITIALIZATION                                                         */
 /****************************************************************************/
 
-#define init_fail(s)  (free_resources(), failwith("Egl.initialize: " s))
+#define init_fail(s)  (free_resources(), caml_failwith("Egl.initialize: " s))
 
 void showConfig(EGLConfig *config) {
   EGLint red_size, green_size, blue_size, alpha_size ;
@@ -383,7 +383,7 @@ void ml_egl_set_idle_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Egl.set_idle_callback: not initialized") ;
+    caml_failwith("Egl.set_idle_callback: not initialized") ;
   caml_modify_generational_global_root(&idle_callback, v) ;
   CAMLreturn0 ;
 }
@@ -391,7 +391,7 @@ void ml_egl_set_idle_callback(value v)
 void ml_egl_unset_idle_callback()
 {
   if(!initialized)
-    failwith("Egl.set_idle_callback: not initialized") ;
+    caml_failwith("Egl.set_idle_callback: not initialized") ;
   caml_modify_generational_global_root(&idle_callback, default_callback) ;
 }
 
@@ -399,7 +399,7 @@ void ml_egl_set_reshape_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Egl.set_reshape_callback: not initialized") ;
+    caml_failwith("Egl.set_reshape_callback: not initialized") ;
   caml_modify_generational_global_root(&reshape_callback, v) ;
   CAMLreturn0 ;
 }
@@ -408,7 +408,7 @@ void ml_egl_set_delete_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Egl.set_delete_callback: not initialized") ;
+    caml_failwith("Egl.set_delete_callback: not initialized") ;
   caml_modify_generational_global_root(&delete_callback, v) ;
   CAMLreturn0 ;
 }
@@ -417,7 +417,7 @@ void ml_egl_set_key_press_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Egl.set_key_press_callback: not initialized") ;
+    caml_failwith("Egl.set_key_press_callback: not initialized") ;
   caml_modify_generational_global_root(&key_press_callback, v) ;
   CAMLreturn0 ;
 }
@@ -426,7 +426,7 @@ void ml_egl_set_key_release_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Egl.set_key_release_callback: not initialized") ;
+    caml_failwith("Egl.set_key_release_callback: not initialized") ;
   caml_modify_generational_global_root(&key_release_callback, v) ;
   CAMLreturn0 ;
 }
@@ -435,7 +435,7 @@ void ml_egl_set_button_press_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Egl.set_button_press_callback: not initialized") ;
+    caml_failwith("Egl.set_button_press_callback: not initialized") ;
   caml_modify_generational_global_root(&button_press_callback, v) ;
   CAMLreturn0 ;
 }
@@ -444,7 +444,7 @@ void ml_egl_set_button_release_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Egl.set_button_release_callback: not initialized") ;
+    caml_failwith("Egl.set_button_release_callback: not initialized") ;
   caml_modify_generational_global_root(&button_release_callback, v) ;
   CAMLreturn0 ;
 }
@@ -453,7 +453,7 @@ void ml_egl_set_motion_notify_callback(value v)
 {
   CAMLparam1(v) ;
   if(!initialized)
-    failwith("Egl.set_motion_notify_callback: not initialized") ;
+    caml_failwith("Egl.set_motion_notify_callback: not initialized") ;
   caml_modify_generational_global_root(&motion_notify_callback, v) ;
   CAMLreturn0 ;
 }
@@ -468,10 +468,10 @@ void ml_egl_main_loop()
   XEvent event ;
 
   if(!initialized)
-    failwith("Egl.main_loop: not initialized") ;
+    caml_failwith("Egl.main_loop: not initialized") ;
 
   if(main_loop_reentrant)
-    failwith("Egl.main_loop: forbidden reentrant call") ;
+    caml_failwith("Egl.main_loop: forbidden reentrant call") ;
 
   caml_release_runtime_system();
 
@@ -619,7 +619,7 @@ void ml_egl_main_loop()
 void ml_egl_exit_loop()
 {
   if(!main_loop_reentrant)
-    failwith("Egl.exit_loop: can only be called inside main_loop\n") ;
+    caml_failwith("Egl.exit_loop: can only be called inside main_loop\n") ;
   main_loop_continue = 0 ;
 }
 
@@ -629,7 +629,7 @@ void ml_egl_exit_loop()
 
 void ml_egl_swap_buffers()
 {
-  if(!initialized) failwith("Egl.swap_buffers: not initialized") ;
+  if(!initialized) caml_failwith("Egl.swap_buffers: not initialized") ;
   eglSwapBuffers(display, surface) ;
 }
 
@@ -637,7 +637,7 @@ CAMLprim value ml_egl_query_version()
 {
   CAMLparam0() ;
   if(!initialized)
-    failwith("Egl.query_version: not initialized") ;
+    caml_failwith("Egl.query_version: not initialized") ;
   const char *s = eglQueryString(display, EGL_VERSION) ;
   CAMLreturn(caml_copy_string(s));
 }
@@ -646,7 +646,7 @@ CAMLprim value ml_egl_query_vendor()
 {
   CAMLparam0() ;
   if(!initialized)
-    failwith("Egl.query_vendor: not initialized") ;
+    caml_failwith("Egl.query_vendor: not initialized") ;
   const char *s = eglQueryString(display, EGL_VENDOR) ;
   CAMLreturn(caml_copy_string(s));
 }
@@ -655,7 +655,7 @@ CAMLprim value ml_egl_query_extensions()
 {
   CAMLparam0() ;
   if(!initialized)
-    failwith("Egl.query_extensions: not initialized") ;
+    caml_failwith("Egl.query_extensions: not initialized") ;
   const char *s = eglQueryString(display, EGL_EXTENSIONS) ;
   CAMLreturn(caml_copy_string(s));
 }
@@ -664,7 +664,7 @@ CAMLprim value ml_egl_query_client_apis()
 {
   CAMLparam0() ;
   if(!initialized)
-    failwith("Egl.query_client_apis: not initialized") ;
+    caml_failwith("Egl.query_client_apis: not initialized") ;
   const char *s = eglQueryString(display, EGL_CLIENT_APIS) ;
   CAMLreturn(caml_copy_string(s));
 }
@@ -674,7 +674,7 @@ CAMLprim value ml_egl_query_config()
   CAMLparam0() ;
   CAMLlocal1(ret) ;
   if(!initialized)
-    failwith("Egl.query_config: not initialized") ;
+    caml_failwith("Egl.query_config: not initialized") ;
   EGLint red_size, green_size, blue_size, alpha_size ;
   EGLint depth_size, stencil_size, samples ;
   eglGetConfigAttrib(display, config, EGL_RED_SIZE, &red_size) ;
