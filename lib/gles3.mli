@@ -723,7 +723,7 @@ type framebuffer
 val null_framebuffer : framebuffer
 val int_of_framebuffer : framebuffer -> int
 val framebuffer_of_int : int -> framebuffer
-val is_framebuffer : (framebuffer [@untagged]) -> bool
+val is_framebuffer : framebuffer -> bool
 
 val gen_framebuffer : unit -> framebuffer
 val gen_framebuffers : int -> framebuffer array

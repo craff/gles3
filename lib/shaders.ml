@@ -76,12 +76,14 @@ let use_program : fixed -> unit = fun prg ->
     | None ->
        last_used_program := Some prg;
        use_program prg.program;
+       show_errors "use_program 1";
        prg.init ()
     | Some p ->
        if p != prg then (
          p.clean ();
          last_used_program := Some prg;
          use_program prg.program;
+	 show_errors "use_program 2";
          prg.init ())
   end
 

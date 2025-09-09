@@ -36,6 +36,7 @@ type sphere = {
   acceleration : Vector3.t;
   mutable active : bool;
   process : int;
+  id: int;
 }
 
 let nb_spheres, nb_spheres_per_sec,
@@ -51,7 +52,7 @@ let nb_spheres, nb_spheres_per_sec,
   let viscosity = ref 5.0 in
   let radial_viscosity = ref 5.0 in
   let wall_abs = ref 0.1 in
-  let nb_cores = ref 1 in
+  let nb_cores = ref (Domain.recommended_domain_count ()) in
   let debug = ref false in
   let spec = [
     ("--nb"     , Set_int nb_spheres,
@@ -91,40 +92,12 @@ let random_sphere index  =
 	       z=Random.float (min 10.0 (rayon *. 10.0)) +. 10.0};
     vitesse = {x=6.0 ;y=6.0;z= 0.3 };
     acceleration ={x=0.0;y=0.0;z=0.0};
-    rayon; masse; active = false; process = index mod nb_cores }
+    rayon; masse; active = false; process = index mod nb_cores; id = index }
 
-let ballon =
-  let open Vector3 in
-  { centre = {x=5.0;y=5.0;z=3.0};
-    vitesse = {x=0.; y = 0.; z = 0.};
-    acceleration ={x=0.0;y=0.0;z=0.0};
-    rayon = 3.0;
-    masse = 1.0; active = false; process = 0 }
-
-(* create a shadow file descriptor *)
-let tempmd addr =
-  let name = Filename.temp_file "mmap" "TMP" in
-  try
-    let fd = Unix.openfile name [Unix.O_RDWR; Unix.O_CREAT] 0o600 in
-    Unix.unlink name;
-    let md = Ancient.attach fd addr in
-    md
-  with e -> Unix.unlink name; raise e
-
-let spheres =
-  let l = Array.init nb_spheres random_sphere in
-  let open Ancient in
-  let sh = share (tempmd 0x200000000000n) 0 l in
-  Printf.eprintf "sphere share created\n%!";
-  let l = follow sh in
-  l
+let spheres = Array.init nb_spheres random_sphere
 
 let sync =
   let counts = Array.make nb_cores 0 in
-  let open Ancient in
-  let sh = share (tempmd 0x300000000000n) 0 counts in
-  Printf.eprintf "counts share created\n%!";
-  let counts = follow sh in
   (fun process ->
     let n = counts.(process) + 1 in
     counts.(process) <- n;
@@ -188,20 +161,14 @@ let ajoute : int -> grille -> sphere -> unit = fun pid g s ->
 let dummy_sphere = random_sphere (-1)
 
 let grille =
-  let g =
-    {
-      inv_diametre = 1.0 /. (6. *. rayon);
-      next = Array.init nb_cores (fun _ -> Array.make (1 + nb_spheres/ nb_cores) (-1));
-      spheres = Array.init nb_cores (fun _ -> Array.make (1 + nb_spheres/ nb_cores) dummy_sphere);
-      htbl = Array.init nb_cores
-	(fun _ -> Array.make (size_ratio * nb_spheres + 31) (-1));
-      free = Array.make nb_cores 0
-    }
-  in
-  let open Ancient in
-  let sh = share (tempmd 0x400000000000n) 0 g in
-  Printf.eprintf "grid share created\n%!";
-  follow sh
+  {
+    inv_diametre = 1.0 /. (3.5 *. rayon);
+    next = Array.init nb_cores (fun _ -> Array.make (1 + nb_spheres/ nb_cores) (-1));
+    spheres = Array.init nb_cores (fun _ -> Array.make (1 + nb_spheres/ nb_cores) dummy_sphere);
+    htbl = Array.init nb_cores
+	     (fun _ -> Array.make (size_ratio * nb_spheres + 31) (-1));
+    free = Array.make nb_cores 0
+  }
 
 (** simple example, using vertex buffers + one simple texture*)
 
@@ -448,8 +415,10 @@ let sum_voisins f i j k = f i j k +.
 
 let do_voisins f i j k =
   f (i+1) j k; f i (j+1) k; f i j (k+1);
-  f (i+1) (j+1)  k; f (i+1) j (k+1); f i (j+1) (k+1); f (i+1) (j-1) k; f (i+1) j (k-1); f i (j+1) (k-1);
-  f (i+1) (j+1) (k+1); f (i+1) (j-1) (k+1); f (i+1) (j+1) (k-1); f (i+1) (j-1) (k-1)
+  f (i+1) (j+1)  k; f (i+1) j (k+1); f i (j+1) (k+1);
+  f (i+1) (j-1) k; f (i+1) j (k-1); f i (j+1) (k-1);
+  f (i+1) (j+1) (k+1); f (i+1) (j-1) (k+1); f (i+1) (j+1) (k-1);
+  f (i+1) (j-1) (k-1)
 
 let proj a d =
   let open Vector3 in
@@ -501,7 +470,9 @@ let collisions : int -> grille ->
 	iter_grille (do_collision s) i j k grille
       end) spheres
 
-let cur_nb = ref 0
+let cur_nb = Array.make nb_cores 0
+
+
 let one_step process t dt =
   let frot = -0.001 in
   let gravity = 9.8 in
@@ -540,10 +511,10 @@ let one_step process t dt =
   ) spheres
 
 (** two references to compute the frame rates *)
-let lasttime = ref (Unix.gettimeofday ())
+let lasttime = Array.init (nb_cores+1) (fun _ -> Unix.gettimeofday ())
 (** two references to compute the frame rates *)
-let lasttimeframe = ref (Unix.gettimeofday ())
-let frames = ref 0
+let lasttimeframe = Array.init (nb_cores+1) (fun _ -> Unix.gettimeofday ())
+let frames = Array.make (nb_cores+1) 0
 
 
     (** the main drawing function, not mush to say, half of it
@@ -569,13 +540,13 @@ let draw () =
   );
   swap_buffers ();
   show_errors "after draw";
-  incr frames;
-  let delta = t -. !lasttimeframe in
+  frames.(nb_cores) <- frames.(nb_cores) + 1;
+  let delta = t -. lasttimeframe.(nb_cores) in
   if delta > 5.0 then(
-    let fps = float !frames /. delta in
+    let fps = float frames.(nb_cores) /. delta in
     Printf.eprintf "fps: %.2f\n%!" fps;
-    frames := 0;
-    lasttimeframe  := t
+    frames.(nb_cores) <- 0;
+    lasttimeframe.(nb_cores) <- t
   )
 
 (** the main drawing function, not mush to say, half of it
@@ -585,20 +556,20 @@ let rec run process t0 t =
   let t  = t +. dt in
   let delay = t -. t' in
   if delay > dt then ignore (Unix.select [] [] [] delay);
-  while !cur_nb < nb_spheres && float !cur_nb < nb_spheres_per_sec *. (t -. t0) do
-    let s = spheres.(!cur_nb) in
+  while cur_nb.(process) < nb_spheres && float cur_nb.(process) < nb_spheres_per_sec *. (t -. t0) do
+    let s = spheres.(cur_nb.(process)) in
     if s.process = process then s.active <- true;
-    incr cur_nb
+    cur_nb.(process) <- cur_nb.(process) + 1
   done;
   one_step process t dt;
-  incr frames;
-  let delta = t' -. !lasttime in
+  frames.(process) <- frames.(process) + 1;
+  let delta = t' -. lasttime.(process) in
   if process = 0 && delta > 5.0 then(
-    let cps = float !frames /. delta in
-    let ratio = delta /. (float !frames *. dt) in
-    Printf.eprintf "cps: %.2f, speed ratio: %f, spheres: %d\n%!" cps ratio !cur_nb;
-    frames := 0;
-    lasttime  := t'
+    let cps = float frames.(process) /. delta in
+    let ratio = delta /. (float frames.(process) *. dt) in
+    Printf.eprintf "cps: %.2f, speed ratio: %f, spheres: %d\n%!" cps ratio cur_nb.(process);
+    frames.(process) <- 0;
+    lasttime.(process) <- t'
   );
   run process t0 t
 
@@ -613,7 +584,13 @@ let _ = draw () (** draw once outsize the loop, because all exceptions are caugh
 let _ =
   let t0 = Unix.gettimeofday () in
   let rec f pids i =
-    if i = 0 then (main_loop (); List.iter (fun pid -> Unix.kill pid Sys.sigint) pids)
-    else let pid = Unix.fork () in
-	 if pid = 0 then run (i-1) t0 t0 else f (pid::pids) (i-1)
+    if i = 0 then
+      begin
+        main_loop ();
+      end
+    else
+      begin
+        let pid = ignore (Domain.spawn (fun () -> run (i-1) t0 t0)); (i-1) in
+        f (pid::pids) (i-1)
+      end
   in f [] nb_cores
