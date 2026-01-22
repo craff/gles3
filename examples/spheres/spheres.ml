@@ -52,7 +52,7 @@ let nb_spheres, nb_spheres_per_sec,
   let viscosity = ref 5.0 in
   let radial_viscosity = ref 5.0 in
   let wall_abs = ref 0.1 in
-  let nb_cores = ref (Domain.recommended_domain_count ()) in
+  let nb_cores = ref (Domain.recommended_domain_count () - 1) in
   let debug = ref false in
   let spec = [
     ("--nb"     , Set_int nb_spheres,
@@ -101,7 +101,7 @@ let sync =
   (fun process ->
     let n = counts.(process) + 1 in
     counts.(process) <- n;
-    while (Array.fold_left (fun acc x -> acc || x < n) false counts) do () done;
+    while (Array.exists (fun x -> x < n) counts) do Domain.cpu_relax () done;
   )
 
 let print_sphere ch s =
