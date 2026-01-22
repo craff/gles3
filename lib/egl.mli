@@ -66,6 +66,7 @@ val mask_Button5 : int
 (****************************************************************************)
 
 val initialize : ?config:config -> width:int -> height:int -> string -> unit
+external make_current : unit -> unit = "ml_egl_make_current"
 external terminate : unit -> unit = "ml_egl_terminate"
 
 external swap_buffers : unit -> unit = "ml_egl_swap_buffers"

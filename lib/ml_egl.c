@@ -449,6 +449,14 @@ void ml_egl_set_button_release_callback(value v)
   CAMLreturn0 ;
 }
 
+void ml_egl_make_current() {
+  CAMLparam0();
+  if(!eglMakeCurrent(display, surface, surface, context))
+    caml_failwith("Can not set current context");
+  CAMLreturn0 ;
+}
+
+
 void ml_egl_set_motion_notify_callback(value v)
 {
   CAMLparam1(v) ;

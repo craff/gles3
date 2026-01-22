@@ -71,6 +71,8 @@ external initialize_aux :
     ('a -> 'b) -> config -> int -> int -> string -> unit
     = "ml_egl_initialize"
 
+external make_current : unit -> unit = "ml_egl_make_current"
+
 let no_callback _ = assert false
 
 let initialize ?(config=default_config) ~width ~height name =
