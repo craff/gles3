@@ -1,0 +1,14 @@
+(executable
+ (name spheres)
+ (public_name spheres)
+ (flags (:standard -w -6-27-50-33))
+ (optional) ; only compiled if ancient if domain is present.
+ (libraries gles3)
+   (preprocess (per_module
+     ((action (run glsl_to_ml %{input-file}))
+     vertex_shadow vertex_light_with_shadow
+   vertex_implicit_shadow
+   fragment_shadow fragment_light_with_shadow
+   fragment_implicit_shadow fragment_light_implicit_with_shadow
+   sphere_shadow sphere)))
+ )
