@@ -43,8 +43,13 @@ let norm2 {x;y;z} =
   x*.x +. y*.y +. z*.z
 let norm v =
   sqrt (norm2 v)
+let dist2 v v' =
+  let x = v.x -. v'.x in
+  let y = v.y -. v'.y in
+  let z = v.z -. v'.z in
+  x*.x +. y*.y +. z*.z
 let dist v v' =
-  norm (sub v v')
+  sqrt (dist2 v v')
 let mul a {x;y;z} =
   {x=a *. x; y=a *. y; z=a *. z}
 let normalize v =

@@ -30,6 +30,7 @@ val addq : t -> t -> unit
 val addq_alpha : t -> float -> t -> unit
 val norm2 : t -> float
 val norm : t -> float
+val dist2 : t -> t -> float
 val dist : t -> t -> float
 val mul : float -> t -> t
 val normalize : t -> t
