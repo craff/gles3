@@ -152,7 +152,7 @@ let vertex_attrib_float_pointer ~index ~size ?(norm=false) ?(stride=0) a =
 
 external vertex_attrib_buffer_pointer_aux
          : (int [@untagged]) -> (int [@untagged]) ->
-           (storage_type [@untagged]) -> norm:bool ->
+           (storage_type [@untagged]) -> norm:(bool [@untagged]) ->
            (int [@untagged]) -> (int [@untagged]) -> unit
   = "ml_glVertexAttribBufferPointer"
       "mlU_glVertexAttribBufferPointer" [@@noalloc]
@@ -707,7 +707,7 @@ external scissor
            w:(int [@untagged]) -> h:(int [@untagged]) -> unit
   = "ml_glScissor" "mlU_glScissor" [@@noalloc]
 
-external sample_coverage_aux : (float [@unboxed]) -> invert:bool -> unit =
+external sample_coverage_aux : (float [@unboxed]) -> invert:(bool [@untagged]) -> unit =
   "ml_glSampleCoverage" "mlU_glSampleCoverage" [@@noalloc]
 
 
@@ -769,10 +769,14 @@ external blend_color : rgba -> unit = "ml_glBlendColor" [@@noalloc]
 let rgba ~r ~g ~b ~a = { r = r ; g = g ; b = b ; a = a }
 
 external color_mask
-         : red:bool -> green:bool -> blue:bool -> alpha:bool -> unit
-  = "ml_glColorMask" [@@noalloc]
+         : red:(bool [@untagged])  ->
+           green:(bool [@untagged]) ->
+           blue:(bool [@untagged]) ->
+           alpha:(bool  [@untagged]) -> unit
+  = "ml_glColorMask" "mlU_glColorMask" [@@noalloc]
 
-external depth_mask : bool -> unit = "ml_glDepthMask" [@@noalloc]
+external depth_mask : (bool [@untagged]) -> unit
+  = "ml_glDepthMask" "mlU_glDepthMask" [@@noalloc]
 
 external stencil_mask : (int [@untagged]) -> unit
   = "ml_glStencilMask" "mlU_glStencilMask" [@@noalloc]
