@@ -2,6 +2,7 @@
  (name spheres)
  (public_name spheres)
  (flags (:standard -w -6-27-50-33))
+ (ocamlopt_flags (:standard -O3))
  (optional) ; only compiled if ancient if domain is present.
  (libraries gles3)
    (preprocess (per_module

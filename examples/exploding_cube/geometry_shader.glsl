@@ -29,37 +29,33 @@ vec4 Explode(vec4 pos, vec3 normal)
 }
 
 void main(){
-  diffuse = color * lightDiffuse;
-  ambient = color * lightAmbient;
-
   // compute coordinates in camera frame
   m_pos[0] = ModelView * gl_in[0].gl_Position;
   m_pos[1] = ModelView * gl_in[1].gl_Position;
   m_pos[2] = ModelView * gl_in[2].gl_Position;
 
   // compute the normal in that frame.
-  normal = GetNormal();
+  vec3 face_normal = GetNormal();
 
   // explode the cube
-  m_pos[0] = Explode(m_pos[0],normal);
-  m_pos[1] = Explode(m_pos[1],normal);
-  m_pos[2] = Explode(m_pos[2],normal);
+  m_pos[0] = Explode(m_pos[0],face_normal);
+  m_pos[1] = Explode(m_pos[1],face_normal);
+  m_pos[2] = Explode(m_pos[2],face_normal);
 
   // do final computation of halfVector for specular lighe
   // and projected position and emmit the vertex.
   // note: normal, ambient and diffuse are emitted too,
   // but are the same for all vertices.
-  halfVector = normalize(lightPos - 2.0 * m_pos[0].xyz);
-  gl_Position = Projection * m_pos[0];
-  EmitVertex();
+  normal = face_normal;
+  diffuse = color * lightDiffuse;
+  ambient = color * lightAmbient;
 
-  halfVector = normalize(lightPos - 2.0 * m_pos[1].xyz);
-  gl_Position = Projection * m_pos[1];
-  EmitVertex();
-
-  halfVector = normalize(lightPos - 2.0 * m_pos[2].xyz);
-  gl_Position = Projection * m_pos[2];
-  EmitVertex();
+  for(int i = 0; i < 3; i++) {
+    halfVector = normalize(lightPos - 2.0 * m_pos[i].xyz);
+    m_position = m_pos[i];
+    gl_Position = Projection * m_pos[i];
+    EmitVertex();
+  }
 
   EndPrimitive();
 }

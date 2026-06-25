@@ -2,6 +2,7 @@
  (name exploding_cube)
  (public_name exploding_cube)
  (flags (:standard -w -6))
+ (ocamlopt_flags (:standard -O3))
  (libraries gles3)
  (preprocess (per_module
    ((action (run glsl_to_ml %{input-file}))

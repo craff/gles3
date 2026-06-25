@@ -353,28 +353,28 @@ let prg = texture_2d_cst_uniform prg "shadowmap" depthmap.tex
 let iprg = float_mat4_cst_uniform iprg "shadowproj" shadow_projection
 let iprg = texture_2d_cst_uniform iprg "shadowmap" depthmap.tex
 
-let dessine_sphere index s =
-  if s.active then
-    let x = s.centre.Vector3.x in
-    let y = s.centre.Vector3.y in
-    let z = s.centre.Vector3.z in
-    let r = s.rayon in
-    let m = mul (translate x y z) (scale r) in
-    let im = mul (scale (1. /. r)) (translate (-.x) (-.y) (-.z)) in
-    let n = idt3 in
-    draw_buffer_elements iprg gl_triangles ielements (projection ()) m im n
+let proj_spheres =
+  Array.map (fun s ->
+      if s.active then
+        let x = s.centre.Vector3.x in
+        let y = s.centre.Vector3.y in
+        let z = s.centre.Vector3.z in
+        let r = s.rayon in
+        let m = mul (translate x y z) (scale r) in
+        let im = mul (scale (1. /. r)) (translate (-.x) (-.y) (-.z)) in
+        Some (m, im)
+      else
+        None)
 
-let shadow_sphere index s =
-  let open Bigarray.Array1 in
-  if s.active then
-    let x = s.centre.Vector3.x in
-    let y = s.centre.Vector3.y in
-    let z = s.centre.Vector3.z in
-    let r = s.rayon in
-    let m = mul (translate x y z) (scale r) in
-    let im = mul (scale (1. /. r)) (translate (-.x) (-.y) (-.z)) in
-    draw_buffer_elements ishade gl_triangles ielements m im
+let dessine_sphere = function
+  | None -> ()
+  | Some (m,im) ->
+     draw_buffer_elements iprg gl_triangles ielements (projection ()) m im idt3
 
+let shadow_sphere = function
+  | None -> ()
+  | Some (m, im) ->
+     draw_buffer_elements ishade gl_triangles ielements m im
 
 let dessine_sol () =
   let m = mul Vector3.(translate (-0.5 *. size) (-0.5 *. size) 0.) (scale (2.0 *. size)) in
@@ -445,9 +445,10 @@ let bounce s1 s2 =
     let visco, delta = force ndir (s1.rayon +. s2.rayon) in
     if delta <> 0.0 then
       begin
-	let f = mul (delta /. ndir) dir in
-	addq_alpha s1.acceleration (  delta /. ndir *. s2.masse) f;
-	addq_alpha s2.acceleration (-.delta /. ndir *. s1.masse) f;
+        let c = delta /. ndir in
+        let c2 = c *. c in
+	addq_alpha s1.acceleration (  c2 *. s2.masse) dir;
+	addq_alpha s2.acceleration (-.c2 *. s1.masse) dir;
 	let dv = sub s2.vitesse s1.vitesse in
 	addq_alpha s1.acceleration (   visco *. s2.masse) dv;
 	addq_alpha s2.acceleration (-. visco *. s1.masse) dv;
@@ -525,18 +526,19 @@ let draw () =
   clear [  gl_color_buffer ; gl_depth_buffer];
   viewport ~x:0 ~y:0 ~w:shadow_map_size ~h:shadow_map_size;
   cull_face ~face:gl_front;
-  Array.iteri shadow_sphere spheres;
+  let spheres = proj_spheres spheres in
+  Array.iter shadow_sphere spheres;
   show_errors "after shadow";
   bind_framebuffer gl_framebuffer null_framebuffer;
 
   clear [  gl_color_buffer ; gl_depth_buffer];
   viewport ~x:0 ~y:0 ~w:!gwidth ~h:!gheight;
   if !dessine_shadow then (
-    Array.iteri shadow_sphere spheres;
+    Array.iter shadow_sphere spheres;
   ) else (
     cull_face ~face:gl_back;
     dessine_sol ();
-    Array.iteri dessine_sphere spheres;
+    Array.iter dessine_sphere spheres;
   );
   swap_buffers ();
   show_errors "after draw";

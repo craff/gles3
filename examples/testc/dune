@@ -1,9 +1,0 @@
-(executable
- (name testc)
- (public_name testc)
- (flags (:standard -w -6-27-50))
- (libraries gles3)
- (preprocess (per_module
-   ((action (run glsl_to_ml %{input-file}))
-     vertex_shadow fragment_shadow
-     vertex_light_with_shadow fragment_light_with_shadow ))))

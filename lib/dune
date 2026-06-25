@@ -13,6 +13,7 @@
  (modules :standard)
  (wrapped false)
  (flags (:standard -w -6-27-32 -thread))
+ (ocamlopt_flags (:standard -O3))
  (c_library_flags (:standard -lGLESv2 -lX11 -lEGL))
  (foreign_stubs (language c) (names ml_gles3))
  (foreign_stubs (language c) (names ml_egl))

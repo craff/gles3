@@ -1,8 +1,8 @@
 uniform vec3 lightPos;
 uniform float specular, shininess;
 
-in vec3 normal, halfVector;
 in vec4 diffuse, ambient, m_position;
+in vec3 normal, halfVector;
 
 out vec4 FragColor;
 
