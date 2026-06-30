@@ -1,4 +1,4 @@
-/****************************************************************************/
+/***************************************************************************/
 /* MLGles3: OpenGL ES3 interface for Objective Caml                         */
 /*                                                                          */
 /* Copyright (C) 2014   Alexandre Miquel <amiquel@fing.edu.uy>              */
@@ -21,8 +21,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
+#include <unistd.h>
+#include <strings.h>
 #include <EGL/egl.h>
 #include <caml/misc.h>
 #include <caml/mlvalues.h>
@@ -34,8 +34,12 @@
 #include <caml/threads.h>
 #include <caml/version.h>
 #include <sys/time.h>
-#include <unistd.h>
-#include <strings.h>
+#include "ml_egl.h"
+#include "ml_egl_platform.h"
+
+#define MODIFIER(x,code) egl_mod EGL_MOD_##x = code;
+#include "modifier.h"
+#undef MODIFIER
 
 #if OCAML_VERSION_MAJOR <= 4
 #if OCAML_VERSION_MINOR < 9
@@ -44,36 +48,36 @@
 #endif
 #endif
 
-static int initialized = 0 ;
+int initialized = 0 ;
 
-static Display *xdisplay = NULL ;
-static Window xwindow = None ;
-static int width, height ;
-static int (*saved_IOErrorHandler)(Display *) = NULL ;
+NativeDisplayType platform_display;
+NativeWindowType  platform_window;
+int width, height ;
 static EGLDisplay display = EGL_NO_DISPLAY ;
 static EGLConfig config ;
 static EGLSurface surface = EGL_NO_SURFACE ;
 static EGLContext context = EGL_NO_CONTEXT ;
-static int main_loop_reentrant = 0 ;
-static int main_loop_continue = 0 ;
+int main_loop_reentrant = 0 ;
+int main_loop_continue = 0 ;
 
 /* Callbacks */
 
-static value default_callback = Val_unit ;
-static value idle_callback = Val_unit ;
-static value reshape_callback = Val_unit ;
-static value delete_callback = Val_unit ;
-static value key_press_callback = Val_unit ;
-static value key_release_callback = Val_unit ;
-static value button_press_callback = Val_unit ;
-static value button_release_callback = Val_unit ;
-static value motion_notify_callback = Val_unit ;
+value default_callback = Val_unit ;
+value idle_callback = Val_unit ;
+value reshape_callback = Val_unit ;
+value delete_callback = Val_unit ;
+value key_press_callback = Val_unit ;
+value key_release_callback = Val_unit ;
+value button_press_callback = Val_unit ;
+value button_release_callback = Val_unit ;
+value motion_notify_callback = Val_unit ;
 
 /*** Callback utilities ***/
 
 /* pointer to value should be registered to the GC by the caller */
-static void protect_callback(char *name, value *f, value *v1)
+void protect_callback(char *name, value *f, value *v1)
 {
+  if (!f) return;
   caml_acquire_runtime_system();
   {
     CAMLparam0();
@@ -85,8 +89,9 @@ static void protect_callback(char *name, value *f, value *v1)
   caml_release_runtime_system();
 }
 
-static void protect_callback2(char *name, value *f, value *v1, value *v2)
+void protect_callback2(char *name, value *f, value *v1, value *v2)
 {
+  if (!f) return;
   caml_acquire_runtime_system();
   {
     CAMLparam0();
@@ -98,9 +103,10 @@ static void protect_callback2(char *name, value *f, value *v1, value *v2)
   caml_release_runtime_system();
 }
 
-static void protect_callback3(char *name, value *f, value *v1,
+void protect_callback3(char *name, value *f, value *v1,
 			      value *v2, value *v3)
 {
+  if (!f) return;
   caml_acquire_runtime_system();
   {
     CAMLparam0();
@@ -112,9 +118,10 @@ static void protect_callback3(char *name, value *f, value *v1,
   caml_release_runtime_system();
 }
 
-static void protect_callback4(char *name, value *f, value *v1,
+void protect_callback4(char *name, value *f, value *v1,
 			      value *v2, value *v3, value *v4)
 {
+  if (!f) return;
   caml_acquire_runtime_system();
   {
     CAMLparam0();
@@ -128,23 +135,8 @@ static void protect_callback4(char *name, value *f, value *v1,
   caml_release_runtime_system();
 }
 
-/****************************************************************************/
-/*   X IO ERROR HANDLING                                                    */
-/****************************************************************************/
 
-static int IOErrorHandler(Display *dpy)
-{
-  printf("IOErrorHandler \n"); fflush(stdout);
-  /* If error came from another display, we call saved_IOErrorHandler */
-  if(dpy != xdisplay) {
-    if(saved_IOErrorHandler != NULL)
-      (*saved_IOErrorHandler)(dpy) ;
-    return 0 ;
-  }
-
-  /* X connection has been lost, we cannot free allocated resources.
-     Instead, we try to restore an uninitialized state. */
-
+void egl_platform_lost(void) {
   value saved_delete_callback = delete_callback ;
 
   caml_modify_generational_global_root(&idle_callback, default_callback) ;
@@ -160,12 +152,7 @@ static int IOErrorHandler(Display *dpy)
   surface = EGL_NO_SURFACE ;
   display = EGL_NO_DISPLAY ;
 
-  xwindow = None ;
   width = height = 0 ;
-  xdisplay = NULL ;
-
-  XSetIOErrorHandler(saved_IOErrorHandler) ;
-  saved_IOErrorHandler = NULL ;
   main_loop_reentrant = 0 ;
   main_loop_continue = 0 ;
   initialized = 0 ;
@@ -175,7 +162,6 @@ static int IOErrorHandler(Display *dpy)
     exit(1) ;
   }
 
-  return 0 ;
 }
 
 /****************************************************************************/
@@ -200,19 +186,7 @@ static void free_resources()
     eglTerminate(display) ;
     display = EGL_NO_DISPLAY ;
   }
-  if(xwindow != None) {
-    if(xdisplay != NULL)
-      XDestroyWindow(xdisplay, xwindow) ;
-    xwindow = None ;
-  }
-  if(xdisplay != NULL) {
-    XCloseDisplay(xdisplay) ;
-    xdisplay = NULL ;
-  }
-  if(saved_IOErrorHandler != NULL) {
-    XSetIOErrorHandler(saved_IOErrorHandler) ;
-    saved_IOErrorHandler = NULL ;
-  }
+  free_platform_ressources();
   width = height = 0 ;
   main_loop_reentrant = 0 ;
   main_loop_continue = 0 ;
@@ -231,7 +205,12 @@ void ml_egl_terminate()
 /*   INITIALIZATION                                                         */
 /****************************************************************************/
 
-#define init_fail(s)  (free_resources(), caml_failwith("Egl.initialize: " s))
+void init_fail(const char* s) {
+  free_resources();
+  char *msg;
+  asprintf(&msg, "Egl.initialize: %s", s);
+  caml_failwith(msg);
+}
 
 void showConfig(EGLConfig *config) {
   EGLint red_size, green_size, blue_size, alpha_size ;
@@ -256,25 +235,12 @@ CAMLprim value ml_egl_initialize(value vf, value vc, value vw, value vh, value v
   if(initialized)
     init_fail("already initialized") ;
 
-  /* Open X Display */
-  if((xdisplay = XOpenDisplay(NULL)) == NULL)
-    init_fail("cannot open X display") ;
-
-  /* Open X Window */
   width = Int_val(vw) ;
   height = Int_val(vh) ;
-  xwindow = XCreateSimpleWindow(xdisplay, DefaultRootWindow(xdisplay),
-				0, 0, width, height, 0, 0, 0) ;
-  if(xwindow == None)
-    init_fail("cannot create X window") ;
-  XSelectInput(xdisplay, xwindow, VisibilityChangeMask|
-	       StructureNotifyMask|KeyPressMask|KeyReleaseMask|
-	       ButtonPressMask|ButtonReleaseMask|PointerMotionMask) ;
-  XMapWindow(xdisplay, xwindow) ;
-  XStoreName(xdisplay, xwindow, String_val(vn)) ;
+  init_platform_ressources(width, height, String_val(vn));
 
   /* Open EGL Display */
-  if((display = eglGetDisplay(xdisplay)) == EGL_NO_DISPLAY)
+  if((display = eglGetDisplay(platform_display)) == EGL_NO_DISPLAY)
     init_fail("cannot open EGL display") ;
 
   /* Initialize EGL Display */
@@ -319,7 +285,7 @@ CAMLprim value ml_egl_initialize(value vf, value vc, value vw, value vh, value v
     if (depth > best_depth) {
       best_i = i; best_depth = depth; best_samples = samples;
     }
-    else if (depth = best_depth && samples > best_samples) {
+    else if (depth == best_depth && samples > best_samples) {
       best_i = i; best_samples = samples;
     }
   }
@@ -327,7 +293,7 @@ CAMLprim value ml_egl_initialize(value vf, value vc, value vw, value vh, value v
   bcopy(&(configs[best_i]),&config,sizeof(EGLConfig));
   free(configs); showConfig(&config);
   /* Create EGL Surface */
-  surface = eglCreateWindowSurface(display, config, xwindow, NULL) ;
+  surface = eglCreateWindowSurface(display, config, platform_window, NULL) ;
   if(surface == EGL_NO_SURFACE)
     init_fail("cannot create EGL surface") ;
 
@@ -346,8 +312,6 @@ CAMLprim value ml_egl_initialize(value vf, value vc, value vw, value vh, value v
   /* Binding context with surface */
   if(!eglMakeCurrent(display, surface, surface, context))
     init_fail("cannot bind EGL surface to context") ;
-
-  saved_IOErrorHandler = XSetIOErrorHandler(&IOErrorHandler) ;
 
   /* Register CAML roots for callbacks */
   default_callback = vf;
@@ -463,164 +427,6 @@ void ml_egl_set_motion_notify_callback(value v)
   if(!initialized)
     caml_failwith("Egl.set_motion_notify_callback: not initialized") ;
   caml_modify_generational_global_root(&motion_notify_callback, v) ;
-  CAMLreturn0 ;
-}
-
-/****************************************************************************/
-/*   MAIN LOOP                                                              */
-/****************************************************************************/
-
-void ml_egl_main_loop()
-{
-  CAMLparam0() ;
-  XEvent event ;
-
-  if(!initialized)
-    caml_failwith("Egl.main_loop: not initialized") ;
-
-  if(main_loop_reentrant)
-    caml_failwith("Egl.main_loop: forbidden reentrant call") ;
-
-  caml_release_runtime_system();
-
-  main_loop_reentrant = 1 ;
-
-  Atom wmDeleteMessage = XInternAtom(xdisplay, "WM_DELETE_WINDOW", False);
-  XSetWMProtocols(xdisplay, xwindow, &wmDeleteMessage, 1);
-
-  main_loop_continue = 1 ;
-
-  while(main_loop_continue) {
-
-    if(idle_callback != default_callback) {
-      while(XPending(xdisplay) == 0) {
-	value u = Val_unit;
-	protect_callback("idle callback", &idle_callback, &u) ;
-      }
-    }
-    XNextEvent(xdisplay, &event) ;
-
-    switch(event.type) {
-    case ConfigureNotify:
-      if(event.xconfigure.display == xdisplay &&
-	 event.xconfigure.window == xwindow &&
-	 (event.xconfigure.width != width ||
-	  event.xconfigure.height != height) &&
-	 reshape_callback != default_callback)
-	{
-	  width = event.xconfigure.width ;
-	  height = event.xconfigure.height ;
-	  value ml_width = Val_int(width);
-	  value ml_height = Val_int(height);
-	  protect_callback2("reshape callback",
-			    &reshape_callback,
-			    &ml_width, &ml_height) ;
-	}
-      break ;
-    case VisibilityNotify:
-      if(event.xvisibility.display == xdisplay &&
-	 event.xvisibility.window == xwindow &&
-	 event.xvisibility.state != VisibilityFullyObscured &&
-	 reshape_callback != default_callback)
-	{
-	  value ml_width = Val_int(width);
-	  value ml_height = Val_int(height);
-	  protect_callback2("reshape callback",
-			    &reshape_callback,
-			    &ml_width, &ml_height) ;
-	}
-      break ;
-    case ClientMessage:
-      if(event.xclient.display == xdisplay &&
-	 event.xclient.window == xwindow &&
-	 event.xclient.data.l[0] == wmDeleteMessage)
-	{
-	  if(delete_callback == default_callback)
-	    main_loop_continue = 0 ;
-	  else
-	    {
-	      value u = Val_unit;
-	      protect_callback("delete callback", &delete_callback, &u) ;
-	    }
-	}
-      break ;
-    case KeyPress:
-      if(event.xkey.display == xdisplay &&
-	 event.xkey.window == xwindow &&
-	 key_press_callback != default_callback)
-	{
-	  KeySym keysym ;
-	  XLookupString(&(event.xkey), NULL, 0, &keysym, NULL) ;
-	  value ml_keysym = Val_int(keysym);
-	  value ml_state = Val_int(event.xkey.state);
-	  value ml_x = Val_int(event.xkey.x);
-	  value ml_y = Val_int(event.xkey.y);
-	  protect_callback4("key press callback", &key_press_callback,
-			    &ml_keysym, &ml_state, &ml_x, &ml_y);
-	}
-      break ;
-    case KeyRelease:
-      if(event.xkey.display == xdisplay &&
-	 event.xkey.window == xwindow &&
-	 key_release_callback != default_callback)
-	{
-	  KeySym keysym ;
-	  XLookupString(&(event.xkey), NULL, 0, &keysym, NULL) ;
-	  value ml_keysym = Val_int(keysym);
-	  value ml_state = Val_int(event.xkey.state);
-	  value ml_x = Val_int(event.xkey.x);
-	  value ml_y = Val_int(event.xkey.y);
-	  protect_callback4("key release callback", &key_release_callback,
-			    &ml_keysym, &ml_state, &ml_x, &ml_y);
-	}
-      break ;
-    case ButtonPress:
-      if(event.xbutton.display == xdisplay &&
-	 event.xbutton.window == xwindow &&
-	 button_press_callback != default_callback)
-	{
-	  value ml_button = Val_int(event.xbutton.button - Button1);
-	  value ml_state = Val_int(event.xkey.state);
-	  value ml_x = Val_int(event.xbutton.x);
-	  value ml_y = Val_int(event.xbutton.y);
-	  protect_callback4("button press callback",
-			    &button_press_callback,
-			    &ml_button, &ml_state, &ml_x, &ml_y);
-	}
-      break ;
-    case ButtonRelease:
-      if(event.xbutton.display == xdisplay &&
-	 event.xbutton.window == xwindow &&
-	 button_release_callback != default_callback)
-	{
-	  value ml_button = Val_int(event.xbutton.button - Button1);
-	  value ml_state = Val_int(event.xkey.state);
-	  value ml_x = Val_int(event.xbutton.x);
-	  value ml_y = Val_int(event.xbutton.y);
-	  protect_callback4("button release callback",
-			    &button_release_callback,
-			    &ml_button, &ml_state, &ml_x, &ml_y);
-	}
-      break ;
-    case MotionNotify:
-      if(event.xmotion.display == xdisplay &&
-	 event.xmotion.window == xwindow &&
-	 motion_notify_callback != default_callback)
-	{
-	  value ml_state = Val_int(event.xkey.state);
-	  value ml_x = Val_int(event.xmotion.x);
-	  value ml_y = Val_int(event.xmotion.y);
-
-	  protect_callback3("motion notify callback", &motion_notify_callback,
-			    &ml_state, &ml_x, &ml_y);
-	}
-      break ;
-    default: break ;
-    }
-  }
-  main_loop_reentrant = 0 ;
-
-  caml_acquire_runtime_system();
   CAMLreturn0 ;
 }
 

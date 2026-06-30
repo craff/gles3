@@ -1,0 +1,6 @@
+MODIFIER(Shift,    1)
+MODIFIER(Control,  2)
+MODIFIER(Alt,      4)
+MODIFIER(Super,    8)
+MODIFIER(CapsLock, 16)
+MODIFIER(NumLock,  32)

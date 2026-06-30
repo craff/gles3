@@ -41,7 +41,7 @@ type sphere = {
 
 let nb_spheres, nb_spheres_per_sec,
   rayon, dt, size, density,
-  viscosity, radial_viscosity, wall_abs, nb_cores, debug =
+  viscosity, radial_viscosity, wall_abs, nb_cores, _debug =
   let open Arg in
   let nb_spheres = ref 1000 in
   let nb_spheres_per_sec = ref 50.0 in
@@ -104,20 +104,9 @@ let sync =
     while (Array.exists (fun x -> x < n) counts) do Domain.cpu_relax () done;
   )
 
-let print_sphere ch s =
+let [@warning "-32"] print_sphere ch s =
   let open Vector3 in
   Printf.fprintf ch "(%.5f,%.5f,%.5f)" s.centre.x s.centre.y s.centre.z
-
-let collisions_complete : (sphere -> sphere -> unit) -> sphere list -> unit
-  = fun do_collision l ->
-    let rec f = function (* fun l -> match l with *)
-      | [] | [_] -> ()
-      | s::l' -> List.iter (do_collision s) l'; f l'
-    in f l
-
-let collisions_entre : (sphere -> sphere -> unit) -> sphere list -> sphere list -> unit
-  = fun do_collision l l' ->
-    List.iter (fun s -> List.iter (do_collision s) l) l'
 
 type grille = {
   inv_diametre : float;
@@ -179,13 +168,6 @@ let ratio = ref (float !gwidth /. float !gheight)
 let _ = initialize !gwidth !gheight "test_gles2";
   viewport ~x:0 ~y:0 ~w:!gwidth ~h:!gheight
 
-let shadow_shader =
-  ("shadow_shader",
-   [ of_string gl_vertex_shader   Vertex_shadow.str;
-     of_string gl_fragment_shader Fragment_shadow.str; ])
-
-let shade = compile shadow_shader
-
 (** we define our shaders, with the type expected by Shaders.compile.
    the string are just use to report errors *)
 let light_shader =
@@ -224,7 +206,6 @@ let elements = to_uint_element_buffer gl_static_draw
 
 (** we set the vertices in the shader *)
 let prg = buffer_cst_attr prg "in_position" vertices
-let shade = buffer_cst_attr shade "in_position" vertices
 
 (** the normals associated to each vertex, in the same orders *)
 let normals = to_float_array_buffer gl_static_draw
@@ -312,10 +293,6 @@ let iprg : (float array -> float array -> float array -> float array -> unit) pr
 (** Beware: the first argument in the last to be set, hence here
    the projection matrix comes before the modelView *)
 
-let shade : (float array -> unit) program = float_mat4_uniform shade "ModelView"
-(** notice the change of type.   *)
-let shade : (float array -> unit) program = float_mat4_cst_uniform shade "Projection" shadow_projection
-
 let ishade : (float array -> unit) program = float_mat4_uniform ishade "InvModelView"
 let ishade : (float array -> float array -> unit) program = float_mat4_uniform ishade "ModelView"
 (** notice the change of type.   *)
@@ -390,13 +367,19 @@ let _ =
 
 (** call back for key and mouse, just for testing *)
 let _ = set_key_press_callback (fun ~key ~state ~x ~y ->
-  if key = 65307 then exit_loop ();
-  if key = 115 then
+  if key = Key.Escape then exit_loop ();
+  if key = Key.S then
     dessine_shadow := not !dessine_shadow;
-  Printf.printf "key: %d state: %d\n%!" key state)
+  Printf.printf "key: %s state: %d x:%d y:%d\n%!"
+    (Key.name key) (state :> int) x y)
 
 let _ = set_button_press_callback (fun ~button ~state ~x ~y ->
-  Printf.printf "button: %d state: %d\n%!" (Obj.magic button) state)
+            Printf.printf "button: %s state: %d x:%d x:%d\n%!"
+              (Button.name button) (state :> int) x y)
+
+let _ = set_motion_notify_callback (fun ~state ~x ~y ->
+            Printf.printf "motion: state: %d x:%d x:%d\n%!"
+               (state :> int) x y)
 
 (** the reshape callback, changing the viewport and ratio
    when the window is resized *)
@@ -404,14 +387,6 @@ let _ = set_reshape_callback (fun ~width ~height ->
   gwidth := width; gheight := height;
   ratio := float width /. float height)
 
-
-let sum_voisins f i j k = f i j k +.
-  f (i+1) j k +. f i (j+1) k +. f i j (k+1) +.
-  f (i-1) j k +. f i (j-1) k +. f i j (k-1) +.
-  f (i+1) (j+1)  k+. f (i+1) j (k+1)+. f i (j+1) (k+1)+. f (i+1) (j-1) k+. f (i+1) j (k-1)+. f i (j+1) (k-1)+.
-  f (i-1) (j+1)  k+. f (i-1) j (k+1)+. f i (j-1) (k+1)+. f (i-1) (j-1) k+. f (i-1) j (k-1)+. f i (j-1) (k-1)+.
-  f (i+1) (j+1) (k+1)+. f (i+1) (j-1) (k+1)+. f (i+1) (j+1) (k-1)+. f (i+1) (j-1) (k-1) +.
-  f (i-1) (j+1) (k+1)+. f (i-1) (j-1) (k+1)+. f (i-1) (j+1) (k-1)+. f (i-1) (j-1) (k-1)
 
 let do_voisins f i j k =
   f (i+1) j k; f i (j+1) k; f i j (k+1);

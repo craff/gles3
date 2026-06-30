@@ -5,7 +5,8 @@
  (ocamlopt_flags (:standard -O3))
  (optional) ; only compiled if ancient if domain is present.
  (libraries gles3)
-   (preprocess (per_module
+ (package gles3)
+ (preprocess (per_module
      ((action (run glsl_to_ml %{input-file}))
      vertex_shadow vertex_light_with_shadow
    vertex_implicit_shadow

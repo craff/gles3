@@ -29,31 +29,6 @@ type config = {
     samples : int
   }
 
-type button =
-  | Button1  (* Left button *)
-  | Button2  (* Middle button (scroll wheel button) *)
-  | Button3  (* Right button *)
-  | Button4  (* Scroll wheel up *)
-  | Button5  (* Scroll wheel down *)
-
-type keysym = int
-
-(* Modifier/button states are bitwise or's of the following: *)
-
-let mask_Shift   = (1 lsl 0)
-let mask_Lock    = (1 lsl 1)
-let mask_Control = (1 lsl 2)
-let mask_Mod1    = (1 lsl 3)
-let mask_Mod2    = (1 lsl 4)
-let mask_Mod3    = (1 lsl 5)
-let mask_Mod4    = (1 lsl 6)
-let mask_Mod5    = (1 lsl 7)
-let mask_Button1 = (1 lsl 8)
-let mask_Button2 = (1 lsl 9)
-let mask_Button3 = (1 lsl 10)
-let mask_Button4 = (1 lsl 11)
-let mask_Button5 = (1 lsl 12)
-
 let default_config =
   { red_size = 8 ;
     green_size = 8 ;
@@ -112,19 +87,21 @@ external set_delete_callback : (unit -> unit) -> unit
   = "ml_egl_set_delete_callback"
 
 external set_key_press_callback
-         : (key:keysym -> state:int -> x:int -> y:int -> unit) -> unit
+         : (key:Key.t -> state:Modifier.t -> x:int -> y:int -> unit) -> unit
   = "ml_egl_set_key_press_callback"
 
 external set_key_release_callback
-         : (key:keysym -> state:int -> x:int -> y:int -> unit) -> unit
+         : (key:Key.t -> state:Modifier.t -> x:int -> y:int -> unit) -> unit
   = "ml_egl_set_key_release_callback"
 
 external set_button_press_callback
-         : (button:button -> state:int -> x:int -> y:int -> unit) -> unit
+         : (button:Button.t -> state:Modifier.t
+            -> x:int -> y:int -> unit) -> unit
   = "ml_egl_set_button_press_callback"
 
 external set_button_release_callback
-         : (button:button -> state:int -> x:int -> y:int -> unit) -> unit
+         : (button:Button.t -> state:Modifier.t
+            -> x:int -> y:int -> unit) -> unit
   = "ml_egl_set_button_release_callback"
 
 external set_motion_notify_callback

@@ -1,0 +1,75 @@
+(rule
+ (targets key.ml)
+ (deps key.h)
+ (action
+  (with-stdout-to key.ml
+   (bash
+    "cpp -P key.h | sed -n '
+      s/^KEY(\\(.*\\))$/  | \\1/p
+    ' > /tmp/key_tmp.ml && \
+    (echo \"type t =\"; cat /tmp/key_tmp.ml; echo \"\nlet name = function\"; \
+     sed -n 's/^KEY(\\(.*\\))$/  | \\1 -> \\\"\\1\\\"/p' key.h)
+   "))))
+
+(rule
+ (targets key.mli)
+ (deps key.h)
+ (action
+  (with-stdout-to key.mli
+   (bash "cpp -P key.h | sed -e 's/^KEY(\\(.*\\))/  | \\1/' -e '1i type t ='; \
+          echo '' ; \
+   	  echo 'val name : t -> string'"))))
+
+(rule
+ (targets button.ml)
+ (deps button.h)
+ (action
+  (with-stdout-to button.ml
+   (bash
+    "cpp -P button.h | sed -n '
+      s/^BUTTON(\\(.*\\))$/  | \\1/p
+    ' > /tmp/button_tmp.ml && \
+    (echo \"type t =\"; cat /tmp/button_tmp.ml; echo \"\nlet name = function\"; \
+     sed -n 's/^BUTTON(\\(.*\\))$/  | \\1 -> \\\"\\1\\\"/p' button.h)
+   "))))
+
+(rule
+ (targets button.mli)
+ (deps button.h)
+ (action
+  (with-stdout-to button.mli
+   (bash "cpp -P button.h | sed -e 's/^BUTTON(\\(.*\\))/  | \\1/' -e '1i type t ='; \
+          echo '' ; \
+   	  echo 'val name : t -> string'"))))
+
+(rule
+ (targets modifier.ml)
+ (deps modifier.h)
+ (action
+  (with-stdout-to modifier.ml
+   (bash
+    "cpp -P modifier.h | sed -E \
+     -e '1i type t = int' \
+     -e 's/^MODIFIER\\(([A-Za-z0-9_]+),[[:space:]]*([0-9]+)\\)$/let \\L\\1 = (\\2 : t)/'"))))
+
+(rule
+ (targets modifier.mli)
+ (deps modifier.h)
+ (action
+  (with-stdout-to modifier.mli
+   (bash
+    "cpp -P modifier.h | sed -E \
+     -e '1i type t = private int' \
+     -e 's/^MODIFIER\\(([A-Za-z0-9_]+),[[:space:]]*([0-9]+)\\)$/val \\L\\1 : t/'"))))
+
+(library
+ (name gles3_stubs)
+ (public_name gles3.stubs)
+ (synopsis "OpenGL ES 3 bindings, common C bindings")
+ (modules :standard)
+ (wrapped false)
+ (flags (:standard -w -6-27-32 -thread))
+ (ocamlopt_flags (:standard -O3))
+ (c_library_flags (:standard -lGLESv2 -lEGL))
+ (foreign_stubs (language c) (names ml_gles3))
+ (foreign_stubs (language c) (names ml_egl)))

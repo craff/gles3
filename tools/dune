@@ -1,3 +1,4 @@
 (executable
  (name glsl_to_ml)
+ (package gles3)
  (public_name glsl_to_ml))

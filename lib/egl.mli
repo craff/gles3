@@ -34,33 +34,6 @@ type config = {
   }
 (** configuration of openGL window buffer *)
 
-type button =
-  | Button1  (* Left button *)
-  | Button2  (* Middle button (scroll wheel button) *)
-  | Button3  (* Right button *)
-  | Button4  (* Scroll wheel up *)
-  | Button5  (* Scroll wheel down *)
-(** mouse buttons *)
-
-type keysym = int
-(** No interpretation of the keysym yet *)
-
-(** Modifier/button states are bitwise or's of the following: *)
-
-val mask_Shift : int
-val mask_Lock : int
-val mask_Control : int
-val mask_Mod1 : int
-val mask_Mod2 : int
-val mask_Mod3 : int
-val mask_Mod4 : int
-val mask_Mod5 : int
-val mask_Button1 : int
-val mask_Button2 : int
-val mask_Button3 : int
-val mask_Button4 : int
-val mask_Button5 : int
-
 (****************************************************************************)
 (**  {b SETUP}                                                              *)
 (****************************************************************************)
@@ -104,29 +77,29 @@ external unset_idle_callback :
 	= "ml_egl_unset_idle_callback"
 
 external set_reshape_callback :
-    (width:int -> height:int -> unit) -> unit
-	= "ml_egl_set_reshape_callback"
+  (width:int -> height:int -> unit) -> unit
+  = "ml_egl_set_reshape_callback"
 
 external set_delete_callback :
-    (unit -> unit) -> unit
-	= "ml_egl_set_delete_callback"
+  (unit -> unit) -> unit
+  = "ml_egl_set_delete_callback"
 
 external set_key_press_callback :
-    (key:keysym -> state:int -> x:int -> y:int -> unit) -> unit
-	= "ml_egl_set_key_press_callback"
+  (key:Key.t -> state:Modifier.t -> x:int -> y:int -> unit) -> unit
+  = "ml_egl_set_key_press_callback"
 
 external set_key_release_callback :
-    (key:keysym -> state:int -> x:int -> y:int -> unit) -> unit
-	= "ml_egl_set_key_release_callback"
+  (key:Key.t -> state:Modifier.t -> x:int -> y:int -> unit) -> unit
+  = "ml_egl_set_key_release_callback"
 
 external set_button_press_callback :
-    (button:button -> state:int -> x:int -> y:int -> unit) -> unit
-	= "ml_egl_set_button_press_callback"
+  (button:Button.t -> state:Modifier.t -> x:int -> y:int -> unit) -> unit
+  = "ml_egl_set_button_press_callback"
 
 external set_button_release_callback :
-    (button:button -> state:int -> x:int -> y:int -> unit) -> unit
-	= "ml_egl_set_button_release_callback"
+  (button:Button.t -> state:Modifier.t -> x:int -> y:int -> unit) -> unit
+  = "ml_egl_set_button_release_callback"
 
 external set_motion_notify_callback :
-    (state:int -> x:int -> y:int -> unit) -> unit
-	= "ml_egl_set_motion_notify_callback"
+  (state:int -> x:int -> y:int -> unit) -> unit
+  = "ml_egl_set_motion_notify_callback"

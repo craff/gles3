@@ -306,11 +306,11 @@ let draw () =
 
 (** call back for key and mouse, just for testing *)
 let _ = set_key_press_callback (fun ~key ~state ~x ~y ->
-  if key = 65307 then exit_loop ();
-  Printf.printf "key: %d state: %d\n%!" key state)
+  if key = Key.Escape then exit_loop ();
+  Printf.printf "key: %s state: %d\n%!" (Key.name key) (state :> int))
 
 let _ = set_button_press_callback (fun ~button ~state ~x ~y ->
-  Printf.printf "button: %d state: %d\n%!" (Obj.magic button) state)
+  Printf.printf "button: %s state: %d\n%!" (Button.name button) (state :> int))
 
 (** when there is nothing to do, we draw *)
 let _ = set_idle_callback draw

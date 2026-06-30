@@ -1,5 +1,7 @@
 open Gles3.Type
 
+let _ = Printexc.record_backtrace true
+
 (**** Graph stuff with Kruskal's algorithm **********************************)
 
 module UnionFind =
@@ -15,10 +17,13 @@ module UnionFind =
     let join : int -> int -> t -> unit = fun k1 k2 uf ->
       Hashtbl.add uf k1 k2
 
-    let union : int -> int -> t -> unit = fun k1 k2 uf ->
+    let union : int -> int -> t -> bool = fun k1 k2 uf ->
       let k1 = find k1 uf in
       let k2 = find k2 uf in
-      join k1 k2 uf
+      if k1 = k2 then
+        false
+      else
+        (join k1 k2 uf; true)
   end
 
 module Graph =
@@ -36,9 +41,7 @@ module Graph =
       let uf = UnionFind.create (Array.length gr.nodes) in
       let fn edges e =
         let (k1, k2) = e.link in
-        let k1 = UnionFind.find k1 uf in
-        let k2 = UnionFind.find k2 uf in
-        if k1 <> k2 then (UnionFind.join k1 k2 uf; e::edges) else edges
+        if UnionFind.union k1 k2 uf then e::edges else edges
       in
       { gr with edges = List.fold_left fn [] edges }
   end
@@ -314,29 +317,35 @@ let camera =
 
 let _ =
   let handle_key_press ~key ~state ~x ~y =
-    match (key, state land 0x1) with
-    | (65307, _) -> exit 0
-    | (65363, 0) -> camera.r_speed <-  0.4
-    | (65361, 0) -> camera.r_speed <- -0.4
-    | (65363, 1) -> camera.t_speed <-  0.4
-    | (65361, 1) -> camera.t_speed <- -0.4
-    | (65362, _) -> camera.u_speed <-  0.4
-    | (65364, _) -> camera.u_speed <- -0.4
-    | (32   , _) -> camera.speed   <-  0.4
-    | (_    , _) -> Printf.printf "unset key: %d state: %d\n%!" key state
+    let open Key in
+    let open Modifier in
+    match (key, state) with
+    | (Escape, _) -> exit 0
+    | (Left, s) when s = shift -> camera.t_speed <-  0.4
+    | (Right, s) when s = shift -> camera.t_speed <- -0.4
+    | (Left, _) -> camera.r_speed <-  0.4
+    | (Right, _) -> camera.r_speed <- -0.4
+    | (Up, _) -> camera.u_speed <-  -0.4
+    | (Down, _) -> camera.u_speed <- 0.4
+    | (Space, s) when s = shift -> camera.speed   <-  -0.4
+    | (Space, _) -> camera.speed   <-  0.4
+    | (_    , _) -> Printf.printf "unset key: %s state: %d\n%!"
+                      (Key.name key) (state:>int)
   in
   Egl.set_key_press_callback handle_key_press
 
 let _ =
   let handle_key_release ~key ~state ~x ~y =
-    match key, state land 0x1 with
-    | (65363, 0) -> camera.r_speed <- 0.0
-    | (65361, 0) -> camera.r_speed <- 0.0
-    | (65363, 1) -> camera.t_speed <- 0.0
-    | (65361, 1) -> camera.t_speed <- 0.0
-    | (65362, _) -> camera.u_speed <- 0.0
-    | (65364, _) -> camera.u_speed <- 0.0
-    | (32   , _) -> camera.speed   <- 0.0
+    let open Key in
+    let open Modifier in
+    match key, state with
+    | (Left, s) when s = shift -> camera.t_speed <- 0.0
+    | (Right, s) when s = shift -> camera.t_speed <- 0.0
+    | (Left, _) -> camera.r_speed <- 0.0
+    | (Right, _) -> camera.r_speed <- 0.0
+    | (Up, _) -> camera.u_speed <- 0.0
+    | (Down, _) -> camera.u_speed <- 0.0
+    | (Space, _) -> camera.speed   <- 0.0
     | (_       ) -> ()
   in
   Egl.set_key_release_callback handle_key_release

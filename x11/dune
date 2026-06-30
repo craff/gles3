@@ -1,0 +1,21 @@
+(rule
+ (targets ml_egl.h ml_egl_platform.h key.h button.h modifier.h)
+ (deps ../stubs/ml_egl.h ../stubs/ml_egl_platform.h)
+ (action
+  (progn
+   (copy ../stubs/key.h key.h)
+   (copy ../stubs/button.h button.h)
+   (copy ../stubs/modifier.h modifier.h)
+   (copy ../stubs/ml_egl.h ml_egl.h)
+   (copy ../stubs/ml_egl_platform.h ml_egl_platform.h))))
+
+(library
+ (name gles3_x11)
+ (public_name gles3.x11)
+ (synopsis "OpenGL ES 3 bindings, X11 platform")
+ (modules :standard)
+ (flags (:standard -w -6-27-32 -thread))
+ (ocamlopt_flags (:standard -O3))
+ (c_library_flags (:standard -lX11 -lEGL))
+ (implements gles3)
+ (foreign_stubs (language c) (names ml_egl_X11)))

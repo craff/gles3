@@ -87,7 +87,7 @@
   { CAMLparam0(); CAMLreturn(convr(cname())) ; }
 #define ML_0RU(cname, typr)	       \
   typr mlU_##cname ()  \
-  { CAMLparam0(); return cname() ; }
+  { return cname() ; }
 
 #define ML_1R(cname, conv1, convr)	\
   CAMLprim value ml_##cname (value v1)	\

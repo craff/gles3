@@ -2,4 +2,5 @@
  (name cubeTexture)
  (public_name cubeTexture)
  (flags (:standard -w -6-27-50))
+ (package gles3)
  (libraries gles3))

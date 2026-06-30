@@ -3,6 +3,7 @@
  (public_name curves)
  (flags (:standard -w -6))
  (libraries gles3)
+ (package gles3)
  (preprocess (per_module
    ((action (run glsl_to_ml %{input-file}))
    vertex_light fragment_light))))
