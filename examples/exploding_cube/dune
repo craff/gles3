@@ -1,10 +1,44 @@
+(rule
+ (target exploding_cube_x11.ml)
+ (action (write-file %{target} "include Exploding_cube")))
+
+(rule
+ (target exploding_cube_wayland.ml)
+ (action (write-file %{target} "include Exploding_cube")))
+
+(rule
+ (target fragment_light.ml)
+ (deps shaders/fragment_light.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target geometry_shader.ml)
+ (deps shaders/geometry_shader.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target vertex_light.ml)
+ (deps shaders/vertex_light.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
 (executable
- (name exploding_cube)
- (public_name exploding_cube)
+ (name exploding_cube_x11)
+ (public_name exploding_cube_x11)
+ (modules exploding_cube_x11 exploding_cube fragment_light  geometry_shader  vertex_light  )
  (flags (:standard -w -6))
- (ocamlopt_flags (:standard -O3))
- (libraries gles3)
- (package gles3)
- (preprocess (per_module
-   ((action (run glsl_to_ml %{input-file}))
-     vertex_light fragment_light geometry_shader))))
+ (libraries gles3 gles3-x11)
+ (package gles3))
+
+(executable
+ (name exploding_cube_wayland)
+ (public_name exploding_cube_wayland)
+ (modules exploding_cube_wayland exploding_cube fragment_light  geometry_shader  vertex_light  )
+ (flags (:standard -w -6))
+ (libraries gles3 gles3-wayland)
+ (package gles3))

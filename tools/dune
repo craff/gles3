@@ -1,4 +1,4 @@
 (executable
  (name glsl_to_ml)
- (package gles3)
+ (package gles3-stubs)
  (public_name glsl_to_ml))

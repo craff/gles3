@@ -1,9 +1,37 @@
+(rule
+ (target flying_cube_x11.ml)
+ (action (write-file %{target} "include Flying_cube")))
+
+(rule
+ (target flying_cube_wayland.ml)
+ (action (write-file %{target} "include Flying_cube")))
+
+(rule
+ (target fragment_light.ml)
+ (deps shaders/fragment_light.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target vertex_light.ml)
+ (deps shaders/vertex_light.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
 (executable
- (name flying_cube)
- (public_name flying_cube)
+ (name flying_cube_x11)
+ (public_name flying_cube_x11)
+ (modules flying_cube_x11 flying_cube fragment_light  vertex_light  )
  (flags (:standard -w -6))
- (libraries gles3)
- (package gles3)
- (preprocess (per_module
-   ((action (run glsl_to_ml %{input-file}))
-     vertex_light fragment_light))))
+ (libraries gles3 gles3-x11)
+ (package gles3))
+
+(executable
+ (name flying_cube_wayland)
+ (public_name flying_cube_wayland)
+ (modules flying_cube_wayland flying_cube fragment_light  vertex_light  )
+ (flags (:standard -w -6))
+ (libraries gles3 gles3-wayland)
+ (package gles3))

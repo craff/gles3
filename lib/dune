@@ -16,5 +16,4 @@
  (ocamlopt_flags (:standard -O3))
  (c_library_flags (:standard -lGLESv2 -lEGL))
  (virtual_modules backend)
- (default_implementation gles3.x11)
- (libraries stdlib-shims str unix bigarray gles3.stubs))
+ (libraries stdlib-shims str unix bigarray gles3-stubs))

@@ -23,7 +23,7 @@
 
 (library
  (name gles3_wayland)
- (public_name gles3.wayland)
+ (public_name gles3-wayland)
  (synopsis "OpenGL ES 3 bindings, Wayland platform")
  (modules :standard)
  (flags (:standard -w -6-27-32 -thread))

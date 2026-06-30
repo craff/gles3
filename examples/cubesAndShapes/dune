@@ -1,14 +1,86 @@
+(rule
+ (target cubesAndShapes_x11.ml)
+ (action (write-file %{target} "include CubesAndShapes")))
+
+(rule
+ (target cubesAndShapes_wayland.ml)
+ (action (write-file %{target} "include CubesAndShapes")))
+
+(rule
+ (target ellipsoid.ml)
+ (deps shaders/ellipsoid.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target fragment_implicit_shadow.ml)
+ (deps shaders/fragment_implicit_shadow.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target fragment_light_implicit_with_shadow.ml)
+ (deps shaders/fragment_light_implicit_with_shadow.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target fragment_light_with_shadow.ml)
+ (deps shaders/fragment_light_with_shadow.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target fragment_shadow.ml)
+ (deps shaders/fragment_shadow.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target solve.ml)
+ (deps shaders/solve.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target vertex_implicit_shadow.ml)
+ (deps shaders/vertex_implicit_shadow.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target vertex_light_with_shadow.ml)
+ (deps shaders/vertex_light_with_shadow.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target vertex_shadow.ml)
+ (deps shaders/vertex_shadow.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
 (executable
- (name cubesAndShapes)
- (public_name cubesAndShapes)
- (flags (:standard -w -6-27-50))
- (package gles3)
- (libraries gles3)
- (preprocess (per_module
-   ((action (run glsl_to_ml %{input-file}))
-   vertex_shadow vertex_light_with_shadow
-   vertex_implicit_shadow
-   fragment_shadow fragment_light_with_shadow
-   fragment_implicit_shadow fragment_light_implicit_with_shadow
-   ellipsoid solve )))
- )
+ (name cubesAndShapes_x11)
+ (public_name cubesAndShapes_x11)
+ (modules cubesAndShapes_x11 cubesAndShapes ellipsoid  fragment_implicit_shadow  fragment_light_implicit_with_shadow  fragment_light_with_shadow  fragment_shadow  solve  vertex_implicit_shadow  vertex_light_with_shadow  vertex_shadow  )
+ (flags (:standard -w -6))
+ (libraries gles3 gles3-x11)
+ (package gles3))
+
+(executable
+ (name cubesAndShapes_wayland)
+ (public_name cubesAndShapes_wayland)
+ (modules cubesAndShapes_wayland cubesAndShapes ellipsoid  fragment_implicit_shadow  fragment_light_implicit_with_shadow  fragment_light_with_shadow  fragment_shadow  solve  vertex_implicit_shadow  vertex_light_with_shadow  vertex_shadow  )
+ (flags (:standard -w -6))
+ (libraries gles3 gles3-wayland)
+ (package gles3))

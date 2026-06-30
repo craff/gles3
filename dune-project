@@ -1,4 +1,4 @@
-(lang dune 3.0)
+(lang dune 3.23)
 (name gles3)
 (generate_opam_files true)
 
@@ -43,18 +43,18 @@
 	   (ocaml (>= 5.0.0))))
 
 (package
- (name gles3.stubs)
+ (name gles3-stubs)
  (synopsis "OpenGL ES3, Commen Egl and Gles3 C stubs")
  (allow_empty))
 
 (package
- (name gles3.x11)
+ (name gles3-x11)
  (synopsis "OpenGL ES3 X11 backend")
- (depends gles3)
- (allow_empty))
+ (allow_empty)
+ (depends (gles3 (= :version)) conf-libx11))
 
 (package
- (name gles3.wayland)
+ (name gles3-wayland)
  (synopsis "OpenGL ES3 Wayland backend")
- (depends gles3)
- (allow_empty))
+ (allow_empty)
+ (depends (gles3 (= :version)) conf-libwayland-client))

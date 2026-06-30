@@ -1,16 +1,86 @@
+(rule
+ (target spheres_x11.ml)
+ (action (write-file %{target} "include Spheres")))
+
+(rule
+ (target spheres_wayland.ml)
+ (action (write-file %{target} "include Spheres")))
+
+(rule
+ (target fragment_implicit_shadow.ml)
+ (deps shaders/fragment_implicit_shadow.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target fragment_light_implicit_with_shadow.ml)
+ (deps shaders/fragment_light_implicit_with_shadow.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target fragment_light_with_shadow.ml)
+ (deps shaders/fragment_light_with_shadow.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target fragment_shadow.ml)
+ (deps shaders/fragment_shadow.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target sphere.ml)
+ (deps shaders/sphere.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target sphere_shadow.ml)
+ (deps shaders/sphere_shadow.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target vertex_implicit_shadow.ml)
+ (deps shaders/vertex_implicit_shadow.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target vertex_light_with_shadow.ml)
+ (deps shaders/vertex_light_with_shadow.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target vertex_shadow.ml)
+ (deps shaders/vertex_shadow.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
 (executable
- (name spheres)
- (public_name spheres)
- (flags (:standard -w -6-27-50-33))
- (ocamlopt_flags (:standard -O3))
- (optional) ; only compiled if ancient if domain is present.
- (libraries gles3)
- (package gles3)
- (preprocess (per_module
-     ((action (run glsl_to_ml %{input-file}))
-     vertex_shadow vertex_light_with_shadow
-   vertex_implicit_shadow
-   fragment_shadow fragment_light_with_shadow
-   fragment_implicit_shadow fragment_light_implicit_with_shadow
-   sphere_shadow sphere)))
- )
+ (name spheres_x11)
+ (public_name spheres_x11)
+ (modules spheres_x11 spheres fragment_implicit_shadow  fragment_light_implicit_with_shadow  fragment_light_with_shadow  fragment_shadow  sphere  sphere_shadow  vertex_implicit_shadow  vertex_light_with_shadow  vertex_shadow  )
+ (flags (:standard -w -6))
+ (libraries gles3 gles3-x11)
+ (package gles3))
+
+(executable
+ (name spheres_wayland)
+ (public_name spheres_wayland)
+ (modules spheres_wayland spheres fragment_implicit_shadow  fragment_light_implicit_with_shadow  fragment_light_with_shadow  fragment_shadow  sphere  sphere_shadow  vertex_implicit_shadow  vertex_light_with_shadow  vertex_shadow  )
+ (flags (:standard -w -6))
+ (libraries gles3 gles3-wayland)
+ (package gles3))

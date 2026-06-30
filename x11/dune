@@ -11,7 +11,7 @@
 
 (library
  (name gles3_x11)
- (public_name gles3.x11)
+ (public_name gles3-x11)
  (synopsis "OpenGL ES 3 bindings, X11 platform")
  (modules :standard)
  (flags (:standard -w -6-27-32 -thread))

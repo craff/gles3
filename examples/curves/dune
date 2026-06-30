@@ -1,9 +1,37 @@
+(rule
+ (target curves_x11.ml)
+ (action (write-file %{target} "include Curves")))
+
+(rule
+ (target curves_wayland.ml)
+ (action (write-file %{target} "include Curves")))
+
+(rule
+ (target fragment_light.ml)
+ (deps shaders/fragment_light.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target vertex_light.ml)
+ (deps shaders/vertex_light.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
 (executable
- (name curves)
- (public_name curves)
+ (name curves_x11)
+ (public_name curves_x11)
+ (modules curves_x11 curves fragment_light  vertex_light  )
  (flags (:standard -w -6))
- (libraries gles3)
- (package gles3)
- (preprocess (per_module
-   ((action (run glsl_to_ml %{input-file}))
-   vertex_light fragment_light))))
+ (libraries gles3 gles3-x11)
+ (package gles3))
+
+(executable
+ (name curves_wayland)
+ (public_name curves_wayland)
+ (modules curves_wayland curves fragment_light  vertex_light  )
+ (flags (:standard -w -6))
+ (libraries gles3 gles3-wayland)
+ (package gles3))

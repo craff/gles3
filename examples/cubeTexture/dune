@@ -1,6 +1,23 @@
+(rule
+ (target cubeTexture_x11.ml)
+ (action (write-file %{target} "include CubeTexture")))
+
+(rule
+ (target cubeTexture_wayland.ml)
+ (action (write-file %{target} "include CubeTexture")))
+
 (executable
- (name cubeTexture)
- (public_name cubeTexture)
- (flags (:standard -w -6-27-50))
- (package gles3)
- (libraries gles3))
+ (name cubeTexture_x11)
+ (public_name cubeTexture_x11)
+ (modules cubeTexture_x11 cubeTexture )
+ (flags (:standard -w -6))
+ (libraries gles3 gles3-x11)
+ (package gles3))
+
+(executable
+ (name cubeTexture_wayland)
+ (public_name cubeTexture_wayland)
+ (modules cubeTexture_wayland cubeTexture )
+ (flags (:standard -w -6))
+ (libraries gles3 gles3-wayland)
+ (package gles3))

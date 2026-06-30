@@ -1,9 +1,37 @@
+(rule
+ (target maze_x11.ml)
+ (action (write-file %{target} "include Maze")))
+
+(rule
+ (target maze_wayland.ml)
+ (action (write-file %{target} "include Maze")))
+
+(rule
+ (target fragment_light.ml)
+ (deps shaders/fragment_light.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target vertex_light.ml)
+ (deps shaders/vertex_light.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
 (executable
- (name maze)
- (public_name maze)
- (flags (:standard -w -6-27))
- (libraries gles3)
- (package gles3)
- (preprocess (per_module
-   ((action (run glsl_to_ml %{input-file}))
-   vertex_light fragment_light))))
+ (name maze_x11)
+ (public_name maze_x11)
+ (modules maze_x11 maze fragment_light  vertex_light  )
+ (flags (:standard -w -6))
+ (libraries gles3 gles3-x11)
+ (package gles3))
+
+(executable
+ (name maze_wayland)
+ (public_name maze_wayland)
+ (modules maze_wayland maze fragment_light  vertex_light  )
+ (flags (:standard -w -6))
+ (libraries gles3 gles3-wayland)
+ (package gles3))

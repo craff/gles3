@@ -64,7 +64,7 @@
 
 (library
  (name gles3_stubs)
- (public_name gles3.stubs)
+ (public_name gles3-stubs)
  (synopsis "OpenGL ES 3 bindings, common C bindings")
  (modules :standard)
  (wrapped false)
