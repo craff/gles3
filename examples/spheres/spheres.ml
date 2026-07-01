@@ -215,6 +215,7 @@ let normals = to_float_array_buffer gl_static_draw
     0.;0.;1.;
     0.;0.;1.;
     0.;0.;1.|]
+
 (** we set the normals vertices in the shader *)
 let prg = buffer_cst_attr prg "in_normal" normals
 
@@ -237,11 +238,13 @@ let image = {
 							       255;255;128;128;
 							       255;255;128;128|]
 }
+
 (** tranformed to a texture *)
 let texture = image_to_texture2d image [texture_min_filter gl_nearest;
 					texture_mag_filter gl_nearest;
 					texture_wrap_s gl_repeat;
 					texture_wrap_t gl_repeat]
+
 (** and associated to the corresponding variable *)
 let prg = texture_2d_cst_uniform prg "texture1" texture
 
@@ -290,12 +293,14 @@ let iprg : (float array -> float array ->  float array -> unit) program = float_
 
 (** notice the change of type.   *)
 let prg : (float array -> float array -> unit) program = float_mat4_uniform prg "Projection"
+
 let iprg : (float array -> float array -> float array -> float array -> unit) program = float_mat4_uniform iprg "Projection"
 (** Beware: the first argument in the last to be set, hence here
    the projection matrix comes before the modelView *)
 
 let ishade : (float array -> unit) program = float_mat4_uniform ishade "InvModelView"
 let ishade : (float array -> float array -> unit) program = float_mat4_uniform ishade "ModelView"
+
 (** notice the change of type.   *)
 let ishade : (float array -> float array -> unit) program = float_mat4_cst_uniform ishade "Projection" shadow_projection
 
@@ -355,7 +360,7 @@ let shadow_sphere = function
      draw_buffer_elements ishade gl_triangles ielements m im
 
 let dessine_sol () =
-  let m = mul Vector3.(translate (-0.5 *. size) (-0.5 *. size) 0.) (scale (2.0 *. size)) in
+  let m = mul (translate (-0.5 *. size) (-0.5 *. size) 0.) (scale (2.0 *. size)) in
   draw_buffer_elements prg gl_triangles elements (projection ()) m
 
 let dessine_shadow = ref false
@@ -436,7 +441,7 @@ let bounce s1 s2 =
 
 let collisions : int -> grille ->
                  (sphere -> sphere -> unit) -> sphere array -> unit
-  = fun process grille do_collision l ->
+  = fun process grille do_collision spheres ->
     Array.iter (fun s ->
       if s.process = process && s.active then begin
 	let open Vector3 in
@@ -489,6 +494,7 @@ let one_step process t dt =
 
 (** two references to compute the frame rates *)
 let lasttime = Array.init (nb_cores+1) (fun _ -> Unix.gettimeofday ())
+
 (** two references to compute the frame rates *)
 let lasttimeframe = Array.init (nb_cores+1) (fun _ -> Unix.gettimeofday ())
 let frames = Array.make (nb_cores+1) 0

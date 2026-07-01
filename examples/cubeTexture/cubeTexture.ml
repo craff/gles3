@@ -227,11 +227,13 @@ let image = {
 			     255;255;128;128;
 			     255;255;128;128|]
 }
+
 (** tranformed to a texture *)
 let texture = image_to_texture2d image [texture_min_filter gl_nearest;
 					texture_mag_filter gl_nearest;
 					texture_wrap_s gl_repeat;
 					texture_wrap_t gl_repeat]
+
 (** and associated to the corresponding variable *)
 let prg = texture_2d_cst_uniform prg "texture1" texture
 
@@ -261,7 +263,7 @@ let projection () =
 
 (** these varying we tranform the shader program into a function *)
 let prg : (float array -> unit) program = float_mat4_uniform prg "ModelView"
-(** notice the change of type.   *)
+
 let prg : (float array -> float array -> unit) program = float_mat4_uniform prg "Projection"
 (** Beware: the first argument in the last to be set, hence here
    the projection matrix comes before the modelView *)

@@ -55,7 +55,7 @@ open Textures
       coordinates, you need to add a 1.0 in the end.
 
       Usually, the vertex shader do some matrix multiplication to compute the
-      postition, and other annexe computation. For instance, if what you draw
+      position, and other annexe computation. For instance, if what you draw
       is a piece of plane, you can compute the normal in the vertex
       shader. But if you draw a curved surface, it is much much better to
       compute the normal in the fragment shader for each pixel.
@@ -154,7 +154,7 @@ type 'a program
     many objects of the same color. You can pass the color as a "constant"
     and if you draw all your objects consecutively, there will only be one
     function call for all the sphere to pass the color. These function calls
-    to GLES/OpenGl are the bottle neck of 3D drwing as they correspond to
+    to GLES/OpenGl are the bottle neck of 3D drawing as they correspond to
     exchange of data between the CPU memory and the GPU memory.
 
     The position of the object (a matrix ?) can be passed as function parameter,
@@ -190,7 +190,7 @@ val compile : ?version:string -> ?precision:string ->string * shader list
     testing that.
 
     In fact, [draw prg shape ~first last] is returning a function that will
-    do the drawing, except when prd is of type "unit program" (all variables
+    do the drawing, except when prg is of type "unit program" (all variables
     have been set as constant).
 
     Again beware of size: if you have an attribute which is a vec4, each
@@ -242,7 +242,7 @@ val draw_buffer_elements : 'a program -> shape -> 'b element_buffer -> 'a
     The optional parameter ~norm tells to normalize vector before using them.
 
     The optional parameter ~stride concerns alignement. For instance if
-    you use a byte_bigarray for a vec3, but you want to align you vec3 and
+    you use a byte_bigarray for a vec3, but you want to align you vec3 on
     32 bytes, then stride = 4. stride = 0 (the default) means to use the
     natural size.
  *)
@@ -260,7 +260,7 @@ val float_attr : 'a program -> ?norm:bool -> ?stride:int -> string
                  -> (float_bigarray -> 'a) program
 
 (** Functions to give a fixed value to an attribute variable. Again, this
-    means you save function calls if you use you program more that once
+    means you save function calls if you use your program more that once
     consecutively. *)
 val byte_cst_attr : 'a program -> ?norm:bool -> ?stride:int -> string
                     -> byte_bigarray -> 'a program

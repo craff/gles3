@@ -11,9 +11,10 @@ open Textures
 (** keep the current width,height and ratio in a reference *)
 let gwidth = ref 800 and gheight = ref 600
 let ratio = ref (float !gwidth /. float !gheight)
+
 (** initialization of the main window, and its viewport *)
-let _ = initialize !gwidth !gheight "test_gles2";
-  viewport ~x:0 ~y:0 ~w:!gwidth ~h:!gheight
+let ctxt = initialize !gwidth !gheight "test_gles2"
+let _ = viewport ~x:0 ~y:0 ~w:!gwidth ~h:!gheight
 
 (** display all available informations about the context *)
 let _ =
@@ -208,11 +209,13 @@ let image = {
 			     255;255;128;128;
 			     255;255;128;128|]
 }
+
 (** tranformed to a texture *)
 let texture = image_to_texture2d image [texture_min_filter gl_nearest;
 					texture_mag_filter gl_nearest;
 					texture_wrap_s gl_repeat;
 					texture_wrap_t gl_repeat]
+
 (** and associated to the corresponding variable *)
 let prg = texture_2d_cst_uniform prg "texture1" texture
 
@@ -273,16 +276,19 @@ let iprg : (float array -> float array -> float array -> unit) program = float_m
 
 (** notice the change of type.   *)
 let prg : (float array -> float array -> unit) program = float_mat4_uniform prg "Projection"
+
 let iprg : (float array -> float array -> float array -> float array -> unit) program = float_mat4_uniform iprg "Projection"
 (** Beware: the first argument in the last to be set, hence here
    the projection matrix comes before the modelView *)
 
 let shade : (float array -> unit) program = float_mat4_uniform shade "ModelView"
+
 (** notice the change of type.   *)
 let shade : (float array -> unit) program = float_mat4_cst_uniform shade "Projection" shadow_projection
 
 let ishade : (float array -> unit) program = float_mat4_uniform ishade "InvModelView"
 let ishade : (float array -> float array -> unit) program = float_mat4_uniform ishade "ModelView"
+
 (** notice the change of type.   *)
 let ishade : (float array -> float array -> unit) program = float_mat4_cst_uniform ishade "Projection" shadow_projection
 
