@@ -10,7 +10,7 @@ bug-reports: "https://github.com/craff/gles3/issues"
 depends: [
   "dune" {>= "3.0"}
   "gles3" {= version}
-  "conf-libwayland-client"
+  "conf-libwayland"
   "odoc" {with-doc}
 ]
 build: [

@@ -1,4 +1,4 @@
-(lang dune 3.23)
+(lang dune 3.00)
 (name gles3)
 (generate_opam_files true)
 
@@ -57,4 +57,4 @@
  (name gles3-wayland)
  (synopsis "OpenGL ES3 Wayland backend")
  (allow_empty)
- (depends (gles3 (= :version)) conf-libwayland-client))
+ (depends (gles3 (= :version)) conf-libwayland))

@@ -1,0 +1,10 @@
+depexts: [
+  ["uthash-dev"] {os-family = "debian"}
+  ["uthash-devel"] {os-family = "fedora"}
+  ["uthash-devel"] {os-family = "rhel"}
+  ["uthash-devel"] {os-family = "centos"}
+  ["uthash"] {os-family = "arch"}
+  ["uthash-dev"] {os-family = "alpine"}
+  ["uthash-devel"] {os-family = "suse"}
+  ["uthash"] {os-family = "nixos"}
+]
