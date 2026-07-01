@@ -4,9 +4,11 @@ let window_width  : int ref   = ref 400 (* Window width.  *)
 let window_height : int ref   = ref 400 (* Window height. *)
 let window_ratio  : float ref = ref 1.0 (* Window ratio.  *)
 
-let _ =
+let ctxt =
   (* Initialise the main window. *)
-  Egl.initialize !window_width !window_height "test_gles";
+  Egl.initialize !window_width !window_height "test_gles"
+
+let _ =
   (* Initialise its viewport. *)
   Gles3.viewport ~x:0 ~y:0 ~w:!window_width ~h:!window_height;
   (* Setup the reshape callback. *)
@@ -15,7 +17,7 @@ let _ =
     window_ratio := (float width) /. (float height);
     Gles3.viewport ~x:0 ~y:0 ~w:width ~h:height
   in
-  Egl.set_reshape_callback reshape
+  Egl.set_reshape_callback ctxt reshape
 
 (* The vertices of a cube (3 coordinates per point). *)
 let vertices : Gles3.float_bigarray = Buffers.to_float_bigarray
@@ -90,7 +92,13 @@ let draw : unit -> unit = fun () ->
   Gles3.clear [gl_color_buffer; gl_depth_buffer];
   draw_cube !window_ratio (Unix.gettimeofday ());
   Gles3.show_errors "cube";
-  Egl.swap_buffers ()
+  Egl.swap_buffers ctxt
+
+(** call back for key, just for testing and quit*)
+let _ = Egl.set_key_press_callback ctxt (fun ~key ~state ~x ~y ->
+    if key = Key.Escape then Egl.exit_loop ctxt;
+    Printf.printf "key: %s state: %d x:%d y:%d\n%!"
+      (Key.name key) (state :> int) x y)
 
 let _ =
   (* Some initialisation of the OpenGL state. *)
@@ -99,8 +107,8 @@ let _ =
   Gles3.cull_face gl_back;
   Gles3.clear_color Gles3.({r=0.1; g=0.1; b=0.1; a=1.0});
   (* When there is nothing to do, we draw. *)
-  Egl.set_idle_callback draw;
+  Egl.set_idle_callback ctxt draw;
   (* Draw once to get exceptions (they are all captured by [main_loop]. *)
   draw ();
   (* Run the main loop. *)
-  Egl.main_loop ()
+  Egl.main_loop ctxt

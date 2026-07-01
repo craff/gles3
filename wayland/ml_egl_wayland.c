@@ -32,28 +32,37 @@
 /* Platform globals          */
 /* ========================= */
 
-static struct wl_registry   *wl_registry = NULL;
-static struct wl_compositor *wl_compositor = NULL;
-static struct wl_surface    *wl_surface = NULL;
+typedef struct platform_context_struct {
+  struct wl_registry   *wl_registry;
+  struct wl_compositor *wl_compositor;
+  struct wl_surface    *wl_surface;
 
-static struct wl_seat      *wl_seat = NULL;
-static struct wl_keyboard  *wl_keyboard = NULL;
-static struct wl_pointer   *wl_pointer = NULL;
+  struct wl_seat      *wl_seat;
+  struct wl_keyboard  *wl_keyboard;
+  struct wl_pointer   *wl_pointer;
 
-static struct xdg_wm_base *xdg_wm_base = NULL;
-static struct xdg_surface *xdg_surface = NULL;
-static struct xdg_toplevel *xdg_toplevel = NULL;
+  struct xdg_wm_base *xdg_wm_base;
+  struct xdg_surface *xdg_surface;
+  struct xdg_toplevel *xdg_toplevel;
 
+  struct xkb_context *xkb_ctx;
+  struct xkb_keymap   *xkb_keymap;
+  struct xkb_state    *xkb_state;
+  int   mouse_x;
+  int   mouse_y;
+  int   window_visible;
+} *platform_context;
+
+platform_context malloc_platform_context(egl_context ctxt) {
+  platform_context pctxt = (platform_context) malloc(sizeof(struct platform_context_struct));
+  if (!pctxt) init_fail(ctxt, "can not allocate platform_context");
+  bzero(pctxt, sizeof(struct platform_context_struct));
+  return pctxt;
+}
 /* ========================= */
 /* XKB                      */
 /* ========================= */
 
-static struct xkb_context *xkb_ctx = NULL;
-static struct xkb_keymap   *xkb_keymap = NULL;
-static struct xkb_state    *xkb_state = NULL;
-static int   mouse_x = 0;
-static int   mouse_y = 0;
-static int   window_visible = 0;
 
 /* ========================= */
 /* Registry                 */
@@ -65,18 +74,19 @@ static void registry_global(void *data,
                             const char *interface,
                             uint32_t version)
 {
-  (void)data;
+  egl_context ctxt = (egl_context) data;
+  platform_context pctxt = ctxt->platform;
 
   if (strcmp(interface, "wl_compositor") == 0)
-    wl_compositor = wl_registry_bind(registry, name,
+    pctxt->wl_compositor = wl_registry_bind(registry, name,
                                      &wl_compositor_interface, 4);
 
   if (strcmp(interface, "wl_seat") == 0)
-    wl_seat = wl_registry_bind(registry, name,
+    pctxt->wl_seat = wl_registry_bind(registry, name,
                                &wl_seat_interface, 7);
 
   if (strcmp(interface, "xdg_wm_base") == 0)
-      xdg_wm_base = wl_registry_bind(registry, name,
+    pctxt->xdg_wm_base = wl_registry_bind(registry, name,
 				     &xdg_wm_base_interface, 1);
 }
 
@@ -84,7 +94,6 @@ static void registry_remove(void *data,
                             struct wl_registry *registry,
                             uint32_t name)
 {
-  (void)data; (void)registry; (void)name;
 }
 
 static const struct wl_registry_listener registry_listener =
@@ -331,20 +340,21 @@ static void keyboard_keymap(void *data,
                              int fd,
                              uint32_t size)
 {
-  (void)data; (void)kbd;
+  egl_context ctxt = (egl_context) data;
+  platform_context pctxt = ctxt->platform;
 
   char *map = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
 
-  xkb_keymap = xkb_keymap_new_from_string(
-      xkb_ctx,
-      map,
-      XKB_KEYMAP_FORMAT_TEXT_V1,
-      XKB_KEYMAP_COMPILE_NO_FLAGS);
+  pctxt->xkb_keymap =
+    xkb_keymap_new_from_string(pctxt->xkb_ctx,
+			       map,
+			       XKB_KEYMAP_FORMAT_TEXT_V1,
+			       XKB_KEYMAP_COMPILE_NO_FLAGS);
 
   munmap(map, size);
   close(fd);
 
-  xkb_state = xkb_state_new(xkb_keymap);
+  pctxt->xkb_state = xkb_state_new(pctxt->xkb_keymap);
 }
 static void keyboard_enter(void *data,
                            struct wl_keyboard *kbd,
@@ -352,21 +362,12 @@ static void keyboard_enter(void *data,
                            struct wl_surface *surface,
                            struct wl_array *keys)
 {
-  (void)data;
-  (void)kbd;
-  (void)serial;
-  (void)surface;
-  (void)keys;
 }
 static void keyboard_leave(void *data,
                            struct wl_keyboard *kbd,
                            uint32_t serial,
                            struct wl_surface *surface)
 {
-  (void)data;
-  (void)kbd;
-  (void)serial;
-  (void)surface;
 }
 static void keyboard_key(void *data,
                          struct wl_keyboard *kbd,
@@ -375,28 +376,29 @@ static void keyboard_key(void *data,
                          uint32_t key,
                          uint32_t state)
 {
-  (void)data; (void)kbd; (void)serial; (void)time;
+  egl_context ctxt = (egl_context) data;
+  platform_context pctxt = ctxt->platform;
 
   uint32_t code = key + 8;
 
-  xkb_keysym_t sym = xkb_state_key_get_one_sym(xkb_state, code);
+  xkb_keysym_t sym = xkb_state_key_get_one_sym(pctxt->xkb_state, code);
 
   egl_key k = xkb_to_egl(sym);
-  egl_mod m = xkb_mod_to_egl(xkb_state);
+  egl_mod m = xkb_mod_to_egl(pctxt->xkb_state);
   char name[64];
   xkb_keysym_get_name(sym, name, sizeof(name));
   value vk = Val_int(k);
   value vm = Val_int(m);
-  value vx = Val_int(mouse_x);
-  value vy = Val_int(mouse_y);
+  value vx = Val_int(pctxt->mouse_x);
+  value vy = Val_int(pctxt->mouse_y);
 
   if (state == WL_KEYBOARD_KEY_STATE_PRESSED &&
-      key_press_callback != default_callback)
+      ctxt->key_press_callback != ctxt->default_callback)
     protect_callback4("key press",
-      &key_press_callback, &vk, &vm, &vx, &vy);
-  else if (key_release_callback != default_callback)
+		      &(ctxt->key_press_callback), &vk, &vm, &vx, &vy);
+  else if (ctxt->key_release_callback != ctxt->default_callback)
     protect_callback4("key release",
-      &key_release_callback, &vk, &vm, &vx, &vy);
+		      &(ctxt->key_release_callback), &vk, &vm, &vx, &vy);
 }
 static void keyboard_modifiers(void *data,
                                struct wl_keyboard *kbd,
@@ -406,10 +408,13 @@ static void keyboard_modifiers(void *data,
                                uint32_t mods_locked,
                                uint32_t group)
 {
-  if (!xkb_state)
+  egl_context ctxt = (egl_context) data;
+  platform_context pctxt = ctxt->platform;
+
+  if (!pctxt->xkb_state)
     return;
 
-  xkb_state_update_mask(xkb_state,
+  xkb_state_update_mask(pctxt->xkb_state,
                         mods_depressed,
                         mods_latched,
                         mods_locked,
@@ -422,10 +427,6 @@ static void keyboard_repeat_info(void *data,
                                  int32_t rate,
                                  int32_t delay)
 {
-  (void)data;
-  (void)keyboard;
-  (void)rate;
-  (void)delay;
 }
 static const struct wl_keyboard_listener keyboard_listener =
 {
@@ -447,12 +448,6 @@ static void pointer_enter(void *data,
                           wl_fixed_t sx,
                           wl_fixed_t sy)
 {
-    (void)data;
-    (void)pointer;
-    (void)serial;
-    (void)surface;
-    (void)sx;
-    (void)sy;
 }
 
 static void pointer_leave(void *data,
@@ -468,24 +463,29 @@ static void pointer_motion(void *data,
                            wl_fixed_t sx,
                            wl_fixed_t sy)
 {
-  mouse_x = wl_fixed_to_int(sx);
-  mouse_y = wl_fixed_to_int(sy);
+  egl_context ctxt = (egl_context) data;
+  platform_context pctxt = ctxt->platform;
+  pctxt->mouse_x = wl_fixed_to_int(sx);
+  pctxt->mouse_y = wl_fixed_to_int(sy);
 
-  if (motion_notify_callback != default_callback) {
-    value vs = Val_int(xkb_mod_to_egl(xkb_state));
-    value vx = Val_int(mouse_x);
-    value vy = Val_int(mouse_y);
-    protect_callback3("motion notify callback", &motion_notify_callback,
+  if (ctxt->motion_notify_callback != ctxt->default_callback) {
+    value vs = Val_int(xkb_mod_to_egl(pctxt->xkb_state));
+    value vx = Val_int(pctxt->mouse_x);
+    value vy = Val_int(pctxt->mouse_y);
+    protect_callback3("motion notify callback",
+		      &(ctxt->motion_notify_callback),
 		      &vs, &vx, &vy);
   }
 }
 static void pointer_button(void *data,
-                            struct wl_pointer *p,
-                            uint32_t serial,
-                            uint32_t time,
-                            uint32_t button,
-                            uint32_t state)
+			   struct wl_pointer *p,
+			   uint32_t serial,
+			   uint32_t time,
+			   uint32_t button,
+			   uint32_t state)
 {
+  egl_context ctxt = (egl_context) data;
+  platform_context pctxt = ctxt->platform;
   egl_button b = EGL_BUTTON_Unknown;
 
   if (button == BTN_LEFT) b = EGL_BUTTON_Left;
@@ -494,12 +494,18 @@ static void pointer_button(void *data,
 
   value vb = Val_int(b);
   value vs = Val_int(state);
-  value vx = Val_int(mouse_x);
-  value vy = Val_int(mouse_y);
+  value vx = Val_int(pctxt->mouse_x);
+  value vy = Val_int(pctxt->mouse_y);
 
-  protect_callback4("mouse",
-    &button_press_callback,
-    &vb, &vs, &vx, &vy);
+  if (state == WL_POINTER_BUTTON_STATE_PRESSED
+      && ctxt->button_press_callback != ctxt->default_callback)
+    protect_callback4("mouse",
+		      &(ctxt->button_press_callback),
+		      &vb, &vs, &vx, &vy);
+  else if (ctxt->button_release_callback != ctxt->default_callback)
+    protect_callback4("mouse",
+		      &(ctxt->button_release_callback),
+		      &vb, &vs, &vx, &vy);
 }
 
 static void pointer_axis(void *data,
@@ -508,12 +514,10 @@ static void pointer_axis(void *data,
                          uint32_t axis,
                          wl_fixed_t value)
 {
-  (void)data; (void)p; (void)time; (void)axis; (void)value;
 }
 static void pointer_frame(void *data,
                           struct wl_pointer *p)
 {
-  (void)data; (void)p;
 }
 static const struct wl_pointer_listener pointer_listener =
 {
@@ -538,29 +542,27 @@ static void seat_caps(void *data,
                       struct wl_seat *seat,
                       uint32_t caps)
 {
-  (void)data;
+  egl_context ctxt = (egl_context) data;
+  platform_context pctxt = ctxt->platform;
 
   if (caps & WL_SEAT_CAPABILITY_KEYBOARD)
   {
-    wl_keyboard = wl_seat_get_keyboard(seat);
-    wl_keyboard_add_listener(wl_keyboard,
-                             &keyboard_listener, NULL);
+    pctxt->wl_keyboard = wl_seat_get_keyboard(seat);
+    wl_keyboard_add_listener(pctxt->wl_keyboard,
+                             &keyboard_listener, data);
   }
 
   if (caps & WL_SEAT_CAPABILITY_POINTER)
   {
-    wl_pointer = wl_seat_get_pointer(seat);
-    wl_pointer_add_listener(wl_pointer,
-                            &pointer_listener, NULL);
+    pctxt->wl_pointer = wl_seat_get_pointer(seat);
+    wl_pointer_add_listener(pctxt->wl_pointer,
+                            &pointer_listener, data);
   }
 }
 static void seat_name(void *data,
                       struct wl_seat *seat,
                       const char *name)
 {
-    (void)data;
-    (void)seat;
-    (void)name;
 }
 static const struct wl_seat_listener seat_listener =
 {
@@ -596,55 +598,54 @@ static void xdg_toplevel_configure(void *data,
                                    int32_t new_height,
                                    struct wl_array *states)
 {
+  egl_context ctxt = (egl_context) data;
+  platform_context pctxt = ctxt->platform;
   /* width et height sont les nouvelles dimensions proposées
      par le compositeur.
      0 signifie "inchangé" dans certains cas. */
   uint32_t *s;
   int active = 0;
-  printf("toplevel_configure");
   wl_array_for_each(s, states)
     {
       if (*s == XDG_TOPLEVEL_STATE_ACTIVATED)
 	active = 1;
     }
 
-  window_visible = active;
+  pctxt->window_visible = active;
   if (new_width > 0 && new_height > 0) {
 
-    wl_egl_window_resize(platform_window, width, height, 0, 0);
+    if (ctxt->width != new_width || ctxt->height != new_height) {
 
-    if (width != new_width || height != new_height) {
-
-      width  = new_width;
-      height = new_height;
-      wl_egl_window_resize(platform_window,
-			   width,
-			   height,
+      ctxt->width  = new_width;
+      ctxt->height = new_height;
+      wl_egl_window_resize(ctxt->platform_window,
+			   ctxt->width,
+			   ctxt->height,
 			   0, 0);
 
-      value w = Val_int(width);
-      value h = Val_int(height);
+      if (ctxt->reshape_callback != ctxt->default_callback) {
+	value w = Val_int(ctxt->width);
+	value h = Val_int(ctxt->height);
 
-      protect_callback2("reshape callback",
-			&reshape_callback,
-			&w, &h);
+	protect_callback2("reshape callback",
+			  &(ctxt->reshape_callback),
+			  &w, &h);
+      }
     }
   }
 }
 static void xdg_toplevel_close(void *data,
                                struct xdg_toplevel *toplevel)
 {
-    (void)data;
-    (void)toplevel;
-
-    if (delete_callback == default_callback)
-        main_loop_continue = 0;
-    else {
-        value u = Val_unit;
-        protect_callback("delete callback",
-                         &delete_callback,
-                         &u);
-    }
+  egl_context ctxt = (egl_context) data;
+  if (ctxt->delete_callback == ctxt->default_callback)
+    ctxt->main_loop_continue = 0;
+  else {
+    value u = Val_unit;
+    protect_callback("delete callback",
+		     &(ctxt->delete_callback),
+		     &u);
+  }
 }
 static const struct xdg_toplevel_listener xdg_toplevel_listener =
 {
@@ -656,51 +657,53 @@ static const struct xdg_toplevel_listener xdg_toplevel_listener =
 /* Init platform           */
 /* ========================= */
 
-void init_platform_ressources(int w, int h, const char* name)
+void init_platform_ressources(egl_context ctxt, const char* name)
 {
-  (void)name;
+  ctxt->platform_display = wl_display_connect(NULL);
+  if (!ctxt->platform_display || !ctxt->platform)
+    init_fail(ctxt, "wayland connect failed");
 
-  platform_display = wl_display_connect(NULL);
-  if (!platform_display)
-    init_fail("wayland connect failed");
+  platform_context pctxt = ctxt->platform;
 
-  wl_registry = wl_display_get_registry(platform_display);
-  wl_registry_add_listener(wl_registry,
-                           &registry_listener, NULL);
+  pctxt->wl_registry = wl_display_get_registry(ctxt->platform_display);
+  wl_registry_add_listener(pctxt->wl_registry,
+                           &registry_listener, (void *) ctxt);
 
-  wl_display_roundtrip(platform_display);
+  wl_display_roundtrip(ctxt->platform_display);
 
-  if (!wl_compositor || !wl_seat)
-    init_fail("missing compositor/seat");
+  if (!pctxt->wl_compositor || !pctxt->wl_seat || !pctxt->xdg_wm_base)
+    init_fail(ctxt, "missing compositor/seat/xdg_wm_base");
 
-  wl_surface = wl_compositor_create_surface(wl_compositor);
+  pctxt->wl_surface = wl_compositor_create_surface(pctxt->wl_compositor);
 
-  platform_window = wl_egl_window_create(wl_surface, w, h);
-  if (!platform_window)
-    init_fail("egl window failed");
+  ctxt->platform_window = wl_egl_window_create(pctxt->wl_surface,
+					       ctxt->width, ctxt->height);
+  if (!ctxt->platform_window)
+    init_fail(ctxt,"egl window failed");
 
-  xkb_ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
-  if (!xkb_ctx)
-    init_fail("xkb failed");
+  pctxt->xkb_ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+  if (!pctxt->xkb_ctx)
+    init_fail(ctxt, "xkb failed");
 
-  wl_seat_add_listener(wl_seat, &seat_listener, NULL);
+  wl_seat_add_listener(pctxt->wl_seat, &seat_listener, ctxt);
 
-  xdg_wm_base_add_listener(xdg_wm_base, &wm_base_listener, NULL);
-  xdg_surface = xdg_wm_base_get_xdg_surface(xdg_wm_base, wl_surface);
-  xdg_surface_add_listener(xdg_surface,
+  xdg_wm_base_add_listener(pctxt->xdg_wm_base, &wm_base_listener, ctxt);
+  pctxt->xdg_surface = xdg_wm_base_get_xdg_surface(pctxt->xdg_wm_base,
+						   pctxt->wl_surface);
+  xdg_surface_add_listener(pctxt->xdg_surface,
 			   &xdg_surface_listener,
-			   NULL);
+			   ctxt);
 
-  xdg_toplevel = xdg_surface_get_toplevel(xdg_surface);
+  pctxt->xdg_toplevel = xdg_surface_get_toplevel(pctxt->xdg_surface);
 
-  xdg_toplevel_set_title(xdg_toplevel, name);
-  xdg_toplevel_set_app_id(xdg_toplevel, name);
-  xdg_toplevel_add_listener(xdg_toplevel,
+  xdg_toplevel_set_title(pctxt->xdg_toplevel, name);
+  xdg_toplevel_set_app_id(pctxt->xdg_toplevel, name);
+  xdg_toplevel_add_listener(pctxt->xdg_toplevel,
 			    &xdg_toplevel_listener,
-			    NULL);
-  wl_surface_commit(wl_surface);
-  wl_display_flush(platform_display);
-  wl_display_roundtrip(platform_display);
+			    ctxt);
+  wl_surface_commit(pctxt->wl_surface);
+  wl_display_flush(ctxt->platform_display);
+  wl_display_roundtrip(ctxt->platform_display);
 
 }
 
@@ -708,15 +711,28 @@ void init_platform_ressources(int w, int h, const char* name)
 /* cleanup                 */
 /* ========================= */
 
-void free_platform_ressources()
+void free_platform_ressources(egl_context ctxt)
 {
-  if (platform_window) wl_egl_window_destroy(platform_window);
-  if (wl_surface) wl_surface_destroy(wl_surface);
-  if (platform_display) wl_display_disconnect(platform_display);
+    platform_context pctxt = ctxt->platform;
 
-  if (xkb_state) xkb_state_unref(xkb_state);
-  if (xkb_keymap) xkb_keymap_unref(xkb_keymap);
-  if (xkb_ctx) xkb_context_unref(xkb_ctx);
+    if (!pctxt) return;
+    if (pctxt->xdg_toplevel) xdg_toplevel_destroy(pctxt->xdg_toplevel);
+    if (pctxt->xdg_surface) xdg_surface_destroy(pctxt->xdg_surface);
+    if (pctxt->xkb_ctx) xkb_context_unref(pctxt->xkb_ctx);
+    if (ctxt->platform_window) wl_egl_window_destroy(ctxt->platform_window);
+    if (pctxt->wl_surface) wl_surface_destroy(pctxt->wl_surface);
+    if (pctxt->wl_pointer) wl_pointer_destroy(pctxt->wl_pointer);
+    if (pctxt->xkb_state) xkb_state_unref(pctxt->xkb_state);
+    if (pctxt->xkb_keymap) xkb_keymap_unref(pctxt->xkb_keymap);
+    if (pctxt->wl_keyboard) wl_keyboard_destroy(pctxt->wl_keyboard);
+    if (pctxt->xdg_wm_base) xdg_wm_base_destroy(pctxt->xdg_wm_base);
+    if (pctxt->wl_compositor) wl_compositor_destroy(pctxt->wl_compositor);
+    if (pctxt->wl_seat) wl_seat_destroy(pctxt->wl_seat);
+    if (pctxt->wl_registry) wl_registry_destroy(pctxt->wl_registry);
+    if (ctxt->platform_display) wl_display_disconnect(ctxt->platform_display);
+
+    free(pctxt);
+    ctxt->platform = NULL;
 }
 
 /* ========================= */
@@ -727,47 +743,48 @@ static void frame_done(void *data,
                        struct wl_callback *frame_cb,
                        uint32_t time)
 {
+  egl_context ctxt = (egl_context) data;
+  platform_context pctxt = ctxt->platform;
   wl_callback_destroy(frame_cb);
-  frame_cb = wl_surface_frame(wl_surface);
+  frame_cb = wl_surface_frame(pctxt->wl_surface);
   wl_callback_add_listener(frame_cb,
 			   &frame_listener,
-			   NULL);
+			   data);
 
   value u = Val_unit;
-  protect_callback("idle",
-		   &idle_callback,
-		   &u);
+  if (ctxt->idle_callback != ctxt->default_callback) {
+    protect_callback("idle",
+		     &(ctxt->idle_callback),
+		     &u);
+  }
 }
 static const struct wl_callback_listener frame_listener = {
 	.done = frame_done,
 };
 
-void ml_egl_main_loop()
+CAMLprim value ml_egl_main_loop(egl_context ctxt)
 {
   CAMLparam0() ;
-  if(!initialized)
+  if(!ctxt->initialized)
     caml_failwith("Egl.main_loop: not initialized") ;
 
-  if(main_loop_reentrant)
+  if(ctxt->main_loop_reentrant)
     caml_failwith("Egl.main_loop: forbidden reentrant call") ;
 
   caml_release_runtime_system();
-  main_loop_continue = 1 ;
-  main_loop_reentrant = 1 ;
-  struct wl_callback *frame_cb = wl_surface_frame(wl_surface);
+  ctxt->main_loop_continue = 1 ;
+  ctxt->main_loop_reentrant = 1 ;
+  platform_context pctxt = ctxt->platform;
+  struct wl_callback *frame_cb = wl_surface_frame(pctxt->wl_surface);
   wl_callback_add_listener(frame_cb,
 			   &frame_listener,
-			   NULL);
-  value u = Val_unit;
-  if (idle_callback != default_callback) {
-    protect_callback("idle", &idle_callback, &u);
+			   ctxt);
+  wl_surface_commit(pctxt->wl_surface);
+  wl_display_flush(ctxt->platform_display);
+  while (ctxt->main_loop_continue) {
+    wl_display_dispatch(ctxt->platform_display);
   }
-  wl_surface_commit(wl_surface);
-  wl_display_flush(platform_display);
-  while (main_loop_continue) {
-    wl_display_dispatch(platform_display);
-  }
-  main_loop_reentrant = 0 ;
+  ctxt->main_loop_reentrant = 0 ;
   caml_acquire_runtime_system();
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }

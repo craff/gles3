@@ -11,9 +11,10 @@ open Textures
 (** keep the current width,height and ratio in a reference *)
 let gwidth = ref 800 and gheight = ref 600
 let ratio = ref (float !gwidth /. float !gheight)
+
 (** initialization of the main window, and its viewport *)
-let _ = initialize !gwidth !gheight "test_gles2";
-  viewport ~x:0 ~y:0 ~w:!gwidth ~h:!gheight
+let ctxt = initialize !gwidth !gheight "test_gles2"
+let _ = viewport ~x:0 ~y:0 ~w:!gwidth ~h:!gheight
 
 
 (** display all available informations about the context *)
@@ -293,7 +294,7 @@ let draw () =
   clear [ gl_color_buffer ; gl_depth_buffer];
   let t = Unix.gettimeofday () in
   dessine_cube t;
-  swap_buffers ();
+  swap_buffers ctxt;
   show_errors "after draw";
   incr frames;
   let delta = t -. !lasttime in
@@ -305,19 +306,21 @@ let draw () =
   )
 
 (** call back for key and mouse, just for testing *)
-let _ = set_key_press_callback (fun ~key ~state ~x ~y ->
-  if key = Key.Escape then exit_loop ();
-  Printf.printf "key: %s state: %d\n%!" (Key.name key) (state :> int))
+let _ = set_key_press_callback ctxt (fun ~key ~state ~x ~y ->
+            if key = Key.Escape then exit_loop ctxt;
+            Printf.printf "key: %s state: %d x:%d y:%d\n%!"
+              (Key.name key) (state :> int) x y)
 
-let _ = set_button_press_callback (fun ~button ~state ~x ~y ->
-  Printf.printf "button: %s state: %d\n%!" (Button.name button) (state :> int))
+let _ = set_button_press_callback ctxt (fun ~button ~state ~x ~y ->
+            Printf.printf "button: %s state: %d x:%d y:%d\n%!"
+              (Button.name button) (state :> int) x y)
 
 (** when there is nothing to do, we draw *)
-let _ = set_idle_callback draw
+let _ = set_idle_callback ctxt draw
 
 (** the reshape callback, changing the viewport and ratio
    when the window is resized *)
-let _ = set_reshape_callback (fun ~width ~height ->
+let _ = set_reshape_callback ctxt (fun ~width ~height ->
   gwidth := width; gheight := height;
   ratio := float width /. float height;
   viewport ~x:0 ~y:0 ~w:width ~h:height)
@@ -326,4 +329,4 @@ let _ = draw () (** draw once outsize the loop, because all exceptions are caugh
                    inside the main loop *)
 
 (** we now start the main loop ! *)
-let _ = main_loop ()
+let _ = main_loop ctxt

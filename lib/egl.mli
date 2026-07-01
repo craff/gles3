@@ -23,6 +23,8 @@
     It constists of functions to open a window, read mouse and keyboard, ...
     should be ported to other platforms ... *)
 
+type egl_context
+
 type config = {
     red_size : int ;
     green_size : int ;
@@ -38,17 +40,24 @@ type config = {
 (**  {b SETUP}                                                              *)
 (****************************************************************************)
 
-val initialize : ?config:config -> width:int -> height:int -> string -> unit
-external make_current : unit -> unit = "ml_egl_make_current"
-external terminate : unit -> unit = "ml_egl_terminate"
+val initialize : ?config:config -> width:int -> height:int -> string -> egl_context
 
-external swap_buffers : unit -> unit = "ml_egl_swap_buffers"
+(** make the context current for GLes drawing *)
+val make_current : egl_context -> unit
 
-external query_version : unit -> string = "ml_egl_query_version"
-external query_vendor : unit -> string = "ml_egl_query_vendor"
-external query_extensions : unit -> string = "ml_egl_query_extensions"
-external query_client_apis : unit -> string = "ml_egl_query_client_apis"
-external query_config : unit -> config = "ml_egl_query_config"
+(** necessary if you want to use the same context in another domain (thread) *)
+val detach : egl_context -> unit
+
+(** deallocate the context *)
+val terminate : egl_context-> unit
+
+val swap_buffers : egl_context -> unit
+
+val query_version : egl_context -> string
+val query_vendor : egl_context -> string
+val query_extensions : egl_context -> string
+val query_client_apis : egl_context -> string
+val query_config : egl_context -> config
 
 (****************************************************************************)
 (**  {b MAIN EVENT LOOP}                                                    *)
@@ -59,47 +68,38 @@ external query_config : unit -> config = "ml_egl_query_config"
    - The Window Manager requires the window deletion and there is
      no [delete_callback] to intercept it. *)
 
-external main_loop : unit -> unit = "ml_egl_main_loop"
+val main_loop : egl_context -> unit
 
 (* Can only be called from a callback: *)
-external exit_loop : unit -> unit = "ml_egl_exit_loop"
+val exit_loop : egl_context -> unit
 
 (****************************************************************************)
 (**  {b SETTING CALLBACKS}                                                  *)
 (****************************************************************************)
 
-external set_idle_callback :
-    (unit -> unit) -> unit
-	= "ml_egl_set_idle_callback"
+val set_idle_callback :
+    egl_context -> (unit -> unit) -> unit
 
-external unset_idle_callback :
-    unit -> unit
-	= "ml_egl_unset_idle_callback"
+val unset_idle_callback :
+    egl_context -> unit
 
-external set_reshape_callback :
-  (width:int -> height:int -> unit) -> unit
-  = "ml_egl_set_reshape_callback"
+val set_reshape_callback :
+  egl_context -> (width:int -> height:int -> unit) -> unit
 
-external set_delete_callback :
-  (unit -> unit) -> unit
-  = "ml_egl_set_delete_callback"
+val set_delete_callback :
+  egl_context -> (unit -> unit) -> unit
 
-external set_key_press_callback :
-  (key:Key.t -> state:Modifier.t -> x:int -> y:int -> unit) -> unit
-  = "ml_egl_set_key_press_callback"
+val set_key_press_callback :
+  egl_context -> (key:Key.t -> state:Modifier.t -> x:int -> y:int -> unit) -> unit
 
-external set_key_release_callback :
-  (key:Key.t -> state:Modifier.t -> x:int -> y:int -> unit) -> unit
-  = "ml_egl_set_key_release_callback"
+val set_key_release_callback :
+  egl_context -> (key:Key.t -> state:Modifier.t -> x:int -> y:int -> unit) -> unit
 
-external set_button_press_callback :
-  (button:Button.t -> state:Modifier.t -> x:int -> y:int -> unit) -> unit
-  = "ml_egl_set_button_press_callback"
+val set_button_press_callback :
+  egl_context -> (button:Button.t -> state:Modifier.t -> x:int -> y:int -> unit) -> unit
 
-external set_button_release_callback :
-  (button:Button.t -> state:Modifier.t -> x:int -> y:int -> unit) -> unit
-  = "ml_egl_set_button_release_callback"
+val set_button_release_callback :
+  egl_context -> (button:Button.t -> state:Modifier.t -> x:int -> y:int -> unit) -> unit
 
-external set_motion_notify_callback :
-  (state:int -> x:int -> y:int -> unit) -> unit
-  = "ml_egl_set_motion_notify_callback"
+val set_motion_notify_callback :
+  egl_context -> (state:int -> x:int -> y:int -> unit) -> unit

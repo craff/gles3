@@ -205,9 +205,11 @@ let window_width  : int ref   = ref 400 (* Window width.  *)
 let window_height : int ref   = ref 400 (* Window height. *)
 let window_ratio  : float ref = ref 1.0 (* Window ratio.  *)
 
+(* Initialise the main window. *)
+let ctxt =
+  Egl.initialize !window_width !window_height "maze"
+
 let _ =
-  (* Initialise the main window. *)
-  Egl.initialize !window_width !window_height "maze";
   (* Initialise its viewport. *)
   Gles3.viewport ~x:0 ~y:0 ~w:!window_width ~h:!window_height;
   (* Setup the reshape callback. *)
@@ -216,7 +218,7 @@ let _ =
     window_ratio := (float width) /. (float height);
     Gles3.viewport ~x:0 ~y:0 ~w:width ~h:height
   in
-  Egl.set_reshape_callback reshape
+  Egl.set_reshape_callback ctxt reshape
 
 (* The vertices of a wall on the X axis. *)
 let x_wall : Gles3.float_bigarray = Buffers.to_float_bigarray
@@ -329,13 +331,13 @@ let _ =
     | (Down, _) -> camera.u_speed <- 0.4
     | (Space, s) when s = shift -> camera.speed   <-  -0.4
     | (Space, _) -> camera.speed   <-  0.4
-    | (_    , _) -> Printf.printf "unset key: %s state: %d\n%!"
-                      (Key.name key) (state:>int)
+    | (_    , _) -> Printf.printf "unset key: %s state: %d x:%d y:%d\n%!"
+                      (Key.name key) (state:>int) x y
   in
-  Egl.set_key_press_callback handle_key_press
+  Egl.set_key_press_callback ctxt handle_key_press
 
 let _ =
-  let handle_key_release ~key ~state ~x ~y =
+  let handle_key_release ~key ~state ~x:_ ~y:_ =
     let open Key in
     let open Modifier in
     match key, state with
@@ -348,13 +350,13 @@ let _ =
     | (Space, _) -> camera.speed   <- 0.0
     | (_       ) -> ()
   in
-  Egl.set_key_release_callback handle_key_release
+  Egl.set_key_release_callback ctxt handle_key_release
 
 let _ =
   let last_x = ref 0 in
   let last_y = ref 0 in
   let valid = ref false in
-  let handle_motion ~state ~x ~y =
+  let handle_motion ~state:_ ~x ~y =
     if !valid then
       let dx = x - !last_x in
       let dy = y - !last_y in
@@ -367,7 +369,7 @@ let _ =
     else
       (last_x := x; last_y := y; valid := true)
   in
-  Egl.set_motion_notify_callback handle_motion
+  Egl.set_motion_notify_callback ctxt handle_motion
 
 (* Drawing function for the cube (depending on window ratio and time). *)
 let draw_maze : float -> unit = fun ratio ->
@@ -422,7 +424,7 @@ let draw : unit -> unit = fun () ->
   Camera.update camera;
   draw_maze !window_ratio;
   Gles3.show_errors "cube";
-  Egl.swap_buffers ()
+  Egl.swap_buffers ctxt
 
 let _ =
   (* Some initialisation of the OpenGL state. *)
@@ -431,8 +433,8 @@ let _ =
   Gles3.cull_face gl_back;
   Gles3.clear_color Gles3.({r=0.1; g=0.1; b=0.1; a=1.0});
   (* When there is nothing to do, we draw. *)
-  Egl.set_idle_callback draw;
+  Egl.set_idle_callback ctxt draw;
   (* Draw once to get exceptions (they are all captured by [main_loop]. *)
   draw ();
   (* Run the main loop. *)
-  Egl.main_loop ()
+  Egl.main_loop ctxt

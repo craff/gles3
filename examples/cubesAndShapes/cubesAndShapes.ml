@@ -402,7 +402,7 @@ let draw () =
     dessine_cubes t;
     dessine_implicit t;
   );
-  swap_buffers ();
+  swap_buffers ctxt;
   show_errors "after draw";
 
   incr frames;
@@ -415,24 +415,25 @@ let draw () =
   )
 
 (** call back for key and mouse, just for testing *)
-let _ = set_key_press_callback (fun ~key ~state ~x ~y ->
+let _ = set_key_press_callback ctxt (fun ~key ~state ~x ~y ->
   try
-    if key = Key.Escape then exit_loop ();
+    if key = Key.Escape then exit_loop ctxt;
     if key = Key.S then
       dessine_shadow := not !dessine_shadow;
-    Printf.printf "key: %s state: %d\n%!" (Key.name key) (state :> int)
+    Printf.printf "key: %s state: %d x:%d y:%d\n%!"
+      (Key.name key) (state :> int) x y
   with e -> Printf.printf "exception: %s" (Printexc.to_string e))
 
-let _ = set_button_press_callback (fun ~button ~state ~x ~y ->
-            Printf.printf "button: %s state: %d\n%!"
-              (Button.name button) (state :> int))
+let _ = set_button_press_callback ctxt (fun ~button ~state ~x ~y ->
+            Printf.printf "button: %s state: %d x:%d y:%d\n%!"
+              (Button.name button) (state :> int) x y)
 
 (** when there is nothing to do, we draw *)
-let _ = set_idle_callback draw
+let _ = set_idle_callback ctxt draw
 
 (** the reshape callback, changing the viewport and ratio
    when the window is resized *)
-let _ = set_reshape_callback (fun ~width ~height ->
+let _ = set_reshape_callback ctxt (fun ~width ~height ->
   gwidth := width; gheight := height;
   ratio := float width /. float height)
 
@@ -440,4 +441,4 @@ let _ = draw () (** draw once outsize the loop, because all exceptions are caugh
                    inside the main loop *)
 
 (** we now start the main loop ! *)
-let _ = main_loop ()
+let _ = main_loop ctxt

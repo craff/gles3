@@ -164,9 +164,10 @@ let grille =
 (** keep the current width,height and ratio in a reference *)
 let gwidth = ref 800 and gheight = ref 600
 let ratio = ref (float !gwidth /. float !gheight)
+
 (** initialization of the main window, and its viewport *)
-let _ = initialize !gwidth !gheight "test_gles2";
-  viewport ~x:0 ~y:0 ~w:!gwidth ~h:!gheight
+let ctxt = initialize !gwidth !gheight "test_gles2"
+let _ = viewport ~x:0 ~y:0 ~w:!gwidth ~h:!gheight
 
 (** we define our shaders, with the type expected by Shaders.compile.
    the string are just use to report errors *)
@@ -366,24 +367,24 @@ let _ =
   clear_color { r = 0.1; g = 0.1; b = 0.1; a = 1.0 }
 
 (** call back for key and mouse, just for testing *)
-let _ = set_key_press_callback (fun ~key ~state ~x ~y ->
-  if key = Key.Escape then exit_loop ();
+let _ = set_key_press_callback ctxt (fun ~key ~state ~x ~y ->
+  if key = Key.Escape then exit_loop ctxt;
   if key = Key.S then
     dessine_shadow := not !dessine_shadow;
   Printf.printf "key: %s state: %d x:%d y:%d\n%!"
     (Key.name key) (state :> int) x y)
 
-let _ = set_button_press_callback (fun ~button ~state ~x ~y ->
+let _ = set_button_press_callback ctxt (fun ~button ~state ~x ~y ->
             Printf.printf "button: %s state: %d x:%d x:%d\n%!"
               (Button.name button) (state :> int) x y)
 
-let _ = set_motion_notify_callback (fun ~state ~x ~y ->
+let _ = set_motion_notify_callback ctxt (fun ~state ~x ~y ->
             Printf.printf "motion: state: %d x:%d x:%d\n%!"
                (state :> int) x y)
 
 (** the reshape callback, changing the viewport and ratio
    when the window is resized *)
-let _ = set_reshape_callback (fun ~width ~height ->
+let _ = set_reshape_callback ctxt (fun ~width ~height ->
   gwidth := width; gheight := height;
   ratio := float width /. float height)
 
@@ -515,7 +516,7 @@ let draw () =
     dessine_sol ();
     Array.iter dessine_sphere spheres;
   );
-  swap_buffers ();
+  swap_buffers ctxt;
   show_errors "after draw";
   frames.(nb_cores) <- frames.(nb_cores) + 1;
   let delta = t -. lasttimeframe.(nb_cores) in
@@ -552,7 +553,7 @@ let rec run process t0 t =
 
 
 (** when there is nothing to do, we draw *)
-let _ = set_idle_callback draw
+let _ = set_idle_callback ctxt draw
 
 let _ = draw () (** draw once outsize the loop, because all exceptions are caught
                    inside the main loop *)
@@ -563,7 +564,7 @@ let _ =
   let rec f pids i =
     if i = 0 then
       begin
-        main_loop ();
+        main_loop ctxt;
       end
     else
       begin

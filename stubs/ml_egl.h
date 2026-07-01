@@ -21,10 +21,35 @@
 
 #include <EGL/egl.h>
 
-extern void egl_connection_lost(void);
-extern void init_fail(const char*);
-extern EGLNativeDisplayType platform_display;
-extern EGLNativeWindowType  platform_window;
+typedef struct platform_context_struct *platform_context;
+
+typedef struct egl_context_struct {
+  EGLNativeDisplayType platform_display;
+  EGLNativeWindowType  platform_window;
+  EGLDisplay display;
+  EGLConfig config ;
+  EGLSurface surface;
+  EGLContext context;
+  int width;
+  int height;
+  int initialized;
+  int main_loop_reentrant;
+  int main_loop_continue;
+  value default_callback;
+  value idle_callback;
+  value reshape_callback;
+  value delete_callback;
+  value key_press_callback;
+  value key_release_callback;
+  value button_press_callback;
+  value button_release_callback;
+  value motion_notify_callback;
+  platform_context platform;
+} *egl_context;
+
+extern void egl_connection_lost(egl_context);
+extern void init_fail(egl_context, const char*);
+
 
 extern void protect_callback(char *name, value *f, value *v1);
 extern void protect_callback2(char *name, value *f, value *v1, value *v2);
@@ -32,24 +57,6 @@ extern void protect_callback3(char *name, value *f, value *v1,
 			      value *v2, value *v3);
 extern void protect_callback4(char *name, value *f, value *v1,
 			value *v2, value *v3, value *v4);
-
-extern int width;
-extern int height;
-
-extern int initialized;
-
-extern int main_loop_reentrant;
-extern int main_loop_continue;
-
-extern value default_callback;
-extern value idle_callback;
-extern value reshape_callback;
-extern value delete_callback;
-extern value key_press_callback;
-extern value key_release_callback;
-extern value button_press_callback;
-extern value button_release_callback;
-extern value motion_notify_callback;
 
 
 typedef enum {

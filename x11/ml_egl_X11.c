@@ -36,72 +36,96 @@
 #include <caml/fail.h>
 #include <caml/threads.h>
 #include <caml/version.h>
+#include <uthash.h>
+
 #include "ml_egl.h"
 #include "ml_egl_platform.h"
 
-static int (*saved_IOErrorHandler)(Display *) = NULL ;
+
+typedef struct platform_context_struct { } *platform_context ;
+
+platform_context malloc_platform_context(egl_context ctxt) {
+  return NULL;
+}
+
 /****************************************************************************/
 /*   X IO ERROR HANDLING                                                    */
 /****************************************************************************/
 
+typedef struct {
+    Display *display;      // key
+    egl_context context;         // your C object
+    UT_hash_handle hh;
+} display_entry;
+
+static display_entry *displays = NULL;
+
 static int IOErrorHandler(Display *dpy)
 {
   printf("IOErrorHandler \n"); fflush(stdout);
+  display_entry *e;
+
+  HASH_FIND_PTR(displays, &dpy, e);
+
   /* If error came from another display, we call saved_IOErrorHandler */
-  if(dpy != platform_display) {
-    if(saved_IOErrorHandler != NULL)
-      (*saved_IOErrorHandler)(dpy) ;
-    return 0 ;
+  if(e) {
+    /* X connection has been lost, we cannot free allocated resources.
+       Instead, we try to restore an uninitialized state. */
+
+    egl_context ctxt = e->context;
+    egl_platform_lost(ctxt);
+    ctxt->platform_window = None ;
+    ctxt->platform_display = NULL ;
   }
-
-  /* X connection has been lost, we cannot free allocated resources.
-     Instead, we try to restore an uninitialized state. */
-
-  extern void egl_platform_lost(void);
-
-  platform_window = None ;
-  platform_display = NULL ;
-  XSetIOErrorHandler(saved_IOErrorHandler) ;
-  saved_IOErrorHandler = NULL ;
-
   return 0 ;
 }
 
-void init_platform_ressources(int width, int height, const char* name) {
+void init_platform_ressources(egl_context ctxt, const char* name) {
   /* Open X Display */
-  if((platform_display = XOpenDisplay(NULL)) == NULL)
-    init_fail("cannot open X display") ;
 
+  Display *display;
+
+  if((display = XOpenDisplay(NULL)) == NULL)
+    init_fail(ctxt, "cannot open X display") ;
+
+  ctxt->platform_display = display;
   /* Open X Window */
-  platform_window = XCreateSimpleWindow(platform_display,
-					DefaultRootWindow(platform_display),
-					0, 0, width, height, 0, 0, 0) ;
-  if(platform_window == None)
-    init_fail("cannot create X window") ;
-  XSelectInput(platform_display, platform_window, VisibilityChangeMask|
+  ctxt->platform_window =
+    XCreateSimpleWindow(display,
+			DefaultRootWindow(display),
+			0, 0, ctxt->width, ctxt->height, 0, 0, 0) ;
+  if(ctxt->platform_window == None)
+    init_fail(ctxt, "cannot create X window") ;
+  XSelectInput(display, ctxt->platform_window,
+	       VisibilityChangeMask|
 	       StructureNotifyMask|KeyPressMask|KeyReleaseMask|ExposureMask|
 	       ButtonPressMask|ButtonReleaseMask|PointerMotionMask) ;
-  XMapWindow(platform_display, platform_window) ;
-  XStoreName(platform_display, platform_window, name) ;
+  XMapWindow(display, ctxt->platform_window) ;
+  XStoreName(display, ctxt->platform_window, name) ;
+  display_entry *e = malloc(sizeof(*e));
 
-  saved_IOErrorHandler = XSetIOErrorHandler(&IOErrorHandler) ;
+  e->display = display;
+  e->context = ctxt;
 
-
+  HASH_ADD_PTR(displays, display, e);
+  XSetIOErrorHandler(&IOErrorHandler) ;
 }
 
-void free_platform_ressources() {
-  if(platform_window != None) {
-    if(platform_display != NULL)
-      XDestroyWindow(platform_display, platform_window) ;
-    platform_window = None ;
+void free_platform_ressources(egl_context ctxt) {
+  display_entry *e;
+  HASH_FIND_PTR(displays, &(ctxt->platform_display), e);
+
+  if (e) {
+    HASH_DEL(displays, e);
+    free(e);
   }
-  if(platform_display != NULL) {
-    XCloseDisplay(platform_display) ;
-    platform_display = NULL ;
-  }
-  if(saved_IOErrorHandler != NULL) {
-    XSetIOErrorHandler(saved_IOErrorHandler) ;
-    saved_IOErrorHandler = NULL ;
+  if(ctxt->platform_display != NULL) {
+    if (ctxt->platform_window != None) {
+      XDestroyWindow(ctxt->platform_display, ctxt->platform_window) ;
+      ctxt->platform_window = None ;
+      XCloseDisplay(ctxt->platform_display) ;
+      ctxt->platform_display = NULL ;
+    }
   }
 }
 
@@ -392,102 +416,104 @@ egl_mod x11_state_to_egl(unsigned int state)
 /*   MAIN LOOP                                                              */
 /****************************************************************************/
 
-void ml_egl_main_loop()
+CAMLprim value ml_egl_main_loop(egl_context ctxt)
 {
   CAMLparam0() ;
   XEvent event ;
   int window_visible = 0;
 
-  if(!initialized)
+  if(!ctxt->initialized)
     caml_failwith("Egl.main_loop: not initialized") ;
 
-  if(main_loop_reentrant)
+  if(ctxt->main_loop_reentrant)
     caml_failwith("Egl.main_loop: forbidden reentrant call") ;
 
   caml_release_runtime_system();
 
-  main_loop_reentrant = 1 ;
+  ctxt->main_loop_reentrant = 1 ;
 
-  Atom wmDeleteMessage = XInternAtom(platform_display, "WM_DELETE_WINDOW", False);
-  XSetWMProtocols(platform_display, platform_window, &wmDeleteMessage, 1);
+  Display *display = ctxt->platform_display;
+  Window window = ctxt->platform_window;
+  Atom wmDeleteMessage = XInternAtom(display, "WM_DELETE_WINDOW", False);
+  XSetWMProtocols(display, window, &wmDeleteMessage, 1);
 
-  main_loop_continue = 1 ;
+  ctxt->main_loop_continue = 1 ;
 
-  while(main_loop_continue) {
+  while(ctxt->main_loop_continue) {
 
-    if(idle_callback != default_callback && window_visible) {
-      while(XPending(platform_display) == 0) {
+    if(ctxt->idle_callback != ctxt->default_callback && window_visible) {
+      while(XPending(display) == 0) {
 	value u = Val_unit;
-	protect_callback("idle callback", &idle_callback, &u) ;
+	protect_callback("idle callback", &(ctxt->idle_callback), &u) ;
       }
     }
-    XNextEvent(platform_display, &event) ;
+    XNextEvent(display, &event) ;
 
     switch(event.type) {
     case ConfigureNotify:
-      if(event.xconfigure.display == platform_display &&
-	 event.xconfigure.window == platform_window &&
-	 (event.xconfigure.width != width ||
-	  event.xconfigure.height != height) &&
-	 reshape_callback != default_callback)
+      if(event.xconfigure.display == display &&
+	 event.xconfigure.window == window &&
+	 (event.xconfigure.width != ctxt->width ||
+	  event.xconfigure.height != ctxt->height) &&
+	 ctxt->reshape_callback != ctxt->default_callback)
 	{
-	  width = event.xconfigure.width ;
-	  height = event.xconfigure.height ;
-	  value ml_width = Val_int(width);
-	  value ml_height = Val_int(height);
+	  ctxt->width = event.xconfigure.width ;
+	  ctxt->height = event.xconfigure.height ;
+	  value ml_width = Val_int(ctxt->width);
+	  value ml_height = Val_int(ctxt->height);
 	  protect_callback2("reshape callback",
-			    &reshape_callback,
+			    &(ctxt->reshape_callback),
 			    &ml_width, &ml_height) ;
 	}
       break ;
     case UnmapNotify:
       printf("unmap\n");
-      if(event.xmap.display == platform_display &&
-	 event.xmap.window == platform_window)
+      if(event.xmap.display == display &&
+	 event.xmap.window == window)
 	window_visible = 0;
       break;
     case MapNotify:
       printf("map\n");
-      if(event.xmap.display == platform_display &&
-	 event.xmap.window == platform_window)
+      if(event.xmap.display == display &&
+	 event.xmap.window == window)
 	window_visible = 1;
       break;
     case VisibilityNotify:
       printf("avant visible: %d\n", window_visible);
-      if(event.xvisibility.display == platform_display &&
-	 event.xvisibility.window == platform_window)
+      if(event.xvisibility.display == display &&
+	 event.xvisibility.window == window)
 	{
 	  window_visible =
 	    (event.xvisibility.state != VisibilityFullyObscured);
 	  printf("visible: %d\n", window_visible);
 	  if (window_visible &&
-	      reshape_callback != default_callback) {
-	    value ml_width = Val_int(width);
-	    value ml_height = Val_int(height);
+	      ctxt->reshape_callback != ctxt->default_callback) {
+	    value ml_width = Val_int(ctxt->width);
+	    value ml_height = Val_int(ctxt->height);
 	    protect_callback2("reshape callback",
-			      &reshape_callback,
+			      &(ctxt->reshape_callback),
 			      &ml_width, &ml_height) ;
 	  }
 	}
       break ;
     case ClientMessage:
-      if(event.xclient.display == platform_display &&
-	 event.xclient.window == platform_window &&
+      if(event.xclient.display == display &&
+	 event.xclient.window == window &&
 	 event.xclient.data.l[0] == wmDeleteMessage)
 	{
-	  if(delete_callback == default_callback)
-	    main_loop_continue = 0 ;
+	  if(ctxt->delete_callback == ctxt->default_callback)
+	    ctxt->main_loop_continue = 0 ;
 	  else
 	    {
 	      value u = Val_unit;
-	      protect_callback("delete callback", &delete_callback, &u) ;
+	      protect_callback("delete callback", &(ctxt->delete_callback), &u) ;
 	    }
 	}
       break ;
     case KeyPress:
-      if(event.xkey.display == platform_display &&
-	 event.xkey.window == platform_window &&
-	 key_press_callback != default_callback)
+      if(event.xkey.display == display &&
+	 event.xkey.window == window &&
+	 ctxt->key_press_callback != ctxt->default_callback)
 	{
 	  KeySym keysym ;
 	  XLookupString(&(event.xkey), NULL, 0, &keysym, NULL) ;
@@ -498,14 +524,14 @@ void ml_egl_main_loop()
 	  value ml_state = Val_int(eglmod);
 	  value ml_x = Val_int(event.xkey.x);
 	  value ml_y = Val_int(event.xkey.y);
-	  protect_callback4("key press callback", &key_press_callback,
+	  protect_callback4("key press callback", &(ctxt->key_press_callback),
 			    &ml_keysym, &ml_state, &ml_x, &ml_y);
 	}
       break ;
     case KeyRelease:
-      if(event.xkey.display == platform_display &&
-	 event.xkey.window == platform_window &&
-	 key_release_callback != default_callback)
+      if(event.xkey.display == display &&
+	 event.xkey.window == window &&
+	 ctxt->key_release_callback != ctxt->default_callback)
 	{
 	  KeySym keysym ;
 	  XLookupString(&(event.xkey), NULL, 0, &keysym, NULL) ;
@@ -516,14 +542,14 @@ void ml_egl_main_loop()
 	  value ml_state = Val_int(eglmod);
 	  value ml_x = Val_int(event.xkey.x);
 	  value ml_y = Val_int(event.xkey.y);
-	  protect_callback4("key release callback", &key_release_callback,
+	  protect_callback4("key release callback", &(ctxt->key_release_callback),
 			    &ml_keysym, &ml_state, &ml_x, &ml_y);
 	}
       break ;
     case ButtonPress:
-      if(event.xbutton.display == platform_display &&
-	 event.xbutton.window == platform_window &&
-	 button_press_callback != default_callback)
+      if(event.xbutton.display == display &&
+	 event.xbutton.window == window &&
+	 ctxt->button_press_callback != ctxt->default_callback)
 	{
 	  egl_button eglbut = x11_button_to_egl(event.xbutton.button);
 	  egl_mod eglmod = x11_state_to_egl(event.xkey.state);
@@ -533,14 +559,14 @@ void ml_egl_main_loop()
 	  value ml_x = Val_int(event.xbutton.x);
 	  value ml_y = Val_int(event.xbutton.y);
 	  protect_callback4("button press callback",
-			    &button_press_callback,
+			    &(ctxt->button_press_callback),
 			    &ml_button, &ml_state, &ml_x, &ml_y);
 	}
       break ;
     case ButtonRelease:
-      if(event.xbutton.display == platform_display &&
-	 event.xbutton.window == platform_window &&
-	 button_release_callback != default_callback)
+      if(event.xbutton.display == display &&
+	 event.xbutton.window == window &&
+	 ctxt->button_release_callback != ctxt->default_callback)
 	{
 	  egl_button eglbut = x11_button_to_egl(event.xbutton.button);
 	  egl_mod eglmod = x11_state_to_egl(event.xkey.state);
@@ -550,28 +576,29 @@ void ml_egl_main_loop()
 	  value ml_x = Val_int(event.xbutton.x);
 	  value ml_y = Val_int(event.xbutton.y);
 	  protect_callback4("button release callback",
-			    &button_release_callback,
+			    &(ctxt->button_release_callback),
 			    &ml_button, &ml_state, &ml_x, &ml_y);
 	}
       break ;
     case MotionNotify:
-      if(event.xmotion.display == platform_display &&
-	 event.xmotion.window == platform_window &&
-	 motion_notify_callback != default_callback)
+      if(event.xmotion.display == display &&
+	 event.xmotion.window == window &&
+	 ctxt->motion_notify_callback != ctxt->default_callback)
 	{
 	  value ml_state = Val_int(event.xkey.state);
 	  value ml_x = Val_int(event.xmotion.x);
 	  value ml_y = Val_int(event.xmotion.y);
 
-	  protect_callback3("motion notify callback", &motion_notify_callback,
+	  protect_callback3("motion notify callback",
+			    &(ctxt->motion_notify_callback),
 			    &ml_state, &ml_x, &ml_y);
 	}
       break ;
     default: break ;
     }
   }
-  main_loop_reentrant = 0 ;
+  ctxt->main_loop_reentrant = 0 ;
 
   caml_acquire_runtime_system();
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }

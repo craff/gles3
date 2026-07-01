@@ -18,10 +18,12 @@
 /****************************************************************************/
 #ifndef ML_EGL_PLATFORM_H
 #define ML_EGL_PLATFORM_H
+#include "ml_egl.h"
 
-
-extern void free_platform_ressources();
-extern void init_platform_ressources(int width, int height, const char* name);
-extern void ml_egl_main_loop();
+extern platform_context malloc_platform_context(egl_context ctxt);
+extern void free_platform_ressources(egl_context ctxt);
+extern void init_platform_ressources(egl_context ctxt, const char* name);
+extern value ml_egl_main_loop(egl_context ctxt);
+extern void egl_platform_lost(egl_context ctxt);
 
 #endif
