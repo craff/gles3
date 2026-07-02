@@ -33,6 +33,7 @@
 #include <caml/fail.h>
 #include <caml/threads.h>
 #include <caml/version.h>
+#include <caml/custom.h>
 #include <sys/time.h>
 #include "ml_egl.h"
 #include "ml_egl_platform.h"
@@ -53,11 +54,12 @@
 /* pointer to value should be registered to the GC by the caller */
 void protect_callback(char *name, value *f, value *v1)
 {
-  if (!f) return;
+  if (*f == Val_unit) return;
   caml_acquire_runtime_system();
   {
-    CAMLparam0();
-    if(Is_exception_result(caml_callback_exn(*f, *v1)))
+    value vf = *f; value vv1 = *v1;
+    CAMLparam1(vv1);
+    if(Is_exception_result(caml_callback_exn(vf, vv1)))
       fprintf(stderr, "Egl.main_loop: "
 	      "WARNING: %s raised an exception\n", name) ;
     CAMLdrop;
@@ -67,13 +69,15 @@ void protect_callback(char *name, value *f, value *v1)
 
 void protect_callback2(char *name, value *f, value *v1, value *v2)
 {
-  if (!f) return;
+  if (*f == Val_unit) return;
   caml_acquire_runtime_system();
   {
-    CAMLparam0();
-    if(Is_exception_result(caml_callback2_exn(*f, *v1, *v2)))
+    value vf = *f; value vv1 = *v1; value vv2 = *v2;
+    CAMLparam2(vv1,vv2);
+    value r = caml_callback2_exn(vf, vv1, vv2);
+    if(Is_exception_result(r))
       fprintf(stderr, "Egl.main_loop: "
-	      "WARNING: %s raised an exception\n", name) ;
+	      "WARNING: %s raised exception\n", name) ;
     CAMLdrop;
   }
   caml_release_runtime_system();
@@ -82,11 +86,13 @@ void protect_callback2(char *name, value *f, value *v1, value *v2)
 void protect_callback3(char *name, value *f, value *v1,
 			      value *v2, value *v3)
 {
-  if (!f) return;
+  if (*f == Val_unit) return;
   caml_acquire_runtime_system();
   {
-    CAMLparam0();
-    if(Is_exception_result(caml_callback3_exn(*f, *v1, *v2, *v3)))
+    value vf = *f; value vv1 = *v1; value vv2 = *v2;
+    value vv3 = *v3;
+    CAMLparam3(vv1,vv2,vv3);
+    if(Is_exception_result(caml_callback3_exn(vf, vv1, vv2, vv3)))
       fprintf(stderr, "Egl.main_loop: "
 	      "WARNING: %s raised an exception\n", name) ;
     CAMLdrop;
@@ -97,15 +103,18 @@ void protect_callback3(char *name, value *f, value *v1,
 void protect_callback4(char *name, value *f, value *v1,
 			      value *v2, value *v3, value *v4)
 {
-  if (!f) return;
+  if (*f == Val_unit) return;
   caml_acquire_runtime_system();
   {
-    CAMLparam0();
-    CAMLlocalN(tmp,4);
-    tmp[0] = *v1; tmp[1]=*v2; tmp[2]=*v3; tmp[3]=*v4 ;
-    if(Is_exception_result(caml_callbackN_exn(*f, 4, tmp)))
+    value vf = *f; value vv1 = *v1; value vv2 = *v2;
+    value vv3 = *v3; value vv4 = *v4;
+    CAMLparam4(vv1,vv2,vv3,vv4);
+    CAMLlocalN(tmp,4)
+    tmp[0] = vv1; tmp[1]=vv2; tmp[2]=vv3; tmp[3]=vv4 ;
+    value r = caml_callbackN_exn(vf, 4, tmp);
+    if(Is_exception_result(r))
       fprintf(stderr, "Egl.main_loop: "
-	      "WARNING: %s raised an exception\n", name) ;
+	      "WARNING: %s raised exception", name) ;
     CAMLdrop;
   }
   caml_release_runtime_system();
@@ -113,39 +122,34 @@ void protect_callback4(char *name, value *f, value *v1,
 
 
 void egl_platform_lost(egl_context ctxt) {
-  value saved_delete_callback = ctxt->delete_callback ;
-
+  if(ctxt->delete_callback != Val_unit) {
+    caml_callback(ctxt->delete_callback, Val_unit) ;
+  }
+  caml_acquire_runtime_system();
   caml_modify_generational_global_root(&(ctxt->idle_callback),
-				       ctxt->default_callback) ;
+				       Val_unit) ;
   caml_modify_generational_global_root(&(ctxt->reshape_callback),
-				       ctxt->default_callback) ;
+				       Val_unit) ;
   caml_modify_generational_global_root(&(ctxt->delete_callback),
-				       ctxt->default_callback) ;
+				       Val_unit) ;
   caml_modify_generational_global_root(&(ctxt->key_press_callback),
-				       ctxt->default_callback) ;
+				       Val_unit) ;
   caml_modify_generational_global_root(&(ctxt->key_release_callback),
-				       ctxt->default_callback) ;
+				       Val_unit) ;
   caml_modify_generational_global_root(&(ctxt->button_press_callback),
-				       ctxt->default_callback) ;
+				       Val_unit) ;
   caml_modify_generational_global_root(&(ctxt->button_release_callback),
-				       ctxt->default_callback) ;
+				       Val_unit) ;
   caml_modify_generational_global_root(&(ctxt->motion_notify_callback),
-				       ctxt->default_callback) ;
-
+				       Val_unit) ;
+  caml_release_runtime_system();
   ctxt->context = EGL_NO_CONTEXT ;
   ctxt->surface = EGL_NO_SURFACE ;
   ctxt->display = EGL_NO_DISPLAY ;
 
   ctxt->width = ctxt->height = 0 ;
-  ctxt->main_loop_reentrant = 0 ;
   ctxt->main_loop_continue = 0 ;
   ctxt->initialized = 0 ;
-
-  if(saved_delete_callback != (value)NULL) {
-    caml_callback(saved_delete_callback, Val_unit) ;
-    exit(1) ;
-  }
-
 }
 
 /****************************************************************************/
@@ -154,7 +158,7 @@ void egl_platform_lost(egl_context ctxt) {
 
 static void free_resources(egl_context ctxt)
 {
-  if (!ctxt) return;
+  if (!ctxt->initialized) return;
   if(ctxt->display != EGL_NO_DISPLAY) {
     eglMakeCurrent(ctxt->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT) ;
     if(ctxt->surface != EGL_NO_SURFACE)
@@ -164,18 +168,59 @@ static void free_resources(egl_context ctxt)
     eglTerminate(ctxt->display) ;
   }
   free_platform_ressources(ctxt);
-  ctxt->width = ctxt->height = 0 ;
-  ctxt->main_loop_reentrant = 0 ;
+  caml_remove_generational_global_root(&(ctxt->idle_callback));
+  caml_remove_generational_global_root(&(ctxt->reshape_callback));
+  caml_remove_generational_global_root(&(ctxt->delete_callback));
+  caml_remove_generational_global_root(&(ctxt->key_press_callback));
+  caml_remove_generational_global_root(&(ctxt->key_release_callback));
+  caml_remove_generational_global_root(&(ctxt->button_press_callback));
+  caml_remove_generational_global_root(&(ctxt->button_release_callback));
+  caml_remove_generational_global_root(&(ctxt->motion_notify_callback));
   ctxt->main_loop_continue = 0 ;
   ctxt->initialized = 0 ;
-  free(ctxt);
 }
 
-CAMLprim value ml_egl_terminate(egl_context ctxt)
+void free_egl_context(value v) {
+  free_resources(Val_ctxt(v));
+}
+
+int compare_egl_context(value v1, value v2) {
+  egl_context c1 = Val_ctxt(v1);
+  egl_context c2 = Val_ctxt(v2);
+  if(!c1->initialized || !c2->initialized)
+    caml_failwith("Egl.compare: not initialized") ;
+  EGLSurface s1 = c1->surface;
+  EGLSurface s2 = c2->surface;
+  if (s1 < s2) return -1;
+  if (s1 > s2) return 1;
+  return 0;
+}
+intnat hash_egl_context(value v) {
+  egl_context c = Val_ctxt(v);
+  if(!c->initialized)
+    caml_failwith("Egl.hash: not initialized") ;
+  return (intnat)c->surface;
+}
+
+static struct custom_operations ops = {
+    "egl_context",
+    free_egl_context,
+    compare_egl_context,
+    hash_egl_context,
+    custom_serialize_default,
+    custom_deserialize_default,
+    custom_fixed_length_default
+};
+
+CAMLprim value ml_egl_terminate(value v)
 {
-  CAMLparam0();
+  CAMLparam1(v);
+  egl_context ctxt = Val_ctxt(v);
   if(!ctxt->initialized)
     caml_failwith("Egl.terminate: not initialized") ;
+  if (atomic_load(&ctxt->main_loop_reentrant))
+    caml_failwith("Egl.terminate: while main loop running") ;
+
   free_resources(ctxt) ;
   CAMLreturn(Val_unit);
 }
@@ -190,17 +235,20 @@ void init_fail(egl_context ctxt, const char* s) {
   asprintf(&msg, "Egl.initialize: %s", s);
   caml_failwith(msg);
 }
-egl_context malloc_egl_context() {
-  egl_context ctxt = (egl_context) malloc(sizeof(struct egl_context_struct));
-  if (ctxt <= 0) caml_failwith("fail to allocate context");
+value malloc_egl_context() {
+  egl_context ctxt = malloc(sizeof(struct egl_context_struct));
+  if (!ctxt) caml_failwith("fail to allocate context");
+
+  value vctxt = caml_alloc_custom(&ops, sizeof(egl_context), 0, 1);
+  Val_ctxt(vctxt) = ctxt;
+
   ctxt->display = EGL_NO_DISPLAY;
   ctxt->surface = EGL_NO_SURFACE;
   ctxt->context = EGL_NO_CONTEXT;
   ctxt->config = NULL;
   ctxt->width = ctxt->height = 0;
-  ctxt->main_loop_reentrant = 0;
+  atomic_init(&ctxt->main_loop_reentrant, 0) ;
   ctxt->main_loop_continue = 0;
-  ctxt->default_callback = Val_unit;
   ctxt->idle_callback = Val_unit;
   ctxt->reshape_callback = Val_unit;
   ctxt->delete_callback = Val_unit;
@@ -208,9 +256,19 @@ egl_context malloc_egl_context() {
   ctxt->key_release_callback = Val_unit;
   ctxt->button_press_callback = Val_unit;
   ctxt->button_release_callback = Val_unit;
+  ctxt->motion_notify_callback = Val_unit;
+  caml_register_generational_global_root(&(ctxt->idle_callback) );
+  caml_register_generational_global_root(&(ctxt->reshape_callback)) ;
+  caml_register_generational_global_root(&(ctxt->delete_callback)) ;
+  caml_register_generational_global_root(&(ctxt->key_press_callback)) ;
+  caml_register_generational_global_root(&(ctxt->key_release_callback)) ;
+  caml_register_generational_global_root(&(ctxt->button_press_callback)) ;
+  caml_register_generational_global_root(&(ctxt->button_release_callback)) ;
+  caml_register_generational_global_root(&(ctxt->motion_notify_callback));
   ctxt->platform = malloc_platform_context(ctxt);
-  return ctxt;
+  return vctxt;
 }
+
 void showConfig(egl_context ctxt) {
   EGLint red_size, green_size, blue_size, alpha_size ;
   EGLint depth_size, stencil_size, samples ;
@@ -228,13 +286,15 @@ void showConfig(egl_context ctxt) {
 	 stencil_size, samples);
   fflush(stdout);
 }
-CAMLprim value ml_egl_initialize(value vf, value vc, value vw, value vh, value vn)
-{
-  CAMLparam5(vf, vc, vw, vh, vn) ;
 
+CAMLprim value ml_egl_initialize(value vc, value vw, value vh, value vn)
+{
+  CAMLparam4(vc, vw, vh, vn) ;
+  CAMLlocal1(vctxt);
+  vctxt = malloc_egl_context();
   EGLint attribs[20] ;
 
-  egl_context ctxt = malloc_egl_context();
+  egl_context ctxt = Val_ctxt(vctxt);
 
   ctxt->width = Int_val(vw) ;
   ctxt->height = Int_val(vh) ;
@@ -271,7 +331,6 @@ CAMLprim value ml_egl_initialize(value vf, value vc, value vw, value vh, value v
   int nconf ;
   if(!eglChooseConfig(ctxt->display, attribs, NULL, 0, &nconf) || nconf < 1)
     init_fail(ctxt, "cannot choose EGL config") ;
-  printf("num conf %d\n",nconf); fflush(stdout);
   EGLConfig *configs = (EGLConfig*) malloc( nconf * sizeof(EGLConfig));
   if(!eglChooseConfig(ctxt->display, attribs, configs, nconf, &nconf) || nconf < 1)
     init_fail(ctxt, "cannot choose EGL config") ;
@@ -323,192 +382,199 @@ CAMLprim value ml_egl_initialize(value vf, value vc, value vw, value vh, value v
 		     ctxt->context))
     init_fail(ctxt, "cannot bind EGL surface to context") ;
 
-  /* Register CAML roots for callbacks */
-  ctxt->default_callback = vf;
-  ctxt->reshape_callback = vf;
-  ctxt->delete_callback = vf;
-  ctxt->key_press_callback = vf;
-  ctxt->key_release_callback = vf;
-  ctxt->button_press_callback = vf;
-  ctxt->button_release_callback = vf;
-  ctxt->motion_notify_callback = vf;
-
-  caml_register_generational_global_root(&(ctxt->default_callback)) ;
-  caml_register_generational_global_root(&(ctxt->idle_callback) );
-  caml_register_generational_global_root(&(ctxt->reshape_callback)) ;
-  caml_register_generational_global_root(&(ctxt->delete_callback)) ;
-  caml_register_generational_global_root(&(ctxt->key_press_callback)) ;
-  caml_register_generational_global_root(&(ctxt->key_release_callback)) ;
-  caml_register_generational_global_root(&(ctxt->button_press_callback)) ;
-  caml_register_generational_global_root(&(ctxt->button_release_callback)) ;
-  caml_register_generational_global_root(&(ctxt->motion_notify_callback));
-
   ctxt->initialized = 1 ;
-
-  CAMLreturn((value) ctxt) ;
+  CAMLreturn(vctxt);
 }
 
 /****************************************************************************/
 /*   SETTING CALLBACKS                                                      */
 /****************************************************************************/
 
-void ml_egl_set_idle_callback(egl_context ctxt, value v)
+CAMLprim value ml_egl_set_idle_callback(value vc, value v)
 {
-  CAMLparam1(v) ;
+  CAMLparam2(vc, v) ;
+  egl_context ctxt = Val_ctxt(vc);
   if(!ctxt->initialized)
     caml_failwith("Egl.set_idle_callback: not initialized") ;
   caml_modify_generational_global_root(&(ctxt->idle_callback), v) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
-void ml_egl_unset_idle_callback(egl_context ctxt)
+CAMLprim value ml_egl_unset_idle_callback(value vc)
 {
-  if(!ctxt->initialized)
+  CAMLparam1(vc) ;
+  egl_context ctxt = Val_ctxt(vc);
+   if(!ctxt->initialized)
     caml_failwith("Egl.set_idle_callback: not initialized") ;
-  caml_modify_generational_global_root(&(ctxt->idle_callback), ctxt->default_callback) ;
+   caml_modify_generational_global_root(&(ctxt->idle_callback), Val_unit);
+  CAMLreturn(Val_unit) ;
 }
 
-void ml_egl_set_reshape_callback(egl_context ctxt, value v)
+CAMLprim value ml_egl_set_reshape_callback(value vc, value v)
 {
-  CAMLparam1(v) ;
+  CAMLparam2(vc,v) ;
+  egl_context ctxt = Val_ctxt(vc);
   if(!ctxt->initialized)
     caml_failwith("Egl.set_reshape_callback: not initialized") ;
   caml_modify_generational_global_root(&(ctxt->reshape_callback), v) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
-void ml_egl_set_delete_callback(egl_context ctxt, value v)
+CAMLprim value ml_egl_set_delete_callback(value vc, value v)
 {
-  CAMLparam1(v) ;
+  CAMLparam2(vc,v) ;
+  egl_context ctxt = Val_ctxt(vc);
   if(!ctxt->initialized)
     caml_failwith("Egl.set_delete_callback: not initialized") ;
   caml_modify_generational_global_root(&(ctxt->delete_callback), v) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
-void ml_egl_set_key_press_callback(egl_context ctxt, value v)
+CAMLprim value ml_egl_set_key_press_callback(value vc, value v)
 {
-  CAMLparam1(v) ;
+  CAMLparam2(vc, v) ;
+  egl_context ctxt = Val_ctxt(vc);
   if(!ctxt->initialized)
     caml_failwith("Egl.set_key_press_callback: not initialized") ;
   caml_modify_generational_global_root(&(ctxt->key_press_callback), v) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
-void ml_egl_set_key_release_callback(egl_context ctxt, value v)
+CAMLprim value ml_egl_set_key_release_callback(value vc, value v)
 {
-  CAMLparam1(v) ;
+  CAMLparam2(vc, v) ;
+  egl_context ctxt = Val_ctxt(vc);
   if(!ctxt->initialized)
     caml_failwith("Egl.set_key_release_callback: not initialized") ;
   caml_modify_generational_global_root(&(ctxt->key_release_callback), v) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
-void ml_egl_set_button_press_callback(egl_context ctxt, value v)
+CAMLprim value ml_egl_set_button_press_callback(value vc, value v)
 {
-  CAMLparam1(v) ;
+  CAMLparam2(vc,v) ;
+  egl_context ctxt = Val_ctxt(vc);
   if(!ctxt->initialized)
     caml_failwith("Egl.set_button_press_callback: not initialized") ;
   caml_modify_generational_global_root(&(ctxt->button_press_callback), v) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
-void ml_egl_set_button_release_callback(egl_context ctxt, value v)
+CAMLprim value ml_egl_set_button_release_callback(value vc, value v)
 {
-  CAMLparam1(v) ;
+  CAMLparam2(vc,v) ;
+  egl_context ctxt = Val_ctxt(vc);
   if(!ctxt->initialized)
     caml_failwith("Egl.set_button_release_callback: not initialized") ;
   caml_modify_generational_global_root(&(ctxt->button_release_callback), v) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 
-void ml_egl_set_motion_notify_callback(egl_context ctxt, value v)
+CAMLprim value ml_egl_set_motion_notify_callback(value vc, value v)
 {
-  CAMLparam1(v) ;
+  CAMLparam2(vc,v) ;
+  egl_context ctxt = Val_ctxt(vc);
   if(!ctxt->initialized)
     caml_failwith("Egl.set_motion_notify_callback: not initialized") ;
   caml_modify_generational_global_root(&(ctxt->motion_notify_callback), v) ;
-  CAMLreturn0 ;
+  CAMLreturn(Val_unit) ;
 }
 
-CAMLprim value ml_egl_make_current(egl_context ctxt) {
-  CAMLparam0();
+CAMLprim value ml_egl_make_current(value vc) {
+  CAMLparam1(vc);
+  egl_context ctxt = Val_ctxt(vc);
+  if(!ctxt->initialized)
+    caml_failwith("Egl.make_xurrent: not initialized") ;
   if(!eglMakeCurrent(ctxt->display, ctxt->surface,
 		     ctxt->surface, ctxt->context))
     caml_failwith("Can not set current context");
   CAMLreturn(Val_unit) ;
 }
 
-CAMLprim value ml_egl_detach(egl_context ctxt) {
-  CAMLparam0();
+CAMLprim value ml_egl_detach(value vc) {
+  CAMLparam1(vc);
+  egl_context ctxt = Val_ctxt(vc);
+  if(!ctxt->initialized)
+    caml_failwith("Egl.detach: not initialized") ;
   if(!eglMakeCurrent(ctxt->display, ctxt->surface,
  		                        ctxt->surface, ctxt->context))
     caml_failwith("Can not set current context");
   CAMLreturn(Val_unit) ;
 }
 
-void ml_egl_exit_loop(egl_context ctxt)
+CAMLprim value ml_egl_exit_loop(value vc)
 {
+  CAMLparam1(vc);
+  egl_context ctxt = Val_ctxt(vc);
+  if(!ctxt->initialized)
+    caml_failwith("Egl.exit_loop: not initialized") ;
   if(!ctxt->main_loop_reentrant)
     caml_failwith("Egl.exit_loop: can only be called inside main_loop\n") ;
   ctxt->main_loop_continue = 0 ;
+  CAMLreturn(Val_unit) ;
 }
 
 /****************************************************************************/
 /*   MISCELLANEOUS                                                          */
 /****************************************************************************/
 
-CAMLprim value ml_egl_swap_buffers(egl_context ctxt)
+CAMLprim value ml_egl_swap_buffers(value vc)
 {
-  CAMLparam0() ;
+  CAMLparam1(vc) ;
+  egl_context ctxt = Val_ctxt(vc);
   if(!ctxt->initialized) caml_failwith("Egl.swap_buffers: not initialized") ;
   eglSwapBuffers(ctxt->display, ctxt->surface) ;
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value ml_egl_query_version(egl_context ctxt)
+CAMLprim value ml_egl_query_version(value vc)
 {
-  CAMLparam0() ;
+  CAMLparam1(vc) ;
+  egl_context ctxt = Val_ctxt(vc);
   if(!ctxt->initialized)
     caml_failwith("Egl.query_version: not initialized") ;
   const char *s = eglQueryString(ctxt->display, EGL_VERSION) ;
   CAMLreturn(caml_copy_string(s));
 }
 
-CAMLprim value ml_egl_query_vendor(egl_context ctxt)
+CAMLprim value ml_egl_query_vendor(value vc)
 {
-  CAMLparam0() ;
+  CAMLparam1(vc) ;
+  egl_context ctxt = Val_ctxt(vc);
   if(!ctxt->initialized)
     caml_failwith("Egl.query_vendor: not initialized") ;
   const char *s = eglQueryString(ctxt->display, EGL_VENDOR) ;
   CAMLreturn(caml_copy_string(s));
 }
 
-CAMLprim value ml_egl_query_extensions(egl_context ctxt)
+CAMLprim value ml_egl_query_extensions(value vc)
 {
-  CAMLparam0() ;
+  CAMLparam1(vc) ;
+  egl_context ctxt = Val_ctxt(vc);
   if(!ctxt->initialized)
     caml_failwith("Egl.query_extensions: not initialized") ;
   const char *s = eglQueryString(ctxt->display, EGL_EXTENSIONS) ;
   CAMLreturn(caml_copy_string(s));
 }
 
-CAMLprim value ml_egl_query_client_apis(egl_context ctxt)
+CAMLprim value ml_egl_query_client_apis(value vc)
 {
-  CAMLparam0() ;
+  CAMLparam1(vc) ;
+  egl_context ctxt = Val_ctxt(vc);
   if(!ctxt->initialized)
     caml_failwith("Egl.query_client_apis: not initialized") ;
   const char *s = eglQueryString(ctxt->display, EGL_CLIENT_APIS) ;
   CAMLreturn(caml_copy_string(s));
 }
 
-CAMLprim value ml_egl_query_config(egl_context ctxt)
+CAMLprim value ml_egl_query_config(value vc)
 {
-  CAMLparam0() ;
-  CAMLlocal1(ret) ;
+  CAMLparam1(vc) ;
+  egl_context ctxt = Val_ctxt(vc);
   if(!ctxt->initialized)
     caml_failwith("Egl.query_config: not initialized") ;
+  CAMLlocal1(ret) ;
   EGLint red_size, green_size, blue_size, alpha_size ;
   EGLint depth_size, stencil_size, samples ;
   eglGetConfigAttrib(ctxt->display, ctxt->config, EGL_RED_SIZE, &red_size) ;

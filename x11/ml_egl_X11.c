@@ -416,32 +416,31 @@ egl_mod x11_state_to_egl(unsigned int state)
 /*   MAIN LOOP                                                              */
 /****************************************************************************/
 
-CAMLprim value ml_egl_main_loop(egl_context ctxt)
+CAMLprim value ml_egl_main_loop(value vc)
 {
-  CAMLparam0() ;
-  XEvent event ;
-  int window_visible = 0;
+  CAMLparam1(vc) ;
+  egl_context ctxt = Val_ctxt(vc);
 
   if(!ctxt->initialized)
     caml_failwith("Egl.main_loop: not initialized") ;
 
-  if(ctxt->main_loop_reentrant)
+  int expected = 0 ;
+  if(!atomic_compare_exchange_strong(&ctxt->main_loop_reentrant, &expected, 1))
     caml_failwith("Egl.main_loop: forbidden reentrant call") ;
 
   caml_release_runtime_system();
 
-  ctxt->main_loop_reentrant = 1 ;
-
+  XEvent event ;
   Display *display = ctxt->platform_display;
   Window window = ctxt->platform_window;
   Atom wmDeleteMessage = XInternAtom(display, "WM_DELETE_WINDOW", False);
+  int window_visible = 0;
   XSetWMProtocols(display, window, &wmDeleteMessage, 1);
 
   ctxt->main_loop_continue = 1 ;
 
   while(ctxt->main_loop_continue) {
-
-    if(ctxt->idle_callback != ctxt->default_callback && window_visible) {
+    if(ctxt->idle_callback != Val_unit && window_visible) {
       while(XPending(display) == 0) {
 	value u = Val_unit;
 	protect_callback("idle callback", &(ctxt->idle_callback), &u) ;
@@ -455,7 +454,7 @@ CAMLprim value ml_egl_main_loop(egl_context ctxt)
 	 event.xconfigure.window == window &&
 	 (event.xconfigure.width != ctxt->width ||
 	  event.xconfigure.height != ctxt->height) &&
-	 ctxt->reshape_callback != ctxt->default_callback)
+	 ctxt->reshape_callback != Val_unit)
 	{
 	  ctxt->width = event.xconfigure.width ;
 	  ctxt->height = event.xconfigure.height ;
@@ -467,27 +466,23 @@ CAMLprim value ml_egl_main_loop(egl_context ctxt)
 	}
       break ;
     case UnmapNotify:
-      printf("unmap\n");
       if(event.xmap.display == display &&
 	 event.xmap.window == window)
 	window_visible = 0;
       break;
     case MapNotify:
-      printf("map\n");
       if(event.xmap.display == display &&
 	 event.xmap.window == window)
 	window_visible = 1;
       break;
     case VisibilityNotify:
-      printf("avant visible: %d\n", window_visible);
       if(event.xvisibility.display == display &&
 	 event.xvisibility.window == window)
 	{
 	  window_visible =
 	    (event.xvisibility.state != VisibilityFullyObscured);
-	  printf("visible: %d\n", window_visible);
 	  if (window_visible &&
-	      ctxt->reshape_callback != ctxt->default_callback) {
+	      ctxt->reshape_callback != Val_unit) {
 	    value ml_width = Val_int(ctxt->width);
 	    value ml_height = Val_int(ctxt->height);
 	    protect_callback2("reshape callback",
@@ -501,7 +496,7 @@ CAMLprim value ml_egl_main_loop(egl_context ctxt)
 	 event.xclient.window == window &&
 	 event.xclient.data.l[0] == wmDeleteMessage)
 	{
-	  if(ctxt->delete_callback == ctxt->default_callback)
+	  if(ctxt->delete_callback == Val_unit)
 	    ctxt->main_loop_continue = 0 ;
 	  else
 	    {
@@ -513,7 +508,7 @@ CAMLprim value ml_egl_main_loop(egl_context ctxt)
     case KeyPress:
       if(event.xkey.display == display &&
 	 event.xkey.window == window &&
-	 ctxt->key_press_callback != ctxt->default_callback)
+	 ctxt->key_press_callback != Val_unit)
 	{
 	  KeySym keysym ;
 	  XLookupString(&(event.xkey), NULL, 0, &keysym, NULL) ;
@@ -531,7 +526,7 @@ CAMLprim value ml_egl_main_loop(egl_context ctxt)
     case KeyRelease:
       if(event.xkey.display == display &&
 	 event.xkey.window == window &&
-	 ctxt->key_release_callback != ctxt->default_callback)
+	 ctxt->key_release_callback != Val_unit)
 	{
 	  KeySym keysym ;
 	  XLookupString(&(event.xkey), NULL, 0, &keysym, NULL) ;
@@ -549,7 +544,7 @@ CAMLprim value ml_egl_main_loop(egl_context ctxt)
     case ButtonPress:
       if(event.xbutton.display == display &&
 	 event.xbutton.window == window &&
-	 ctxt->button_press_callback != ctxt->default_callback)
+	 ctxt->button_press_callback != Val_unit)
 	{
 	  egl_button eglbut = x11_button_to_egl(event.xbutton.button);
 	  egl_mod eglmod = x11_state_to_egl(event.xkey.state);
@@ -566,7 +561,7 @@ CAMLprim value ml_egl_main_loop(egl_context ctxt)
     case ButtonRelease:
       if(event.xbutton.display == display &&
 	 event.xbutton.window == window &&
-	 ctxt->button_release_callback != ctxt->default_callback)
+	 ctxt->button_release_callback != Val_unit)
 	{
 	  egl_button eglbut = x11_button_to_egl(event.xbutton.button);
 	  egl_mod eglmod = x11_state_to_egl(event.xkey.state);
@@ -583,7 +578,7 @@ CAMLprim value ml_egl_main_loop(egl_context ctxt)
     case MotionNotify:
       if(event.xmotion.display == display &&
 	 event.xmotion.window == window &&
-	 ctxt->motion_notify_callback != ctxt->default_callback)
+	 ctxt->motion_notify_callback != Val_unit)
 	{
 	  value ml_state = Val_int(event.xkey.state);
 	  value ml_x = Val_int(event.xmotion.x);
@@ -597,8 +592,7 @@ CAMLprim value ml_egl_main_loop(egl_context ctxt)
     default: break ;
     }
   }
-  ctxt->main_loop_reentrant = 0 ;
-
   caml_acquire_runtime_system();
+  atomic_store(&ctxt->main_loop_reentrant, 0) ;
   CAMLreturn(Val_unit) ;
 }

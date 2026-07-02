@@ -23,7 +23,7 @@
 extern platform_context malloc_platform_context(egl_context ctxt);
 extern void free_platform_ressources(egl_context ctxt);
 extern void init_platform_ressources(egl_context ctxt, const char* name);
-extern value ml_egl_main_loop(egl_context ctxt);
+extern value ml_egl_main_loop(value v);
 extern void egl_platform_lost(egl_context ctxt);
 
 #endif

@@ -393,10 +393,10 @@ static void keyboard_key(void *data,
   value vy = Val_int(pctxt->mouse_y);
 
   if (state == WL_KEYBOARD_KEY_STATE_PRESSED &&
-      ctxt->key_press_callback != ctxt->default_callback)
+      ctxt->key_press_callback != Val_unit)
     protect_callback4("key press",
 		      &(ctxt->key_press_callback), &vk, &vm, &vx, &vy);
-  else if (ctxt->key_release_callback != ctxt->default_callback)
+  else if (ctxt->key_release_callback != Val_unit)
     protect_callback4("key release",
 		      &(ctxt->key_release_callback), &vk, &vm, &vx, &vy);
 }
@@ -468,7 +468,7 @@ static void pointer_motion(void *data,
   pctxt->mouse_x = wl_fixed_to_int(sx);
   pctxt->mouse_y = wl_fixed_to_int(sy);
 
-  if (ctxt->motion_notify_callback != ctxt->default_callback) {
+  if (ctxt->motion_notify_callback != Val_unit) {
     value vs = Val_int(xkb_mod_to_egl(pctxt->xkb_state));
     value vx = Val_int(pctxt->mouse_x);
     value vy = Val_int(pctxt->mouse_y);
@@ -498,11 +498,11 @@ static void pointer_button(void *data,
   value vy = Val_int(pctxt->mouse_y);
 
   if (state == WL_POINTER_BUTTON_STATE_PRESSED
-      && ctxt->button_press_callback != ctxt->default_callback)
+      && ctxt->button_press_callback != Val_unit)
     protect_callback4("mouse",
 		      &(ctxt->button_press_callback),
 		      &vb, &vs, &vx, &vy);
-  else if (ctxt->button_release_callback != ctxt->default_callback)
+  else if (ctxt->button_release_callback != Val_unit)
     protect_callback4("mouse",
 		      &(ctxt->button_release_callback),
 		      &vb, &vs, &vx, &vy);
@@ -623,7 +623,7 @@ static void xdg_toplevel_configure(void *data,
 			   ctxt->height,
 			   0, 0);
 
-      if (ctxt->reshape_callback != ctxt->default_callback) {
+      if (ctxt->reshape_callback != Val_unit) {
 	value w = Val_int(ctxt->width);
 	value h = Val_int(ctxt->height);
 
@@ -638,7 +638,7 @@ static void xdg_toplevel_close(void *data,
                                struct xdg_toplevel *toplevel)
 {
   egl_context ctxt = (egl_context) data;
-  if (ctxt->delete_callback == ctxt->default_callback)
+  if (ctxt->delete_callback == Val_unit)
     ctxt->main_loop_continue = 0;
   else {
     value u = Val_unit;
@@ -752,7 +752,7 @@ static void frame_done(void *data,
 			   data);
 
   value u = Val_unit;
-  if (ctxt->idle_callback != ctxt->default_callback) {
+  if (ctxt->idle_callback != Val_unit) {
     protect_callback("idle",
 		     &(ctxt->idle_callback),
 		     &u);
@@ -762,18 +762,19 @@ static const struct wl_callback_listener frame_listener = {
 	.done = frame_done,
 };
 
-CAMLprim value ml_egl_main_loop(egl_context ctxt)
+CAMLprim value ml_egl_main_loop(value vc)
 {
-  CAMLparam0() ;
+  CAMLparam1(vc) ;
+  egl_context ctxt = Val_ctxt(vc);
+
   if(!ctxt->initialized)
     caml_failwith("Egl.main_loop: not initialized") ;
 
-  if(ctxt->main_loop_reentrant)
+  int expected = 0 ;
+  if(!atomic_compare_exchange_strong(&ctxt->main_loop_reentrant, &expected, 1))
     caml_failwith("Egl.main_loop: forbidden reentrant call") ;
-
   caml_release_runtime_system();
   ctxt->main_loop_continue = 1 ;
-  ctxt->main_loop_reentrant = 1 ;
   platform_context pctxt = ctxt->platform;
   struct wl_callback *frame_cb = wl_surface_frame(pctxt->wl_surface);
   wl_callback_add_listener(frame_cb,
@@ -784,7 +785,7 @@ CAMLprim value ml_egl_main_loop(egl_context ctxt)
   while (ctxt->main_loop_continue) {
     wl_display_dispatch(ctxt->platform_display);
   }
-  ctxt->main_loop_reentrant = 0 ;
   caml_acquire_runtime_system();
+  atomic_store(&ctxt->main_loop_reentrant, 0) ;
   CAMLreturn(Val_unit) ;
 }

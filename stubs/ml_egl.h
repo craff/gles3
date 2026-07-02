@@ -20,6 +20,8 @@
 #define ML_EGL_H
 
 #include <EGL/egl.h>
+#include <caml/memory.h>
+#include <stdatomic.h>
 
 typedef struct platform_context_struct *platform_context;
 
@@ -33,9 +35,8 @@ typedef struct egl_context_struct {
   int width;
   int height;
   int initialized;
-  int main_loop_reentrant;
+  atomic_int main_loop_reentrant;
   int main_loop_continue;
-  value default_callback;
   value idle_callback;
   value reshape_callback;
   value delete_callback;
@@ -46,6 +47,8 @@ typedef struct egl_context_struct {
   value motion_notify_callback;
   platform_context platform;
 } *egl_context;
+
+#define Val_ctxt(v) (*((egl_context *) Data_custom_val(v)))
 
 extern void egl_connection_lost(egl_context);
 extern void init_fail(egl_context, const char*);

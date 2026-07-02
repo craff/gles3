@@ -45,15 +45,14 @@ let default_config =
 (****************************************************************************)
 
 external initialize_aux :
-    ('a -> 'b) -> config -> int -> int -> string -> egl_context
+    config -> int -> int -> string -> egl_context
     = "ml_egl_initialize"
 
 external make_current : egl_context -> unit = "ml_egl_make_current" [@@noalloc]
 external detach : egl_context -> unit = "ml_egl_detach" [@@noalloc]
-let no_callback _ = assert false
 
 let initialize ?(config=default_config) ~width ~height name =
-  initialize_aux no_callback config width height name
+  initialize_aux config width height name
 
 external terminate : egl_context -> unit = "ml_egl_terminate"
 
