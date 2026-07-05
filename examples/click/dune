@@ -1,0 +1,51 @@
+(rule
+ (target click_x11.ml)
+ (action (write-file %{target} "include Click")))
+
+(rule
+ (target click_wayland.ml)
+ (action (write-file %{target} "include Click")))
+
+(rule
+ (target fragment_index.ml)
+ (deps shaders/fragment_index.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target fragment_light.ml)
+ (deps shaders/fragment_light.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target vertex_index.ml)
+ (deps shaders/vertex_index.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(rule
+ (target vertex_light.ml)
+ (deps shaders/vertex_light.glsl)
+ (action
+  (with-stdout-to %{target}
+   (run glsl_to_ml %{deps}))))
+
+(executable
+ (name click_x11)
+ (public_name click_x11)
+ (modules click_x11 click fragment_index  fragment_light  vertex_index  vertex_light  )
+ (flags (:standard -w -6))
+ (libraries gles3 gles3-x11)
+ (package gles3))
+
+(executable
+ (name click_wayland)
+ (public_name click_wayland)
+ (modules click_wayland click fragment_index  fragment_light  vertex_index  vertex_light  )
+ (flags (:standard -w -6))
+ (libraries gles3 gles3-wayland)
+ (package gles3))
