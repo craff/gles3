@@ -15,7 +15,7 @@ let gl_ubyte = GL_UNSIGNED_BYTE
 let gl_byte = GL_BYTE
 let gl_ushort = GL_UNSIGNED_SHORT
 let gl_short = GL_SHORT
-let gl_uint = GL_UNSIGNED_INT
+let gl_uint = GL_UNSIGNED_INT (* no unsigned 32 bit elements *)
 let gl_int = GL_INT
 let gl_half_float = GL_HALF_FLOAT
 let gl_float = GL_FLOAT
@@ -70,6 +70,11 @@ let sh_int_vec2 : int_type = GL_INT_VEC2
 let sh_int_vec3 : int_type = GL_INT_VEC3
 let sh_int_vec4 : int_type = GL_INT_VEC4
 
+let sh_uint      : int_type = GL_UNSIGNED_INT
+let sh_uint_vec2 : int_type = GL_UNSIGNED_INT_VEC2
+let sh_uint_vec3 : int_type = GL_UNSIGNED_INT_VEC3
+let sh_uint_vec4 : int_type = GL_UNSIGNED_INT_VEC4
+
 let sh_bool      : bool_type = GL_BOOL
 let sh_bool_vec2 : bool_type = GL_BOOL_VEC2
 let sh_bool_vec3 : bool_type = GL_BOOL_VEC3
@@ -89,15 +94,19 @@ let sh_sampler_cube      : sampler_type = GL_SAMPLER_CUBE
 
 let tysize : 'a gl_type -> int = function
   | x when x = sh_int -> 1
+  | x when x = sh_uint -> 1
   | x when x = sh_float -> 1
   | x when x = sh_bool -> 1
   | x when x = sh_int_vec2 -> 2
+  | x when x = sh_uint_vec2 -> 2
   | x when x = sh_float_vec2 -> 2
   | x when x = sh_bool_vec2 -> 2
   | x when x = sh_int_vec3 -> 3
+  | x when x = sh_uint_vec3 -> 3
   | x when x = sh_float_vec3 -> 3
   | x when x = sh_bool_vec3 -> 3
   | x when x = sh_int_vec4 -> 4
+  | x when x = sh_uint_vec4 -> 4
   | x when x = sh_float_vec4 -> 4
   | x when x = sh_bool_vec4 -> 4
   | x when x = sh_float_mat2 -> 4
@@ -144,13 +153,22 @@ let gl_texture_cube_map_negative_y = GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
 let gl_texture_cube_map_positive_z = GL_TEXTURE_CUBE_MAP_POSITIVE_Z
 let gl_texture_cube_map_negative_z = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
 
-type ('a,'b) imf = int
-type internal_fmt
-type image_fmt
-type buffer_fmt
-type internal_image_format = (image_fmt, internal_fmt) imf
-type renderbuffer_format = (buffer_fmt, internal_fmt) imf
-type image_format = (image_fmt, image_fmt) imf
+type ('a, 'b, 'c) format = int
+type ('a, 'b, 'c) texture_format = ([> `Texture] as 'a, 'b, 'c) format
+type ('a, 'b, 'c) image_format = ([> `Image] as 'a, 'b, 'c) format
+type ('a, 'b, 'c) renderbuffer_format = ([> `Buffer] as 'a, 'b, 'c) format
+
+
+let gl_depth_component16 = GL_DEPTH_COMPONENT16
+let gl_depth_component24 = GL_DEPTH_COMPONENT24
+let gl_depth_component32f = GL_DEPTH_COMPONENT32F
+let gl_depth24_stencil8 = GL_DEPTH24_STENCIL8
+let gl_depth32f_stencil8 = GL_DEPTH32F_STENCIL8
+let gl_stencil_index8 = GL_STENCIL_INDEX8
+
+let gl_alpha = GL_ALPHA
+let gl_luminance = GL_LUMINANCE
+let gl_luminance_alpha = GL_LUMINANCE_ALPHA
 
 let gl_red = GL_RED
 let gl_red_integer = GL_RED_INTEGER
@@ -162,38 +180,55 @@ let gl_rgba_integer = GL_RGBA_INTEGER
 let gl_depth_component = GL_DEPTH_COMPONENT
 let gl_depth_stencil = GL_DEPTH_STENCIL
 let gl_stencil_index = GL_STENCIL_INDEX
-let gl_alpha = GL_ALPHA
-let gl_luminance = GL_LUMINANCE
-let gl_luminance_alpha = GL_LUMINANCE_ALPHA
-
-let gl_depth_component16 = GL_DEPTH_COMPONENT16
-let gl_depth_component24 = GL_DEPTH_COMPONENT24
-let gl_depth_component32f = GL_DEPTH_COMPONENT32F
-let gl_depth24_stencil8 = GL_DEPTH24_STENCIL8
-let gl_depth32f_stencil8 = GL_DEPTH32F_STENCIL8
-let gl_stencil_index8 = GL_STENCIL_INDEX8
 
 let gl_r8 = GL_R8
-let gl_r8i = GL_R8I
+let gl_r8_snorm = GL_R8_SNORM
+let gl_r16f = GL_R16F
+let gl_r32f = GL_R32F
 let gl_r8ui = GL_R8UI
-let gl_r16i = GL_R8I
+let gl_r8i = GL_R8I
 let gl_r16ui = GL_R8UI
-let gl_r32i = GL_R8I
+let gl_r16i = GL_R8I
 let gl_r32ui = GL_R8UI
+let gl_r32i = GL_R8I
+
 let gl_rg8 = GL_RG8
+let gl_rg8_snorm = GL_RG8_SNORM
+let gl_rg16f = GL_RG16F
+let gl_rg32f = GL_RG32F
 let gl_rg8i = GL_RG8I
 let gl_rg8ui = GL_RG8UI
 let gl_rg16i = GL_RG16I
 let gl_rg16ui = GL_RG16UI
 let gl_rg32i = GL_RG32I
 let gl_rg32ui = GL_RG32UI
+
 let gl_rgb8 = GL_RGB8
+let gl_srgb8 = GL_SRGB8
 let gl_rgb565 = GL_RGB565
+let gl_rgb8_snorm = GL_RGB8_SNORM
+let gl_r11f_g11f_b10f = GL_R11F_G11F_B10F
+let gl_rgb9_e5 = GL_RGB9_E5
+let gl_rgb16f = GL_RGB16F
+let gl_rgb32f = GL_RGB32F
+let gl_rgb8ui = GL_RGB8UI
+let gl_rgb8i = GL_RGB8I
+let gl_rgb16ui = GL_RGB16UI
+let gl_rgb16i = GL_RGB16I
+let gl_rgb32ui = GL_RGB32UI
+let gl_rgb32i = GL_RGB32I
+
 let gl_rgba8 = GL_RGBA8
 let gl_srgb8_alpha8 = GL_SRGB8_ALPHA8
+let gl_rgba8_snorm = GL_RGBA8_SNORM
 let gl_rgb5_a1 = GL_RGB5_A1
 let gl_rgba4 = GL_RGBA4
 let gl_rgb10_a2 = GL_RGB10_A2
+let gl_rgba16f = GL_RGBA16F
+let gl_rgba32f = GL_RGBA32F
+let gl_rgba8i = GL_RGBA8I
+let gl_rgba8ui = GL_RGBA8UI
+let gl_rgb10_a2ui = GL_RGB10_A2UI
 let gl_rgba16i = GL_RGBA16I
 let gl_rgba16ui = GL_RGBA16UI
 let gl_rgba32i = GL_RGBA32I

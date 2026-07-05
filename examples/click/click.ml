@@ -159,9 +159,8 @@ let draw_index ~w ~h ~x ~y =
   clear [ gl_depth_buffer ];
   clear_buffer_uiv [| 0 |];
   draw_cube iprg !window_ratio (Unix.gettimeofday ());
-  let image = Gles3.{ width= 1; height= 1;
-                format= gl_rgba32f;
-                data = to_float_bigarray [| 0.; 0.; 0.; 0. |] } in
+  let image = build_image ~width:1 ~height:1 ~format:gl_rgba32f
+                ~data:(to_float_bigarray [| 0.; 0.; 0.; 0. |]) in
   Gles3.read_pixels ~x ~y image;
   bind_framebuffer gl_framebuffer null_framebuffer;
   disable gl_scissor_test;

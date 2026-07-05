@@ -42,10 +42,21 @@ let to_uint_bigarray a =
   let res = create_uint_bigarray (Array.length a) in
   Array.iteri (fun i x -> Bigarray.Genarray.set res [|i|] (Int32.of_int x)) a;
   res
+let to_int_bigarray = to_uint_bigarray
+let to_ulong_bigarray a =
+  let res = create_ulong_bigarray (Array.length a) in
+  Array.iteri (fun i x -> Bigarray.Genarray.set res [|i|] x) a;
+  res
+let to_int_bigarray = to_uint_bigarray
+let to_half_float_bigarray a =
+  let res = create_half_float_bigarray (Array.length a) in
+  Array.iteri (fun i x -> Bigarray.Genarray.set res [|i|] x) a;
+  res
 let to_float_bigarray a =
   let res = create_float_bigarray (Array.length a) in
   Array.iteri (fun i x -> Bigarray.Genarray.set res [|i|] x) a;
   res
+
 
 type ('a, 'b) buffer = {
   index : Gles3.buffer;
@@ -93,7 +104,11 @@ let create_short_element_buffer = create_element_buffer create_short_bigarray gl
 let create_ushort_array_buffer = create_array_buffer create_ushort_bigarray gl_ushort
 let create_ushort_element_buffer = create_element_buffer create_ushort_bigarray gl_ushort
 let create_uint_array_buffer = create_array_buffer create_uint_bigarray gl_uint
+let create_int_array_buffer = create_array_buffer create_int_bigarray gl_int
 let create_uint_element_buffer = create_element_buffer create_uint_bigarray gl_uint
+let create_int_element_buffer = create_element_buffer create_uint_bigarray gl_int
+let create_half_float_array_buffer = create_array_buffer create_half_float_bigarray gl_half_float
+let create_half_float_element_buffer = create_element_buffer create_half_float_bigarray gl_half_float
 let create_float_array_buffer = create_array_buffer create_float_bigarray gl_float
 let create_float_element_buffer = create_element_buffer create_float_bigarray gl_float
 
@@ -141,6 +156,8 @@ let to_ubyte_array_buffer = to_array_buffer to_ubyte_bigarray gl_ubyte
 let to_short_array_buffer = to_array_buffer to_short_bigarray gl_short
 let to_ushort_array_buffer = to_array_buffer to_ushort_bigarray gl_ushort
 let to_uint_array_buffer = to_array_buffer to_uint_bigarray gl_uint
+let to_int_array_buffer = to_uint_array_buffer
+let to_half_float_array_buffer = to_array_buffer to_half_float_bigarray gl_half_float
 let to_float_array_buffer = to_array_buffer to_float_bigarray gl_float
 
 let to_byte_element_buffer = to_element_buffer to_byte_bigarray gl_byte
@@ -148,4 +165,6 @@ let to_ubyte_element_buffer = to_element_buffer to_ubyte_bigarray gl_ubyte
 let to_short_element_buffer = to_element_buffer to_short_bigarray gl_short
 let to_ushort_element_buffer = to_element_buffer to_ushort_bigarray gl_ushort
 let to_uint_element_buffer = to_element_buffer to_uint_bigarray gl_uint
+let to_int_element_buffer = to_uint_element_buffer
+let to_half_float_element_buffer = to_element_buffer to_half_float_bigarray gl_half_float
 let to_float_element_buffer = to_element_buffer to_float_bigarray gl_float

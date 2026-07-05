@@ -177,60 +177,86 @@ module Type : sig
   val eq_tex_parameter
       : 'a texture_parameter -> 'b texture_parameter -> ('a,'b) eq_type
 
-  type ('a,'b) imf
-  type internal_fmt
-  type image_fmt
-  type buffer_fmt
-  type internal_image_format = (image_fmt, internal_fmt) imf
-  type renderbuffer_format = (buffer_fmt, internal_fmt) imf
-  type image_format = (image_fmt, image_fmt) imf
+  type ('a, 'b, 'c) format
+  type ('a, 'b, 'c) texture_format = ([> `Texture] as 'a, 'b, 'c) format
+  type ('a, 'b, 'c) image_format = ([> `Image] as 'a, 'b, 'c) format
+  type ('a, 'b, 'c) renderbuffer_format = ([> `Buffer] as 'a, 'b, 'c) format
 
-  val gl_red : (image_fmt,'a) imf
-  val gl_red_integer : (image_fmt,'a) imf
-  val gl_rg : (image_fmt,'a) imf
-  val gl_rg_integer : (image_fmt,'a) imf
-  val gl_rgb : (image_fmt,'a) imf
-  val gl_rgba : (image_fmt,'a) imf
-  val gl_rgba_integer : (image_fmt,'a) imf
-  val gl_depth_component : (image_fmt,'a) imf
-  val gl_depth_stencil : (image_fmt,'a) imf
-  val gl_stencil_index : (image_fmt,'a) imf
-  val gl_alpha : (image_fmt,'a) imf
-  val gl_luminance : (image_fmt,'a) imf
-  val gl_luminance_alpha : (image_fmt,'a) imf
+  open Bigarray
+  val gl_depth_component16 : ([`Image|`Buffer], int, int16_unsigned_elt) format
+  val gl_depth_component24 : ([`Image|`Buffer], int32, int32_elt) format
+  val gl_depth_component32f : ([`Image|`Buffer], float, float32_elt) format
+  val gl_depth24_stencil8 : ([`Image|`Buffer], int32, int32_elt) format
+  val gl_depth32f_stencil8 : ([`Image|`Buffer], int64, int64_elt)  format
+  val gl_stencil_index8 : ([`Buffer], int, int8_unsigned_elt) format
 
-  val gl_depth_component16 : ('a, internal_fmt) imf
-  val gl_depth_component24 : ('a, internal_fmt) imf
-  val gl_depth_component32f : ('a, internal_fmt) imf
-  val gl_depth24_stencil8 : ('a, internal_fmt) imf
-  val gl_depth32f_stencil8 : ('a, internal_fmt) imf
-  val gl_stencil_index8 : ('a, internal_fmt) imf
+  val gl_alpha :([`Texture|`Image], int, int8_unsigned_elt) format
+  val gl_luminance : ([`Texture|`Image], int, int8_unsigned_elt) format
+  val gl_luminance_alpha :([`Texture|`Image], int, int8_unsigned_elt) format
+(*
+  val gl_red : ([], int, int8_unsigned_elt) format
+  val gl_red_integer : ([], int, int8_unsigned_elt) format
+  val gl_rg : ([], int, int8_unsigned_elt) format
+  val gl_rg_integer : ([], int, int8_unsigned_elt) format*)
+  val gl_rgb : ([`Texture|`Image], int, int8_unsigned_elt) format
+  val gl_rgba : ([`Texture|`Image], int, int8_unsigned_elt) format
+(*  val gl_rgba_integer : ([], int, int8_unsigned_elt) format
+  val gl_depth_component : ([], int, int8_unsigned_elt) format
+  val gl_depth_stencil : ([], int, int8_unsigned_elt) format
+  val gl_stencil_index : ([], int, int8_unsigned_elt) format*)
 
-  val gl_r8 : (buffer_fmt, internal_fmt) imf
-  val gl_r8i : (buffer_fmt, internal_fmt) imf
-  val gl_r8ui : (buffer_fmt, internal_fmt) imf
-  val gl_r16i : (buffer_fmt, internal_fmt) imf
-  val gl_r16ui : (buffer_fmt, internal_fmt) imf
-  val gl_r32i : (buffer_fmt, internal_fmt) imf
-  val gl_r32ui : (buffer_fmt, internal_fmt) imf
-  val gl_rg8 : (buffer_fmt, internal_fmt) imf
-  val gl_rg8i : (buffer_fmt, internal_fmt) imf
-  val gl_rg8ui : (buffer_fmt, internal_fmt) imf
-  val gl_rg16i : (buffer_fmt, internal_fmt) imf
-  val gl_rg16ui : (buffer_fmt, internal_fmt) imf
-  val gl_rg32i : (buffer_fmt, internal_fmt) imf
-  val gl_rg32ui : (buffer_fmt, internal_fmt) imf
-  val gl_rgb8 : (buffer_fmt, internal_fmt) imf
-  val gl_rgb565 : (buffer_fmt, internal_fmt) imf
-  val gl_rgba8 : (buffer_fmt, internal_fmt) imf
-  val gl_srgb8_alpha8 : (buffer_fmt, internal_fmt) imf
-  val gl_rgb5_a1 : (buffer_fmt, internal_fmt) imf
-  val gl_rgba4 : (buffer_fmt, internal_fmt) imf
-  val gl_rgb10_a2 : (buffer_fmt, internal_fmt) imf
-  val gl_rgba16i : (buffer_fmt, internal_fmt) imf
-  val gl_rgba16ui : (buffer_fmt, internal_fmt) imf
-  val gl_rgba32i : (buffer_fmt, internal_fmt) imf
-  val gl_rgba32ui : (buffer_fmt, internal_fmt) imf
+  val gl_r8 : ([`Texture|`Image|`Buffer], int, int8_unsigned_elt) format
+  val gl_r8_snorm : ([`Texture|`Image], int, int8_unsigned_elt) format
+  val gl_r16f : ([`Image], float, float16_elt) format
+  val gl_r32f : ([`Image], float, float32_elt) format
+  val gl_r8ui : ([`Texture|`Image|`Buffer], int, int8_unsigned_elt) format
+  val gl_r8i : ([`Texture|`Image|`Buffer], int, int8_unsigned_elt) format
+  val gl_r16ui : ([`Texture|`Image|`Buffer], int, int16_unsigned_elt) format
+  val gl_r16i : ([`Texture|`Image|`Buffer], int, int16_unsigned_elt) format
+  val gl_r32ui : ([`Texture|`Image|`Buffer], int32, int32_elt) format
+  val gl_r32i : ([`Texture|`Image|`Buffer], int32, int32_elt) format
+
+  val gl_rg8 : ([`Texture|`Image|`Buffer], int, int8_unsigned_elt) format
+  val gl_rg8_snorm : ([`Image], int, int8_unsigned_elt) format
+  val gl_rg16f : ([`Image], float, float16_elt) format
+  val gl_rg32f : ([`Image], float, float32_elt) format
+  val gl_rg8ui : ([`Texture|`Image|`Buffer], int, int8_unsigned_elt) format
+  val gl_rg8i : ([`Texture|`Image|`Buffer], int, int8_unsigned_elt) format
+  val gl_rg16ui : ([`Texture|`Image|`Buffer], int, int16_unsigned_elt) format
+  val gl_rg16i : ([`Texture|`Image|`Buffer], int, int16_unsigned_elt) format
+  val gl_rg32ui : ([`Texture|`Image|`Buffer], int32, int32_elt) format
+  val gl_rg32i : ([`Texture|`Image|`Buffer], int32, int32_elt) format
+
+  val gl_rgb8 : ([`Texture|`Image|`Buffer], int, int8_unsigned_elt) format
+  val gl_srgb8 : ([`Texture|`Image], int, int8_unsigned_elt) format
+  val gl_rgb565 : ([`Texture|`Image|`Buffer], int, int16_unsigned_elt) format
+  val gl_rgb8_snorm : ([`Texture|`Image], int, int8_unsigned_elt) format
+  val gl_r11f_g11f_b10f : ([`Image], float, float16_elt) format
+  val gl_rgb9_e5 : ([`Image], float, float16_elt) format
+  val gl_rgb16f : ([`Image], float, float16_elt) format
+  val gl_rgb32f : ([`Image], float, float32_elt) format
+  val gl_rgb8ui : ([`Texture|`Image], int, int8_unsigned_elt) format
+  val gl_rgb8i : ([`Texture|`Image], int, int8_unsigned_elt) format
+  val gl_rgb16ui : ([`Texture|`Image], int, int16_unsigned_elt) format
+  val gl_rgb16i : ([`Texture|`Image], int, int16_unsigned_elt) format
+  val gl_rgb32ui : ([`Texture|`Image], int32, int32_elt) format
+  val gl_rgb32i : ([`Texture|`Image], int32, int32_elt) format
+
+  val gl_rgba8 : ([`Texture|`Image|`Buffer], int, int8_unsigned_elt) format
+  val gl_srgb8_alpha8 : ([`Texture|`Image|`Buffer], int, int32_elt) format
+  val gl_rgba8_snorm : ([`Image], int, int8_unsigned_elt) format
+  val gl_rgb5_a1 : ([`Texture|`Image|`Buffer], int, int16_unsigned_elt) format
+  val gl_rgba4 : ([`Texture|`Image|`Buffer], int, int16_unsigned_elt) format
+  val gl_rgb10_a2 : ([`Texture|`Image|`Buffer], int32, int32_elt) format
+  val gl_rgba16f : ([`Image], float, float16_elt) format
+  val gl_rgba32f : ([`Image], float, float32_elt) format
+  val gl_rgba8ui : ([`Texture|`Image|`Buffer], int, int8_unsigned_elt) format
+  val gl_rgba8i : ([`Texture|`Image|`Buffer], int, int8_unsigned_elt) format
+  val gl_rgb10_a2ui : ([`Texture|`Image|`Buffer], int32, int32_elt) format
+  val gl_rgba16i : ([`Texture|`Image|`Buffer], int, int16_unsigned_elt) format
+  val gl_rgba16ui : ([`Texture|`Image|`Buffer], int, int16_unsigned_elt) format
+  val gl_rgba32i : ([`Texture|`Image|`Buffer], int, int32_elt) format
+  val gl_rgba32ui : ([`Texture|`Image|`Buffer], int32, int32_elt) format
 
   type cmp_func
   val gl_never : cmp_func
@@ -349,13 +375,21 @@ type ubyte_bigarray = (int, int8_unsigned_elt, c_layout) Genarray.t
 type short_bigarray = (int, int16_signed_elt, c_layout) Genarray.t
 type ushort_bigarray = (int, int16_unsigned_elt, c_layout) Genarray.t
 type uint_bigarray = (int32, int32_elt, c_layout) Genarray.t
+type int_bigarray = (int32, int32_elt, c_layout) Genarray.t
+type half_float_bigarray = (float, float16_elt, c_layout) Genarray.t
 type float_bigarray = (float, float32_elt, c_layout) Genarray.t
+type ulong_bigarray = (int64, int64_elt, c_layout) Genarray.t
+type long_bigarray = (int64, int64_elt, c_layout) Genarray.t
 
 val create_byte_bigarray : int -> byte_bigarray
 val create_ubyte_bigarray : int -> ubyte_bigarray
 val create_short_bigarray : int -> short_bigarray
 val create_ushort_bigarray : int -> ushort_bigarray
 val create_uint_bigarray : int -> uint_bigarray
+val create_int_bigarray : int -> int_bigarray
+val create_ulong_bigarray : int -> ulong_bigarray
+val create_long_bigarray : int -> long_bigarray
+val create_half_float_bigarray : int -> half_float_bigarray
 val create_float_bigarray : int -> float_bigarray
 
 val create_mmapped_byte_bigarray : int -> byte_bigarray
@@ -363,6 +397,10 @@ val create_mmapped_ubyte_bigarray : int -> ubyte_bigarray
 val create_mmapped_short_bigarray : int -> short_bigarray
 val create_mmapped_ushort_bigarray : int -> ushort_bigarray
 val create_mmapped_uint_bigarray : int -> uint_bigarray
+val create_mmapped_int_bigarray : int -> int_bigarray
+val create_mmapped_ulong_bigarray : int -> ulong_bigarray
+val create_mmapped_long_bigarray : int -> long_bigarray
+val create_mmapped_half_float_bigarray : int -> half_float_bigarray
 val create_mmapped_float_bigarray : int -> float_bigarray
 
 (****************************************************************************)
@@ -452,6 +490,8 @@ val get_buffer_size : target:'a buffer_target -> int
 
 val get_buffer_usage : target:'a buffer_target -> buffer_usage
 
+val read_buffer : buffer_attachment -> unit
+
 (****************************************************************************)
 (** {b  SHADERS}                                                            *)
 (****************************************************************************)
@@ -479,7 +519,7 @@ val get_shader_compile_status : shader -> bool
 (** {b PROGRAMS  }                                                          *)
 (****************************************************************************)
 
-type program = int
+type program
 
 val null_program : program
 val int_of_program : program -> int
@@ -601,28 +641,35 @@ val generate_mipmap : target:texture_target -> unit
 (**  {b TEXTURE IMAGES }                                                    *)
 (****************************************************************************)
 
-type image = {
+type ('a,'b,'c) image = private {
     width : int ;
     height : int ;
-    format : image_format ;
-    data : ubyte_bigarray
+    format : ('a, 'b, 'c) image_format ;
+    data : ('b, 'c, c_layout) Genarray.t
   }
 
+(** raise [Failure "build_image: invalid size"] if the size of the image is incorrect *)
+val build_image : width:int -> height:int
+                  -> format:([> `Image ] as 'a, 'b, 'c) image_format
+                  -> data:('b, 'c, c_layout) Genarray.t -> ('a, 'b, 'c) image
+
 val tex_image_2d :
-    target:texture_image_target -> ?level:int -> image -> unit
+    target:texture_image_target -> ?level:int -> (_,_,_) image -> unit
 
 val tex_null_image_2d :
-    target:texture_image_target -> ?level:int -> int -> int -> internal_image_format -> unit
+  target:texture_image_target -> ?level:int -> int -> int ->
+  (_, _,_) image_format -> unit
 
 val tex_sub_image_2d :
     target:texture_image_target -> ?level:int ->
-    ?xoffset:int -> ?yoffset:int -> image -> unit
+    ?xoffset:int -> ?yoffset:int -> (_,_,_) image -> unit
 
 type rectangle = int * int * int * int  (* x, y, width, height *)
 
+
 val copy_tex_image_2d :
     target:texture_image_target -> ?level:int ->
-    format:image_format -> rectangle -> unit
+    format:(_,_,_) texture_format -> rectangle -> unit
 
 val copy_tex_sub_image_2d :
     target:texture_image_target -> ?level:int ->
@@ -687,7 +734,11 @@ val clear_color : rgba -> unit
 val clear_depth : float -> unit
 val clear_stencil : int -> unit
 
-val read_pixels : x:int -> y:int -> image -> unit
+val clear_buffer_uiv : int array -> unit
+
+(** Note: all format are not supprted, this is implementation dependent.
+    This can be queried with glGet and GL_IMPLEMENTATION_COLOR_READ_FORMAT.*)
+val read_pixels : x:int -> y:int -> (_,_,_) image -> unit
 
 (****************************************************************************)
 (**  {b RENDERBUFFERS   }                                                   *)
@@ -711,7 +762,7 @@ val draw_buffers : buffer_attachment array -> unit
 val bind_renderbuffer : target:renderbuffer_target -> renderbuffer -> unit
 
 val renderbuffer_storage :
-    target:renderbuffer_target -> format:renderbuffer_format ->
+    target:renderbuffer_target -> format:(_,_,_) renderbuffer_format ->
     width:int -> height:int -> unit
 
 (****************************************************************************)

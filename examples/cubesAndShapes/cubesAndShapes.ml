@@ -38,6 +38,9 @@ let light_shader =
    [ of_string gl_vertex_shader   Vertex_light_with_shadow.str;
      of_string gl_fragment_shader Fragment_light_with_shadow.str; ])
 
+(** we compile the shader with Shaders.compile *)
+let prg = compile light_shader
+
 let implicit_shadow_shader =
   ("implicit_shadow_shader",
    [ of_string gl_vertex_shader Vertex_implicit_shadow.str;
@@ -56,8 +59,6 @@ let light_implicit_shader =
      of_string gl_fragment_shader Fragment_light_implicit_with_shadow.str;
    ])
 
-(** we compile the shader with Shaders.compile *)
-let prg = compile light_shader
 let iprg = compile light_implicit_shader
 
 (** after compilation, prg : unit program ... It can only be used
@@ -202,13 +203,13 @@ let tex_coordinates = to_float_array_buffer gl_static_draw
 let prg = buffer_cst_attr prg "in_tex_coordinates" tex_coordinates
 
 (** a very 4x4 texture *)
-let image = {
-    width=4; height=4;format=gl_luminance;
-    data=to_ubyte_bigarray [|128;128;255;255;
+let image = build_image
+    ~width:4 ~height:4 ~format:gl_luminance
+    ~data:(to_ubyte_bigarray [|128;128;255;255;
 			     128;128;255;255;
 			     255;255;128;128;
-			     255;255;128;128|]
-}
+			     255;255;128;128;|])
+
 
 (** tranformed to a texture *)
 let texture = image_to_texture2d image [texture_min_filter gl_nearest;

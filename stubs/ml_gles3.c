@@ -186,68 +186,63 @@ ML_1U(glEnableVertexAttribArray, intnat) ;
 ML_1(glDisableVertexAttribArray, Int_val) ;
 ML_1U(glDisableVertexAttribArray, intnat) ;
 
-CAMLprim value ml_glVertexAttribBytePointer(value vi, value vs, value vn,
+CAMLprim value ml_glVertexAttribBytePointer(value vi, value vs,
 					    value vr, value vd)
 {
   CAMLparam1(vd) ;
   GLint index = Int_val(vi) ;
   GLint size = Int_val(vs) ;
-  GLboolean norm = Bool_val(vn) ;
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
-  glVertexAttribPointer(index, size, GL_BYTE, norm, stride, data) ;
+  glVertexAttribIPointer(index, size, GL_BYTE, stride, data) ;
   CAMLreturn(Val_unit) ;
 }
 
-CAMLprim value ml_glVertexAttribUBytePointer(value vi, value vs, value vn,
+CAMLprim value ml_glVertexAttribUBytePointer(value vi, value vs,
 					     value vr, value vd)
 {
   CAMLparam1(vd) ;
   GLint index = Int_val(vi) ;
   GLint size = Int_val(vs) ;
-  GLboolean norm = Bool_val(vn) ;
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
-  glVertexAttribPointer(index, size, GL_UNSIGNED_BYTE, norm, stride, data) ;
+  glVertexAttribIPointer(index, size, GL_UNSIGNED_BYTE, stride, data) ;
   CAMLreturn(Val_unit) ;
 }
 
-CAMLprim value ml_glVertexAttribShortPointer(value vi, value vs, value vn,
+CAMLprim value ml_glVertexAttribShortPointer(value vi, value vs,
 					     value vr, value vd)
 {
   CAMLparam1(vd) ;
   GLint index = Int_val(vi) ;
   GLint size = Int_val(vs) ;
-  GLboolean norm = Bool_val(vn) ;
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
-  glVertexAttribPointer(index, size, GL_SHORT, norm, stride, data) ;
+  glVertexAttribIPointer(index, size, GL_SHORT, stride, data) ;
   CAMLreturn(Val_unit) ;
 }
 
-CAMLprim value ml_glVertexAttribUShortPointer(value vi, value vs, value vn,
+CAMLprim value ml_glVertexAttribUShortPointer(value vi, value vs,
 					      value vr, value vd)
 {
   CAMLparam1(vd) ;
   GLint index = Int_val(vi) ;
   GLint size = Int_val(vs) ;
-  GLboolean norm = Bool_val(vn) ;
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
-  glVertexAttribPointer(index, size, GL_UNSIGNED_SHORT, norm, stride, data) ;
+  glVertexAttribIPointer(index, size, GL_UNSIGNED_SHORT, stride, data) ;
   CAMLreturn(Val_unit) ;
 }
 
-CAMLprim value ml_glVertexAttribUIntPointer(value vi, value vs, value vn,
+CAMLprim value ml_glVertexAttribUIntPointer(value vi, value vs,
 					     value vr, value vd)
 {
   CAMLparam1(vd) ;
   GLint index = Int_val(vi) ;
   GLint size = Int_val(vs) ;
-  GLboolean norm = Bool_val(vn) ;
   GLsizei stride = Int_val(vr) ;
   void *data = Caml_ba_data_val(vd) ;
-  glVertexAttribPointer(index, size, GL_UNSIGNED_INT, norm, stride, data) ;
+  glVertexAttribIPointer(index, size, GL_UNSIGNED_INT, stride, data) ;
   CAMLreturn(Val_unit) ;
 }
 
@@ -450,6 +445,9 @@ CAMLprim value ml_glGetBufferUsage(value vt)
   glGetBufferParameteriv(target, GL_BUFFER_USAGE, &param) ;
   CAMLreturn(Val_int(param)) ;
 }
+
+ML_1(glReadBuffer, Int_val);
+ML_1U(glReadBuffer, intnat);
 
 /****************************************************************************/
 /*   SHADERS                                                                */
@@ -957,34 +955,172 @@ static int pixel_bsize(GLenum format)
 static GLenum format_from_internal(GLenum format)
 {
   switch(format) {
-  case GL_ALPHA: return GL_ALPHA ;
   case GL_RGB: return GL_RGB ;
   case GL_RGBA: return GL_RGBA ;
   case GL_LUMINANCE: return GL_LUMINANCE ;
   case GL_LUMINANCE_ALPHA: return GL_LUMINANCE_ALPHA;
+  case GL_ALPHA: return GL_ALPHA ;
+
   case GL_DEPTH_COMPONENT16:
   case GL_DEPTH_COMPONENT24:
+  case GL_DEPTH_COMPONENT32F:
     return GL_DEPTH_COMPONENT;
   case GL_DEPTH24_STENCIL8:
+  case GL_DEPTH32F_STENCIL8:
     return GL_DEPTH_STENCIL;
+  case GL_STENCIL_INDEX8: return GL_STENCIL_INDEX;
+
+  /* formats "sized" normalisés (échantillonnés comme des floats en shader) */
+  case GL_R8:
+  case GL_R8_SNORM:
+  case GL_R16F:
+  case GL_R32F:
+    return GL_RED;
+  case GL_R8UI:
+  case GL_R16UI:
+  case GL_R32UI:
+  case GL_R8I:
+  case GL_R16I:
+  case GL_R32I:
+    return GL_RED_INTEGER;
+
+  case GL_RG8:
+  case GL_RG8_SNORM:
+  case GL_RG16F:
+  case GL_RG32F:
+    return GL_RG;
+  case GL_RG8UI:
+  case GL_RG16UI:
+  case GL_RG32UI:
+  case GL_RG8I:
+  case GL_RG16I:
+  case GL_RG32I:
+    return GL_RG_INTEGER;
+
+  case GL_RGB8:
+  case GL_SRGB8:
+  case GL_RGB565:
+  case GL_RGB8_SNORM:
+  case GL_R11F_G11F_B10F:
+  case GL_RGB9_E5:
+  case GL_RGB16F:
+  case GL_RGB32F:
+    return GL_RGB;
+
+  case GL_RGB8UI:
+  case GL_RGB16UI:
+  case GL_RGB32UI:
+  case GL_RGB8I:
+  case GL_RGB16I:
+  case GL_RGB32I:
+    return GL_RGB_INTEGER;
+
+  case GL_RGBA8:
+  case GL_SRGB8_ALPHA8:
+  case GL_RGBA8_SNORM:
+  case GL_RGB5_A1:
+  case GL_RGBA4:
+  case GL_RGB10_A2:
+  case GL_RGBA16F:
+  case GL_RGBA32F:
+    return GL_RGBA;
+
+  case GL_RGBA8UI:
+  case GL_RGBA16UI:
+  case GL_RGBA32UI:
+  case GL_RGB10_A2UI:
+  case GL_RGBA8I:
+  case GL_RGBA16I:
+  case GL_RGBA32I:
+    return GL_RGBA_INTEGER;
   }
-  return 0 ;
+  GLES_FAIL("missing case in format_from_internal");
 }
 
 static GLenum type_from_internal(GLenum format)
 {
   switch(format) {
-  case GL_ALPHA: return GL_UNSIGNED_BYTE ;
   case GL_RGB: return GL_UNSIGNED_BYTE ;
   case GL_RGBA: return GL_UNSIGNED_BYTE ;
   case GL_LUMINANCE: return GL_UNSIGNED_BYTE ;
   case GL_LUMINANCE_ALPHA: return GL_UNSIGNED_BYTE;
+  case GL_ALPHA: return GL_UNSIGNED_BYTE ;
+
   case GL_DEPTH_COMPONENT16: return GL_UNSIGNED_SHORT;
-  case GL_DEPTH_COMPONENT24:
-  case GL_DEPTH24_STENCIL8:
+  case GL_DEPTH_COMPONENT24: return GL_UNSIGNED_INT;
+  case GL_DEPTH_COMPONENT32F: return GL_FLOAT;
+  case GL_DEPTH24_STENCIL8: return GL_UNSIGNED_INT_24_8;
+  case GL_DEPTH32F_STENCIL8: return GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+  case GL_STENCIL_INDEX8: return GL_UNSIGNED_BYTE;
+
+  case GL_R8:
+  case GL_R8UI:
+  case GL_RG8:
+  case GL_RG8UI:
+  case GL_RGB8:
+  case GL_SRGB8:
+  case GL_RGB8UI:
+  case GL_RGBA8:
+  case GL_SRGB8_ALPHA8:
+  case GL_RGBA8UI:
+    return GL_UNSIGNED_BYTE;
+
+  case GL_R16F:
+  case GL_RG16F:
+  case GL_RGB16F:
+  case GL_RGBA16F:
+    return GL_HALF_FLOAT;
+
+  case GL_R32F:
+  case GL_RG32F:
+  case GL_RGB32F:
+  case GL_RGBA32F:
+    return GL_FLOAT;
+
+    return GL_UNSIGNED_BYTE;
+
+  case GL_R16UI:
+  case GL_RG16UI:
+  case GL_RGB16UI:
+  case GL_RGBA16UI:
+    return GL_UNSIGNED_SHORT;
+
+  case GL_R32UI:
+  case GL_RG32UI:
+  case GL_RGB32UI:
+  case GL_RGBA32UI:
     return GL_UNSIGNED_INT;
+
+  case GL_R8_SNORM:
+  case GL_RG8_SNORM:
+  case GL_RGB8_SNORM:
+  case GL_RGBA8_SNORM:
+  case GL_R8I:
+  case GL_RG8I:
+  case GL_RGB8I:
+  case GL_RGBA8I:
+    return GL_BYTE;
+
+  case GL_R16I:
+  case GL_RG16I:
+  case GL_RGB16I:
+  case GL_RGBA16I:
+    return GL_SHORT;
+
+  case GL_R32I:
+  case GL_RG32I:
+  case GL_RGB32I:
+  case GL_RGBA32I:
+    return GL_INT;
+
+  case GL_RGB565:      return GL_UNSIGNED_SHORT_5_6_5;
+  case GL_RGB5_A1:      return GL_UNSIGNED_SHORT_5_5_5_1;
+  case GL_RGBA4:         return GL_UNSIGNED_SHORT_4_4_4_4;
+  case GL_RGB10_A2:
+  case GL_RGB10_A2UI:   return GL_UNSIGNED_INT_2_10_10_10_REV;
+  case GL_R11F_G11F_B10F: return GL_UNSIGNED_INT_10F_11F_11F_REV;
   }
-  return 0 ;
+  GLES_FAIL("missing case in typeè_from_internal");
 }
 
 CAMLprim value ml_glTexImage2D(value vt, value vl, value vimg)
@@ -995,13 +1131,15 @@ CAMLprim value ml_glTexImage2D(value vt, value vl, value vimg)
   GLint level = Int_val(vl) ;
   GLint width = Int_val(Field(vimg, 0)) ;
   GLint height = Int_val(Field(vimg, 1)) ;
-  GLenum format = Int_val(Field(vimg, 2)) ;
+  GLenum internal_format = Int_val(Field(vimg, 2)) ;
+  GLenum format = format_from_internal(internal_format);
+  GLenum type = type_from_internal(internal_format);
   ba = Field(vimg, 3) ;
   if(Caml_ba_data_bsize_val(ba) < width * height * pixel_bsize(format))
     GLES_FAIL("tex_image_2d: too few data bytes") ;
   void *data = Caml_ba_data_val(ba) ;
-  glTexImage2D(target, level, format, width, height, 0,
-	       format, GL_UNSIGNED_BYTE, data) ;
+  glTexImage2D(target, level, internal_format, width, height, 0,
+	       format, type, data) ;
   CAMLreturn(Val_unit) ;
 }
 
@@ -1031,13 +1169,15 @@ CAMLprim value ml_glTexSubImage2D(value vt, value vl,
   GLint yoffset = Int_val(vy) ;
   GLint width = Int_val(Field(vimg, 0)) ;
   GLint height = Int_val(Field(vimg, 1)) ;
-  GLenum format = Int_val(Field(vimg, 2)) ;
+  GLenum internal_format = Int_val(Field(vimg, 2)) ;
+  GLenum format = format_from_internal(internal_format);
+  GLenum type = type_from_internal(internal_format);
   ba = Field(vimg, 3) ;
   if(Caml_ba_data_bsize_val(ba) < width * height * pixel_bsize(format))
     GLES_FAIL("tex_image_2d: too few data bytes") ;
   void *data = Caml_ba_data_val(ba) ;
   glTexSubImage2D(target, level, xoffset, yoffset, width, height,
-	       format, GL_UNSIGNED_BYTE, data) ;
+	       format, type, data) ;
   CAMLreturn(Val_unit) ;
 }
 
@@ -1164,6 +1304,16 @@ ML_1U(glClearDepthf, double) ;
 ML_1(glClearStencil, Int_val) ;
 ML_1U(glClearStencil, intnat) ;
 
+CAMLprim value ml_glClearBufferuiv(value vv) {
+  CAMLparam1(vv);
+  GLsizei i, count = Wosize_val(vv) ;
+  GLuint tmp[count] ;
+  for(i = 0; i < count; i++)
+    tmp[i] = (GLuint) Int_val(Field(vv, i)) ;
+  glClearBufferuiv(GL_COLOR, 0, tmp);
+  CAMLreturn(Val_unit);
+}
+
 CAMLprim value ml_glReadPixels(value vx, value vy, value vimg)
 {
   CAMLparam1(vimg) ;
@@ -1172,12 +1322,14 @@ CAMLprim value ml_glReadPixels(value vx, value vy, value vimg)
   GLint y = Int_val(vy) ;
   GLint width = Int_val(Field(vimg, 0)) ;
   GLint height = Int_val(Field(vimg, 1)) ;
-  GLenum format = Int_val(Field(vimg, 2)) ;
+  GLenum internal_format = Int_val(Field(vimg, 2)) ;
+  GLenum format = format_from_internal(internal_format);
+  GLenum type = type_from_internal(internal_format);
   ba = Field(vimg, 3) ;
   if(Caml_ba_data_bsize_val(ba) < width * height * pixel_bsize(format))
     GLES_FAIL("read_pixels: too few data bytes") ;
   void *data = Caml_ba_data_val(ba) ;
-  glReadPixels(x, y, width, height, format, GL_UNSIGNED_BYTE, data) ;
+  glReadPixels(x, y, width, height, format, type, data) ;
   CAMLreturn(Val_unit) ;
 }
 
@@ -1193,7 +1345,7 @@ CAMLprim value ml_glGenRenderbuffer()
   CAMLparam0() ;
   GLuint buf ;
   glGenRenderbuffers(1, &buf) ;
-  CAMLreturn(Val_unit) ;
+  CAMLreturn(Val_int(buf)) ;
 }
 
 CAMLprim value ml_glGenRenderbuffers(value vn)

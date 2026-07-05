@@ -19,18 +19,56 @@
 (* gles3.ml: implementation of Gles2 library                                *)
 (****************************************************************************)
 
-(*** Bigarray types ***)
 module Type = Gles3_type
 
 open Type
 open Bigarray
 
+
+(****************************************************************************)
+(* Error managment                                                          *)
+(****************************************************************************)
+
+let error_to_string = function
+  | x when x = gl_no_error -> "no_error"
+  | x when x = gl_invalid_enum -> "invalid_enum"
+  | x when x = gl_invalid_framebuffer_operation -> "invalid_framebuffer_operation"
+  | x when x = gl_invalid_value -> "invalid_value"
+  | x when x = gl_invalid_operation -> "invalid_operation"
+  | x when x = gl_out_of_memory -> "out_of_memory"
+  | _ -> "unknown gl error"
+
+external get_error : unit -> (error [@untagged])
+  = "ml_glGetError" "mlU_glGetError" [@@noalloc]
+
+let rec show_errors msg =
+  let error = get_error () in
+  if error <> gl_no_error then (
+    Printf.eprintf "error %s during draw %s\n%!" (error_to_string error) msg;
+    show_errors msg)
+
+let failwith_errors msg =
+  let rec fn acc =
+    let error = get_error () in
+    if error <> gl_no_error then
+      fn (error_to_string error::acc)
+    else acc
+  in
+  let errors = fn [] in
+  let msg = msg ^ ":" ^ (String.concat ", " errors) in
+  failwith msg
+
+(*** Bigarray types ***)
 type byte_bigarray = (int, int8_signed_elt, c_layout) Genarray.t
 type ubyte_bigarray = (int, int8_unsigned_elt, c_layout) Genarray.t
 type short_bigarray = (int, int16_signed_elt, c_layout) Genarray.t
 type ushort_bigarray = (int, int16_unsigned_elt, c_layout) Genarray.t
 type uint_bigarray = (int32, int32_elt, c_layout) Genarray.t
+type int_bigarray = (int32, int32_elt, c_layout) Genarray.t
+type half_float_bigarray = (float, float16_elt, c_layout) Genarray.t
 type float_bigarray = (float, float32_elt, c_layout) Genarray.t
+type ulong_bigarray = (int64, int64_elt, c_layout) Genarray.t
+type long_bigarray = (int64, int64_elt, c_layout) Genarray.t
 
 let create_byte_bigarray len
   = Genarray.create int8_signed c_layout [|len|]
@@ -42,6 +80,12 @@ let create_ushort_bigarray len
   = Genarray.create int16_unsigned c_layout [|len|]
 let create_uint_bigarray len
   = Genarray.create int32 c_layout [|len|]
+let create_int_bigarray = create_uint_bigarray
+let create_ulong_bigarray len
+  = Genarray.create int64 c_layout [|len|]
+let create_long_bigarray = create_ulong_bigarray
+let create_half_float_bigarray len
+  = Genarray.create float16 c_layout [|len|]
 let create_float_bigarray len
   = Genarray.create float32 c_layout [|len|]
 
@@ -64,6 +108,12 @@ let create_mmapped_ushort_bigarray len
   = Unix.map_file (tempfd ()) int16_unsigned c_layout true [|len|]
 let create_mmapped_uint_bigarray len
   = Unix.map_file (tempfd ()) int32 c_layout true [|len|]
+let create_mmapped_int_bigarray = create_mmapped_uint_bigarray
+let create_mmapped_ulong_bigarray len
+  = Unix.map_file (tempfd ()) int64 c_layout true [|len|]
+let create_mmapped_long_bigarray = create_mmapped_ulong_bigarray
+let create_mmapped_half_float_bigarray len
+  = Unix.map_file (tempfd ()) float16 c_layout true [|len|]
 let create_mmapped_float_bigarray len
   = Unix.map_file (tempfd ()) float32 c_layout true [|len|]
 
@@ -105,42 +155,42 @@ external disable_vertex_attrib_array
       "mlU_glDisableVertexAttribArray" [@@noalloc]
 
 external vertex_attrib_byte_pointer_aux
-         : index:int -> size:int -> norm:bool ->
+         : index:int -> size:int ->
            stride:int -> byte_bigarray -> unit
   = "ml_glVertexAttribBytePointer" [@@noalloc]
 
 let vertex_attrib_byte_pointer ~index ~size ?(norm=false) ?(stride=0) a =
-  vertex_attrib_byte_pointer_aux ~index ~size ~norm ~stride a
+  vertex_attrib_byte_pointer_aux ~index ~size ~stride a
 
 external vertex_attrib_ubyte_pointer_aux
-         : index:int -> size:int -> norm:bool ->
+         : index:int -> size:int ->
            stride:int -> ubyte_bigarray -> unit
   = "ml_glVertexAttribUBytePointer" [@@noalloc]
 
 let vertex_attrib_ubyte_pointer ~index ~size ?(norm=false) ?(stride=0) a =
-  vertex_attrib_ubyte_pointer_aux ~index ~size ~norm ~stride a
+  vertex_attrib_ubyte_pointer_aux ~index ~size ~stride a
 
 external vertex_attrib_short_pointer_aux
-         : index:int -> size:int -> norm:bool ->
+         : index:int -> size:int ->
            stride:int -> short_bigarray -> unit
   = "ml_glVertexAttribShortPointer" [@@noalloc]
 
 let vertex_attrib_short_pointer ~index ~size ?(norm=false) ?(stride=0) a =
-  vertex_attrib_short_pointer_aux ~index ~size ~norm ~stride a
+  vertex_attrib_short_pointer_aux ~index ~size ~stride a
 
 external vertex_attrib_ushort_pointer_aux
-         : int -> int -> bool -> int -> ushort_bigarray -> unit
+         : int -> int -> int -> ushort_bigarray -> unit
   = "ml_glVertexAttribUShortPointer" [@@noalloc]
 
 let vertex_attrib_ushort_pointer ~index ~size ?(norm=false) ?(stride=0) a =
-  vertex_attrib_ushort_pointer_aux index size norm stride a
+  vertex_attrib_ushort_pointer_aux index size stride a
 
 external vertex_attrib_uint_pointer_aux
-         : int -> int -> bool -> int -> uint_bigarray -> unit
+         : int -> int -> int -> uint_bigarray -> unit
   = "ml_glVertexAttribUIntPointer" [@@noalloc]
 
 let vertex_attrib_uint_pointer ~index ~size ?(norm=false) ?(stride=0) a =
-  vertex_attrib_uint_pointer_aux index size norm stride a
+  vertex_attrib_uint_pointer_aux index size stride a
 
 external vertex_attrib_float_pointer_aux
          :index:int -> size:int -> norm:bool ->
@@ -235,6 +285,10 @@ external get_buffer_size : target:'a buffer_target -> int
 
 external get_buffer_usage : target:'a buffer_target -> buffer_usage
   = "ml_glGetBufferUsage" [@@noalloc]
+
+external read_buffer
+         : buffer_attachment -> unit
+  = "ml_glReadBuffer" "mlU_glReadBuffer" [@@noalloc]
 
 (****************************************************************************)
 (*   SHADERS                                                                *)
@@ -641,20 +695,86 @@ external bind_texture
            (texture [@untagged]) -> unit
   = "ml_glBindTexture" "mlU_glBindTexture" [@@noalloc]
 
-type image = {
+type ('a, 'b, 'c) image = {
     width : int ;
     height : int ;
-    format : image_format ;
-    data : ubyte_bigarray ;
+    format : ('a, 'b, 'c) image_format;
+    data : ('b, 'c, c_layout) Genarray.t;
   }
 
+let pixel_size format = match format with
+  | x when x = gl_depth_component16 -> 1
+  | x when x = gl_depth_component24 -> 1
+  | x when x = gl_depth_component32f -> 1
+  | x when x = gl_depth24_stencil8 -> 1
+  | x when x = gl_depth32f_stencil8 -> 1
+  | x when x = gl_stencil_index8 ->1
+  | x when x = gl_alpha -> 1
+  | x when x = gl_luminance -> 1
+  | x when x = gl_luminance_alpha -> 1
+  | x when x = gl_rgb -> 3
+  | x when x = gl_rgba -> 4
+  | x when x = gl_r8 -> 1
+  | x when x = gl_r8_snorm -> 1
+  | x when x = gl_r16f -> 1
+  | x when x = gl_r32f -> 1
+  | x when x = gl_r8ui -> 1
+  | x when x = gl_r16ui -> 1
+  | x when x = gl_r16i -> 1
+  | x when x = gl_r32ui -> 1
+  | x when x = gl_r32i -> 1
+  | x when x = gl_rg8 -> 2
+  | x when x = gl_rg8_snorm -> 2
+  | x when x = gl_rg16f -> 2
+  | x when x = gl_rg32f -> 2
+  | x when x = gl_rg8ui -> 2
+  | x when x = gl_rg16ui -> 2
+  | x when x = gl_rg16i -> 2
+  | x when x = gl_rg32ui -> 2
+  | x when x = gl_rg32i -> 2
+  | x when x = gl_rgb8 -> 3
+  | x when x = gl_srgb8 -> 3
+  | x when x = gl_rgb565 -> 1 (* int16 *)
+  | x when x = gl_rgb8_snorm -> 3
+  | x when x = gl_r11f_g11f_b10f -> 3 (* 3 x float16 *)
+  | x when x = gl_rgb9_e5 -> 3 (* 3 x float16 transformer with common exponent *)
+  | x when x = gl_rgb16f -> 3
+  | x when x = gl_rgb32f -> 3
+  | x when x = gl_rgb8ui -> 3
+  | x when x = gl_rgb16ui -> 3
+  | x when x = gl_rgb16i -> 3
+  | x when x = gl_rgb32ui -> 3
+  | x when x = gl_rgb32i -> 3
+  | x when x = gl_rgba8 -> 4
+  | x when x = gl_srgb8_alpha8 -> 4
+  | x when x = gl_rgba8_snorm -> 4
+  | x when x = gl_rgb5_a1 -> 1 (* 1 x int16 *)
+  | x when x = gl_rgba4 -> 1 (* 1 x int16 *)
+  | x when x = gl_rgb10_a2 -> 1 (* 1 x int32 *)
+  | x when x = gl_rgba16f -> 4
+  | x when x = gl_rgba32f -> 4
+  | x when x = gl_rgba8ui -> 4
+  | x when x = gl_rgba16ui -> 4
+  | x when x = gl_rgba16i -> 4
+  | x when x = gl_rgba32ui -> 4
+  | x when x = gl_rgba32i -> 4
+  | _ -> assert false
+
+let build_image ~width ~height ~format ~data =
+  let psize = pixel_size format in
+  let expected_size = psize * width * height in
+  let real_size = Array.fold_left ( * ) 1 (Genarray.dims data) in
+  if real_size != expected_size then
+    failwith "build_image: invalid size";
+  { width; height; format; data }
+
 external tex_image_2d_aux
-         : target:texture_image_target -> level:int -> image -> unit
+         : target:texture_image_target -> level:int -> (_,_,_) image -> unit
   = "ml_glTexImage2D" [@@noalloc]
 
 external tex_null_image_2d_aux
          : target:texture_image_target -> level:int -> int -> int ->
-           internal_image_format -> unit
+           (_, _, _) image_format -> unit
   = "ml_glTexNullImage2D" [@@noalloc]
 
 let tex_image_2d ~target ?(level=0) img =
@@ -665,7 +785,7 @@ let tex_null_image_2d ~target ?(level=0) n m iif =
 
 external tex_sub_image_2d_aux
          : target:texture_image_target -> level:int ->
-           xoffset:int -> yoffset:int -> image -> unit
+           xoffset:int -> yoffset:int -> (_, _, _) image -> unit
   = "ml_glTexImage2D" [@@noalloc]
 
 let tex_sub_image_2d ~target ?(level=0) ?(xoffset=0) ?(yoffset=0) img =
@@ -675,7 +795,7 @@ type rectangle = int * int * int * int  (* x, y, width, height *)
 
 external copy_tex_image_2d_aux
          : target:texture_image_target -> level:int ->
-           format:image_format -> rectangle -> unit
+           format:(_,_,_) texture_format -> rectangle -> unit
   = "ml_glCopyTexImage2D" [@@noalloc]
 
 let copy_tex_image_2d ~target ?(level=0) ~format img =
@@ -795,8 +915,16 @@ external clear_depth : (float [@unboxed]) -> unit =
 external clear_stencil : (int [@untagged]) -> unit =
   "ml_glClearStencil" "mlU_glClearStencil" [@@noalloc]
 
-external read_pixels : x:int -> y:int -> image -> unit
+external clear_buffer_uiv : int array -> unit =
+  "ml_glClearBufferuiv" [@@noalloc]
+
+external read_pixels_aux : int -> int -> _ image -> unit
     = "ml_glReadPixels" [@@noalloc]
+
+let read_pixels : x:int -> y:int -> _ image -> unit
+  = fun ~x ~y image ->
+     read_pixels_aux x y image;
+     failwith_errors "read_pixels"
 
 (****************************************************************************)
 (*   RENDERBUFFERS                                                          *)
@@ -831,7 +959,7 @@ external bind_renderbuffer
 
 external renderbuffer_storage
          : target:(renderbuffer_target [@untagged]) ->
-           format:(renderbuffer_format [@untagged])->
+           format:(_ renderbuffer_format [@untagged])->
            width:(int [@untagged]) -> height:(int [@untagged]) -> unit
   = "ml_glRenderbufferStorage" "mlU_glRenderbufferStorage" [@@noalloc]
 
@@ -885,24 +1013,6 @@ external check_framebuffer_status
 (****************************************************************************)
 (*   MISCELLANEOUS                                                          *)
 (****************************************************************************)
-
-let error_to_string = function
-  | x when x = gl_no_error -> "no_error"
-  | x when x = gl_invalid_enum -> "invalid_enum"
-  | x when x = gl_invalid_framebuffer_operation -> "invalid_framebuffer_operation"
-  | x when x = gl_invalid_value -> "invalid_value"
-  | x when x = gl_invalid_operation -> "invalid_operation"
-  | x when x = gl_out_of_memory -> "out_of_memory"
-  | _ -> "unknown gl error"
-
-external get_error : unit -> (error [@untagged])
-  = "ml_glGetError" "mlU_glGetError" [@@noalloc]
-
-let rec show_errors msg =
-  let error = get_error () in
-  if error <> gl_no_error then (
-    Printf.eprintf "error %s during draw %s\n%!" (error_to_string error) msg;
-    show_errors msg)
 
 external get_vendor : unit -> string = "ml_glGetVendor"
 external get_renderer : unit -> string = "ml_glGetRenderer"

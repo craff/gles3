@@ -49,14 +49,22 @@ val gen_gc_texture : unit -> gc_texture
 val gen_gc_framebuffer	: unit -> gc_framebuffer
 val gen_gc_renderbuffer	: unit -> gc_renderbuffer
 
-val image_to_texture2d : image -> ?level:int -> texture_parameter_binding list -> gc_texture
+val image_to_texture2d
+    : _ image -> ?level:int -> texture_parameter_binding list -> gc_texture
 (** transform an image into a 2D texture *)
 
 type framebuffer_texture =
-    { tex : gc_texture; framebuffer : gc_framebuffer }
+  { tex : gc_texture;
+    framebuffer : gc_framebuffer;
+    renderbuffer : gc_renderbuffer;
+  }
 
-val framebuffer_texture : int -> int -> internal_image_format -> texture_parameter_binding list ->
-  framebuffer_texture
+val framebuffer_texture : int -> int -> _ image_format ->
+                          _ renderbuffer_format ->
+                          texture_parameter_binding list ->
+                          framebuffer_texture
 
-val framebuffer_depth_texture : int -> int -> internal_image_format -> texture_parameter_binding list ->
-  framebuffer_texture
+val framebuffer_depth_texture : int -> int ->
+                                _ image_format ->
+                                texture_parameter_binding list ->
+                                framebuffer_texture

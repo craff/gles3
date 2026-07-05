@@ -34,6 +34,9 @@ val idt3 : float array
 val mul : float array -> float array -> float array
 (** multiplication *)
 
+val mulv : float array -> float array -> float array
+(** mutiplication matrix * vector *)
+
 val perspective : float -> float -> float -> float -> float array
 (** [perpective fovy ratio near far] computes a perspective matrix
     using [fovy] as focal angle, [ratio] for the ratio width/height of

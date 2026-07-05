@@ -89,13 +89,7 @@ static void registry_global(void *data,
     pctxt->xdg_wm_base = wl_registry_bind(registry, name,
 				     &xdg_wm_base_interface, 1);
 }
-
-static void registry_remove(void *data,
-                            struct wl_registry *registry,
-                            uint32_t name)
-{
-}
-
+static void registry_remove(void *, struct wl_registry *, uint32_t) {}
 static const struct wl_registry_listener registry_listener =
 {
   registry_global,
@@ -356,19 +350,8 @@ static void keyboard_keymap(void *data,
 
   pctxt->xkb_state = xkb_state_new(pctxt->xkb_keymap);
 }
-static void keyboard_enter(void *data,
-                           struct wl_keyboard *kbd,
-                           uint32_t serial,
-                           struct wl_surface *surface,
-                           struct wl_array *keys)
-{
-}
-static void keyboard_leave(void *data,
-                           struct wl_keyboard *kbd,
-                           uint32_t serial,
-                           struct wl_surface *surface)
-{
-}
+static void keyboard_enter(void *, struct wl_keyboard *, uint32_t,  struct wl_surface *, struct wl_array *) {}
+static void keyboard_leave(void *, struct wl_keyboard *, uint32_t,  struct wl_surface *) {}
 static void keyboard_key(void *data,
                          struct wl_keyboard *kbd,
                          uint32_t serial,
@@ -422,12 +405,7 @@ static void keyboard_modifiers(void *data,
                         0,
                         group);
 }
-static void keyboard_repeat_info(void *data,
-                                 struct wl_keyboard *keyboard,
-                                 int32_t rate,
-                                 int32_t delay)
-{
-}
+static void keyboard_repeat_info(void *, struct wl_keyboard *, int32_t,  int32_t) {}
 static const struct wl_keyboard_listener keyboard_listener =
 {
   keyboard_keymap,
@@ -441,21 +419,6 @@ static const struct wl_keyboard_listener keyboard_listener =
 /* ========================= */
 /* Pointer                  */
 /* ========================= */
-static void pointer_enter(void *data,
-                          struct wl_pointer *pointer,
-                          uint32_t serial,
-                          struct wl_surface *surface,
-                          wl_fixed_t sx,
-                          wl_fixed_t sy)
-{
-}
-
-static void pointer_leave(void *data,
-                          struct wl_pointer *p,
-                          uint32_t serial,
-                          struct wl_surface *surface)
-{
-}
 
 static void pointer_motion(void *data,
                            struct wl_pointer *p,
@@ -507,18 +470,13 @@ static void pointer_button(void *data,
 		      &(ctxt->button_release_callback),
 		      &vb, &vs, &vx, &vy);
 }
-
-static void pointer_axis(void *data,
-                         struct wl_pointer *p,
-                         uint32_t time,
-                         uint32_t axis,
-                         wl_fixed_t value)
-{
-}
-static void pointer_frame(void *data,
-                          struct wl_pointer *p)
-{
-}
+static void pointer_enter(void *, struct wl_pointer *, uint32_t,  struct wl_surface *, wl_fixed_t,  wl_fixed_t) {}
+static void pointer_leave(void *, struct wl_pointer *, uint32_t,  struct wl_surface *) {}
+static void pointer_axis(void *, struct wl_pointer *, uint32_t,  uint32_t,  wl_fixed_t) {}
+static void pointer_frame(void *, struct wl_pointer *) {}
+static void pointer_axis_source(void *, struct wl_pointer *, uint32_t) {}
+static void pointer_axis_stop(void *, struct wl_pointer *, uint32_t,  uint32_t) {}
+static void pointer_axis_discrete(void *, struct wl_pointer *, uint32_t,  int32_t) {}
 static const struct wl_pointer_listener pointer_listener =
 {
     .enter  = pointer_enter,
@@ -527,9 +485,9 @@ static const struct wl_pointer_listener pointer_listener =
     .button = pointer_button,
     .axis   = pointer_axis,
     .frame       = pointer_frame,
-    .axis_source = NULL,
-    .axis_stop   = NULL,
-    .axis_discrete = NULL
+    .axis_source = pointer_axis_source,
+    .axis_stop   = pointer_axis_stop,
+    .axis_discrete = pointer_axis_discrete
 };
 
 
@@ -559,11 +517,7 @@ static void seat_caps(void *data,
                             &pointer_listener, data);
   }
 }
-static void seat_name(void *data,
-                      struct wl_seat *seat,
-                      const char *name)
-{
-}
+static void seat_name(void *, struct wl_seat *, const char *) {}
 static const struct wl_seat_listener seat_listener =
 {
   seat_caps,
@@ -647,10 +601,15 @@ static void xdg_toplevel_close(void *data,
 		     &u);
   }
 }
+void xdg_toplevel_configure_bounds(void *, struct xdg_toplevel *, int32_t,  int32_t) {}
+void xdg_toplevel_wm_capabilities(void *, struct xdg_toplevel *, struct wl_array *) {}
+//static void xdg_toplevel_configure_maximized(...) {}
 static const struct xdg_toplevel_listener xdg_toplevel_listener =
 {
     xdg_toplevel_configure,
-    xdg_toplevel_close
+    xdg_toplevel_close,
+    xdg_toplevel_configure_bounds,
+    xdg_toplevel_wm_capabilities
 };
 
 /* ========================= */

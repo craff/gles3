@@ -39,6 +39,13 @@ let mul m2 m1 =
     m1.(i + 2) *. m2.(4*2 + j) +.
     m1.(i + 3) *. m2.(4*3 + j))
 
+let mulv m2 v1 =
+  Array.init 4 (fun j ->
+    v1.(0) *. m2.(      j) +.
+    v1.(1) *. m2.(4   + j) +.
+    v1.(2) *. m2.(4*2 + j) +.
+    v1.(3) *. m2.(4*3 + j))
+
 let pi = 3.141592653589793
 
 let perspective fovy aspect near far =

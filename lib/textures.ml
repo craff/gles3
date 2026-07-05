@@ -70,7 +70,8 @@ let gen_gc_framebuffer () =
   Gc.finalise (fun _ -> delete_framebuffer buf) res;
   res
 
-let image_to_texture2d : image -> ?level:int -> texture_parameter_binding list -> gc_texture =
+let image_to_texture2d : (_, _, _) image -> ?level:int ->
+                         texture_parameter_binding list -> gc_texture =
   fun image ?(level=0) ls ->
     let tex = gen_gc_texture () in
     active_texture tex.tex_index;
@@ -84,12 +85,15 @@ let image_to_texture2d : image -> ?level:int -> texture_parameter_binding list -
     tex
 
 type framebuffer_texture =
-    { tex : gc_texture; framebuffer : gc_framebuffer }
+  { tex : gc_texture;
+    framebuffer : gc_framebuffer;
+    renderbuffer : gc_renderbuffer;
+  }
 
-let framebuffer_texture width height format ls =
-  let render = gen_renderbuffer () in
-  bind_renderbuffer gl_renderbuffer render;
-  renderbuffer_storage ~target:gl_renderbuffer ~format:gl_depth_component16
+let framebuffer_texture width height format depth_format ls =
+  let render = gen_gc_renderbuffer () in
+  bind_renderbuffer gl_renderbuffer render.renderbuffer_index;
+  renderbuffer_storage ~target:gl_renderbuffer ~format:depth_format
     ~width ~height;
   let tex = gen_gc_texture () in
   active_texture tex.tex_index;
@@ -103,20 +107,27 @@ let framebuffer_texture width height format ls =
   framebuffer_texture_2d ~target:gl_framebuffer ~attach:gl_color_attachment0
     ~target2:gl_texture_2d_target tex.tex_index ~level:0;
   framebuffer_renderbuffer ~target:gl_framebuffer ~attach:gl_depth_attachment
-    ~target2:gl_renderbuffer render;
+    ~target2:gl_renderbuffer render.renderbuffer_index;
 
   let status = check_framebuffer_status gl_framebuffer in
   (match status with
     x when x = gl_framebuffer_complete -> ()
-  | x when x = gl_framebuffer_incomplete_attachment -> failwith "incomplete attachement"
-  | x when x = gl_framebuffer_incomplete_dimensions -> failwith "incomplete dimensions"
+   | x when x = gl_framebuffer_incomplete_attachment ->
+      Printf.eprintf "coucou E1\n%!";
+      failwith "incomplete attachement"
+   | x when x = gl_framebuffer_incomplete_dimensions ->
+      Printf.eprintf "coucou E2\n%!";
+      failwith "incomplete dimensions"
   | x when x = gl_framebuffer_incomplete_missing_attachment -> failwith "missing attachement"
   | x when x = gl_framebuffer_unsupported -> failwith "unsupported"
   | _ -> failwith "unknown attachment status");
 
   bind_framebuffer gl_framebuffer null_framebuffer;
-  let res = {tex; framebuffer = buf} in
-  Gc.finalise (fun _ -> delete_renderbuffer render) res;
+  let res = {
+      tex;
+      framebuffer = buf;
+      renderbuffer = render;
+    } in
   res
 
 let framebuffer_depth_texture width height format ls =
@@ -143,4 +154,7 @@ let framebuffer_depth_texture width height format ls =
   | _ -> failwith "unknown attachment status");
 
   bind_framebuffer gl_framebuffer null_framebuffer;
-  {tex; framebuffer = buf}
+  {tex;
+   framebuffer = buf;
+   renderbuffer = { renderbuffer_index = null_renderbuffer };
+  }
