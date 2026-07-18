@@ -64,9 +64,19 @@ type 'a program = {
   name : string;
   attributes : (string * int * attribute_type * int) list;
   uniforms : (string * int * uniform_type * int) list;
+  nb_textures : int;
   fixed : fixed;
   value : fixed -> (unit -> unit) -> 'a;
 }
+
+let dummy_program = {
+    name = "dummy";
+    attributes= [];
+    uniforms=[];
+    fixed = { program = null_program; init = (fun () -> ())
+              ; clean = fun () -> () };
+    nb_textures = 0;
+    value = fun _ _ -> failwith "using dummy program" }
 
 let last_used_program = ref None
 
@@ -111,8 +121,14 @@ let compile : ?version:string -> ?precision:string -> string * shader list -> un
   in
   let fn ty shaders =
     let header = Printf.sprintf "#version %s\nprecision %s float;\n" version precision in
-    let shader_srcs = Array.of_list (header :: List.mapi (fun i s ->
-      Printf.sprintf "\n#line 1 %d\n" (i+1) ^ s.src) shaders) in
+    let shader_srcs =
+      Array.of_list
+        (header ::
+           List.mapi (fun i s ->
+               Printf.sprintf "\n#line 1 %d\n" (i+1) ^ s.src) shaders)
+    in
+    (*Array.iter (Printf.printf "%s\n%!") shader_srcs;*)
+
     let shader = create_shader ty in
     let _ = shader_source shader shader_srcs in
     let _ = compile_shader shader in
@@ -143,6 +159,7 @@ let compile : ?version:string -> ?precision:string -> string * shader list -> un
     name = prgname;
     attributes = List.sort cmp (get_active_attribs prg);
     uniforms = List.sort cmp (get_active_uniforms prg);
+    nb_textures = 0;
     value = (fun fixed cont -> use_program fixed; cont ())
   } in
   Gc.finalise (fun _ ->
@@ -191,6 +208,10 @@ let assoc_rm name l =
 
 let (//) a b = if a mod b <> 0 then raise Exit; a/b
 
+let debug = ref true
+
+let set_debug b = debug := b
+
 let gen_attr =
   fun (fn : index:int -> size:int -> ?norm:bool -> ?stride:int -> 'b -> unit)
       (prg : 'c program) ?(norm=false) ?(stride=0) (name : string) ->
@@ -220,9 +241,10 @@ let gen_attr =
       { prg with fixed = { prg.fixed with init; clean }; attributes; value }
     with
       Not_found ->
-	Printf.eprintf "WARNING: Useless attributes %s for %s\n%!" name prg.name;
-	let value fixed cont a = prg.value fixed cont in
-	{ prg with value }
+       if !debug then
+         Printf.eprintf "Warning: Useless attributes %s for %s\n%!" name prg.name;
+       let value fixed cont a = prg.value fixed cont in
+       { prg with value }
 
 let gen_cst_attr =
   fun (fn : index:int -> size:int -> ?norm:bool -> ?stride:int -> 'a)
@@ -248,8 +270,9 @@ let gen_cst_attr =
       { prg with attributes; fixed = { prg.fixed with init; clean }}
     with
       Not_found ->
-	Printf.eprintf "WARNING: Useless attributes %s for %s\n%!" name prg.name;
-	prg
+       if !debug then
+         Printf.eprintf "Warning: Useless attributes %s for %s\n%!" name prg.name;
+       prg
 
 let byte_attr = fun prg -> gen_attr vertex_attrib_byte_pointer prg
 let ubyte_attr = fun prg -> gen_attr vertex_attrib_ubyte_pointer prg
@@ -287,9 +310,10 @@ let gen_uniform1
     { prg with uniforms; value }
   with
     Not_found ->
-      Printf.eprintf "ERROR: Useless uniforms %s for %s\n%!" name prg.name;
-      let value fixed cont a = prg.value fixed cont in
-      { prg with value }
+     if !debug then
+       Printf.eprintf "Warning: Useless uniforms %s for %s\n%!" name prg.name;
+     let value fixed cont a = prg.value fixed cont in
+     { prg with value }
 
 let gen_cst_uniform1 = fun ty (fn: loc:int -> 'a -> unit) prg name a ->
   try
@@ -301,8 +325,9 @@ let gen_cst_uniform1 = fun ty (fn: loc:int -> 'a -> unit) prg name a ->
     { prg with uniforms; fixed = { prg.fixed with init } }
   with
     Not_found ->
-      Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
-      prg
+     if !debug then
+       Printf.eprintf "Warning: Useless uniforms %s for %s" name prg.name;
+     prg
 
 let gen_uniform2 = fun ty (fn: loc:int -> 'a -> 'a -> unit) prg name ->
   try
@@ -317,9 +342,10 @@ let gen_uniform2 = fun ty (fn: loc:int -> 'a -> 'a -> unit) prg name ->
     { prg with uniforms; value }
   with
     Not_found ->
-      Printf.eprintf "ERROR: Useless uniforms %s for %s\n%!" name prg.name;
-      let value fixed cont a b = prg.value fixed cont in
-      { prg with value }
+     if !debug then
+       Printf.eprintf "Warning: Useless uniforms %s for %s\n%!" name prg.name;
+     let value fixed cont a b = prg.value fixed cont in
+     { prg with value }
 
 let gen_cst_uniform2 = fun ty (fn: loc:int -> 'a -> 'a -> unit) prg name a b ->
   try
@@ -331,8 +357,9 @@ let gen_cst_uniform2 = fun ty (fn: loc:int -> 'a -> 'a -> unit) prg name a b ->
     { prg with uniforms; fixed = { prg.fixed with init } }
   with
     Not_found ->
-      Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
-      prg
+     if !debug then
+       Printf.eprintf "Warning: Useless uniforms %s for %s" name prg.name;
+     prg
 
 let gen_uniform3 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> unit) prg name ->
   try
@@ -346,9 +373,10 @@ let gen_uniform3 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> unit) prg name ->
     { prg with uniforms; value }
   with
     Not_found ->
-      Printf.eprintf "ERROR: Useless uniforms %s for %s\n%!" name prg.name;
-      let value fixed cont a b c = prg.value fixed cont in
-      { prg with value }
+     if !debug then
+       Printf.eprintf "Warning: Useless uniforms %s for %s\n%!" name prg.name;
+     let value fixed cont a b c = prg.value fixed cont in
+     { prg with value }
 
 let gen_cst_uniform3 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> unit) prg name a b c ->
   try
@@ -360,8 +388,9 @@ let gen_cst_uniform3 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> unit) prg name a
     { prg with uniforms; fixed = { prg.fixed with init }  }
   with
     Not_found ->
-      Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
-      prg
+     if !debug then
+       Printf.eprintf "Warning: Useless uniforms %s for %s" name prg.name;
+     prg
 
 let gen_uniform4 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> 'a -> unit) prg name ->
   try
@@ -375,9 +404,10 @@ let gen_uniform4 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> 'a -> unit) prg name
     { prg with uniforms; value }
   with
     Not_found ->
-      Printf.eprintf "ERROR: Useless uniforms %s for %s\n%!" name prg.name;
-      let value fixed cont a b c d = prg.value fixed cont in
-      { prg with value }
+     if !debug then
+       Printf.eprintf "Warning: Useless uniforms %s for %s\n%!" name prg.name;
+     let value fixed cont a b c d = prg.value fixed cont in
+     { prg with value }
 
 let gen_cst_uniform4 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> 'a -> unit) prg name a b c d ->
   try
@@ -389,8 +419,9 @@ let gen_cst_uniform4 = fun ty (fn: loc:int -> 'a -> 'a -> 'a -> 'a -> unit) prg 
     { prg with uniforms; fixed = { prg.fixed with init } }
   with
     Not_found ->
-      Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
-      prg
+     if !debug then
+       Printf.eprintf "Warning: Useless uniforms %s for %s" name prg.name;
+     prg
 
 let int1_uniform prg name = gen_uniform1 sh_int uniform_1i prg name
 let bool1_uniform prg name = gen_uniform1 sh_bool uniform_1b prg name
@@ -438,9 +469,10 @@ let gen_uniform = fun ty (fn: loc:int -> ?count:int -> 'a array -> unit) prg nam
     { prg with uniforms; value }
   with
     Not_found ->
-      Printf.eprintf "ERROR: Useless uniforms %s for %s\n%!" name prg.name;
-      let value fixed cont a = prg.value fixed cont in
-      { prg with value }
+     if !debug then
+       Printf.eprintf "Warning: Useless uniforms %s for %s\n%!" name prg.name;
+     let value fixed cont a = prg.value fixed cont in
+     { prg with value }
 
 let gen_cst_uniform = fun ty (fn: loc:int -> ?count:int -> 'a array -> unit) prg name a ->
   try
@@ -458,8 +490,9 @@ let gen_cst_uniform = fun ty (fn: loc:int -> ?count:int -> 'a array -> unit) prg
     { prg with uniforms; fixed = { prg.fixed with init } }
   with
     Not_found ->
-      Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
-      prg
+     if !debug then
+       Printf.eprintf "Warning: Useless uniforms %s for %s" name prg.name;
+     prg
 
 let int1v_uniform = fun prg name -> gen_uniform sh_int uniform_1iv prg name
 let int2v_uniform = fun prg name -> gen_uniform sh_int_vec2 uniform_2iv prg name
@@ -508,9 +541,10 @@ let gen_mat_uniform = fun ty (fn: loc:int -> ?count:int -> ?transp:bool -> 'a ar
     { prg with uniforms; value }
   with
     Not_found ->
-      Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
-      let value fixed cont a = prg.value fixed cont in
-      { prg with value }
+     if !debug then
+       Printf.eprintf "Warning: Useless uniforms %s for %s" name prg.name;
+     let value fixed cont a = prg.value fixed cont in
+     { prg with value }
 
 let gen_cst_mat_uniform = fun ty (fn: loc:int -> ?count:int -> ?transp:bool -> 'a array -> unit) prg ?(transp=false)  name a ->
   try
@@ -529,8 +563,9 @@ let gen_cst_mat_uniform = fun ty (fn: loc:int -> ?count:int -> ?transp:bool -> '
     { prg with uniforms; fixed = { prg.fixed with init } }
   with
     Not_found ->
-      Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
-      prg
+     if !debug then
+       Printf.eprintf "Warning: Useless uniforms %s for %s" name prg.name;
+     prg
 
 let float_mat2_uniform = fun prg name -> gen_mat_uniform sh_float_mat2 uniform_matrix_2fv prg name
 let float_mat3_uniform = fun prg name -> gen_mat_uniform sh_float_mat3 uniform_matrix_3fv prg name
@@ -543,6 +578,7 @@ let float_mat4_cst_uniform = fun prg name -> gen_cst_mat_uniform sh_float_mat4 u
 let texture_2d_uniform =
   fun prg name ->
   try
+    let index_texture = prg.nb_textures in
     let (UT ty',_size,index), uniforms = assoc_rm name prg.uniforms in
     let ty = match ty' with
       | x when eq_type x sh_sampler_2d -> gl_texture_2d
@@ -554,25 +590,27 @@ let texture_2d_uniform =
     let value fixed cont texture =
       let cont () =
         (try
-	   active_texture texture.tex_index;
+	   active_texture index_texture;
 	   bind_texture ty texture.tex_index;
-	   uniform_1i index (int_of_texture texture.tex_index)
+	   uniform_1i index index_texture;
          with Failure s ->
 	   failwith (Printf.sprintf "%s for %s in %s" s name prg.name));
         cont ()
       in
       prg.value fixed cont
     in
-    { prg with uniforms; value }
+    { prg with uniforms; value; nb_textures = index_texture + 1 }
   with
     Not_found ->
-      Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
-      let value fixed cont a = prg.value fixed cont in
-      { prg with value }
+     if !debug then
+       Printf.eprintf "Warning: Useless uniforms %s for %s" name prg.name;
+     let value fixed cont a = prg.value fixed cont in
+     { prg with value }
 
 let texture_2d_cst_uniform =
   fun prg name texture ->
   try
+    let index_texture = prg.nb_textures in
     let (UT ty',_size,index), uniforms = assoc_rm name prg.uniforms in
     let ty = match ty' with
       | x when eq_type x sh_sampler_2d -> gl_texture_2d
@@ -583,15 +621,17 @@ let texture_2d_cst_uniform =
     in
     let init () =
       (try
-	 active_texture texture.tex_index;
+	 active_texture index_texture;
 	 bind_texture ty texture.tex_index;
-	 uniform_1i index (int_of_texture texture.tex_index)
+	 uniform_1i index index_texture;
        with Failure s ->
 	 failwith (Printf.sprintf "%s for %s in %s" s name prg.name));
       prg.fixed.init ()
     in
-    { prg with uniforms; fixed = { prg.fixed with init } }
+    { prg with uniforms; fixed = { prg.fixed with init };
+      nb_textures = index_texture + 1}
   with
     Not_found ->
-      Printf.eprintf "ERROR: Useless uniforms %s for %s" name prg.name;
-      prg
+     if !debug then
+       Printf.eprintf "Warning: Useless uniforms %s for %s" name prg.name;
+     prg

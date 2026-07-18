@@ -258,6 +258,8 @@ type blend_mode = int
 let gl_func_add = GL_FUNC_ADD
 let gl_func_subtract = GL_FUNC_SUBTRACT
 let gl_func_reverse_subtract = GL_FUNC_REVERSE_SUBTRACT
+let gl_max = GL_MAX
+let gl_min = GL_MIN
 
 type 'a blend_func = int
 type dst_blend_func = unit blend_func

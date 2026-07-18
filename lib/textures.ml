@@ -74,7 +74,6 @@ let image_to_texture2d : (_, _, _) image -> ?level:int ->
                          texture_parameter_binding list -> gc_texture =
   fun image ?(level=0) ls ->
     let tex = gen_gc_texture () in
-    active_texture tex.tex_index;
     bind_texture gl_texture_2d tex.tex_index;
     let need_mipmap_ref = ref false in
     List.iter (function TPB(param,v) as p ->
@@ -96,7 +95,6 @@ let framebuffer_texture width height format depth_format ls =
   renderbuffer_storage ~target:gl_renderbuffer ~format:depth_format
     ~width ~height;
   let tex = gen_gc_texture () in
-  active_texture tex.tex_index;
   bind_texture gl_texture_2d tex.tex_index;
   List.iter (function TPB(param,v) ->
     tex_parameter gl_texture_2d param v) ls;
@@ -132,7 +130,6 @@ let framebuffer_texture width height format depth_format ls =
 
 let framebuffer_depth_texture width height format ls =
   let tex = gen_gc_texture () in
-  active_texture tex.tex_index;
   bind_texture gl_texture_2d tex.tex_index;
   List.iter (function TPB(param,v) ->
     tex_parameter gl_texture_2d param v) ls;

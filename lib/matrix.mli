@@ -78,3 +78,6 @@ val inverse : float array -> float array
 
 val normalMatrix : float array -> float array
 (** [normalMatrix m] returns the upper left 3x3 matrices in [inverse (transpose m)].*)
+
+val print3 : Format.formatter -> float array -> unit
+val print4 : Format.formatter -> float array -> unit

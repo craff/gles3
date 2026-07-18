@@ -133,6 +133,8 @@ val of_string : shader_type -> string -> shader
     the abstract type of 'a program. *)
 type 'a program
 
+val dummy_program : 'a program (** to initialize refs **)
+
 (** [compile (name, shaders)] compile the givens shaders, the [name] is just
     for clear error messages. It performs both what GLES calls compilation
     and linking.
@@ -157,12 +159,15 @@ type 'a program
     to GLES/OpenGl are the bottle neck of 3D drawing as they correspond to
     exchange of data between the CPU memory and the GPU memory.
 
-    The position of the object (a matrix ?) can be passed as function parameter,
-    transforming our "unit program" into a "(float_bigarray -> unit)" program
-    if your position uses floats.
- *)
+    The position of the object (a matrix ?) can be passed as function
+    parameter, transforming our "unit program" into a "(float_bigarray ->
+    unit)" program if your position uses floats.  *)
 val compile : ?version:string -> ?precision:string ->string * shader list
               -> unit program
+
+val set_debug : bool -> unit
+(** Enable/Disable warnings about useless uniforms or attribute in your
+    shader *)
 
 (** Here are the functions to transform a program into a function, after
     instanciating of turning into parameters all its uniform and attribute

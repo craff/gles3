@@ -688,7 +688,7 @@ external delete_texture : texture -> unit = "ml_glDeleteTexture" [@@noalloc]
 external delete_textures : texture array -> unit
   = "ml_glDeleteTextures" [@@noalloc]
 
-external active_texture : texture -> unit = "ml_glActiveTexture" [@@noalloc]
+external active_texture : int -> unit = "ml_glActiveTexture" [@@noalloc]
 
 external bind_texture
          : target:(texture_target [@untagged]) ->
@@ -697,6 +697,7 @@ external bind_texture
 
 type ('a, 'b, 'c) image = {
     width : int ;
+    alignment : int;
     height : int ;
     format : ('a, 'b, 'c) image_format;
     data : ('b, 'c, c_layout) Genarray.t;
@@ -760,13 +761,17 @@ let pixel_size format = match format with
   | x when x = gl_rgba32i -> 4
   | _ -> assert false
 
-let build_image ~width ~height ~format ~data =
+let build_image ~width ?(alignment=1) ~height ~format data =
   let psize = pixel_size format in
-  let expected_size = psize * width * height in
+  let width' =
+    if width mod alignment = 0 then width
+    else width + alignment - width mod alignment
+  in
+  let expected_size = psize * width' * height in
   let real_size = Array.fold_left ( * ) 1 (Genarray.dims data) in
   if real_size != expected_size then
     failwith "build_image: invalid size";
-  { width; height; format; data }
+  { width; alignment; height; format; data }
 
 external tex_image_2d_aux
          : target:texture_image_target -> level:int -> (_,_,_) image -> unit
@@ -786,7 +791,7 @@ let tex_null_image_2d ~target ?(level=0) n m iif =
 external tex_sub_image_2d_aux
          : target:texture_image_target -> level:int ->
            xoffset:int -> yoffset:int -> (_, _, _) image -> unit
-  = "ml_glTexImage2D" [@@noalloc]
+  = "ml_glTexSubImage2D" [@@noalloc]
 
 let tex_sub_image_2d ~target ?(level=0) ?(xoffset=0) ?(yoffset=0) img =
   tex_sub_image_2d_aux ~target ~level ~xoffset ~yoffset img

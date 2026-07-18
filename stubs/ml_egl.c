@@ -287,9 +287,9 @@ void showConfig(egl_context ctxt) {
   fflush(stdout);
 }
 
-CAMLprim value ml_egl_initialize(value vc, value vw, value vh, value vn)
+CAMLprim value ml_egl_initialize(value vc, value vw, value vh, value vn, value ve)
 {
-  CAMLparam4(vc, vw, vh, vn) ;
+  CAMLparam5(vc, vw, vh, vn, ve) ;
   CAMLlocal1(vctxt);
   vctxt = malloc_egl_context();
   EGLint attribs[20] ;
@@ -299,6 +299,7 @@ CAMLprim value ml_egl_initialize(value vc, value vw, value vh, value vn)
   ctxt->width = Int_val(vw) ;
   ctxt->height = Int_val(vh) ;
   init_platform_ressources(ctxt, String_val(vn));
+  int use_es = Bool_val(ve);
 
   /* Open EGL Display */
   if((ctxt->display = eglGetDisplay(ctxt->platform_display)) == EGL_NO_DISPLAY)
@@ -351,7 +352,7 @@ CAMLprim value ml_egl_initialize(value vc, value vw, value vh, value vn)
   }
 
   bcopy(&(configs[best_i]),&(ctxt->config),sizeof(EGLConfig));
-  free(configs); showConfig(ctxt);
+  free(configs); // showConfig(ctxt);
   /* Create EGL Surface */
   ctxt->surface = eglCreateWindowSurface(ctxt->display,
 					 ctxt->config,
@@ -361,13 +362,15 @@ CAMLprim value ml_egl_initialize(value vc, value vw, value vh, value vn)
     init_fail(ctxt,"cannot create EGL surface") ;
 
   /* Binding the API */
-  if(!eglBindAPI(EGL_OPENGL_ES_API))
+  if(!eglBindAPI(use_es?EGL_OPENGL_ES_API:EGL_OPENGL_API))
     init_fail(ctxt, "cannot bind OpenGL ES API") ;
 
   /* Create EGL context */
+
   attribs[0] = EGL_CONTEXT_CLIENT_VERSION ;
-  attribs[1] = 2 ;
+  attribs[1] = 3 ;
   attribs[2] = EGL_NONE ;
+
   ctxt->context = eglCreateContext(ctxt->display,
 				   ctxt->config,
 				   EGL_NO_CONTEXT,
@@ -375,7 +378,7 @@ CAMLprim value ml_egl_initialize(value vc, value vw, value vh, value vn)
   if(ctxt->context == EGL_NO_CONTEXT)
     init_fail(ctxt, "cannot create EGL context") ;
 
-  /* Binding context with surface */
+  /* Binding context withgit fetch https://plmlab.math.cnrs.fr/phyve/dhnr maingit fetch https://plmlab.math.cnrs.fr/phyve/dhnr maingit fetch https://plmlab.math.cnrs.fr/phyve/dhnr main surface */
   if(!eglMakeCurrent(ctxt->display,
 		     ctxt->surface,
 		     ctxt->surface,

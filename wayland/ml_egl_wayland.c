@@ -405,7 +405,9 @@ static void keyboard_modifiers(void *data,
                         0,
                         group);
 }
-static void keyboard_repeat_info(void *, struct wl_keyboard *, int32_t,  int32_t) {}
+static void keyboard_repeat_info(void *, struct wl_keyboard *, int32_t,  int32_t)
+{
+}
 static const struct wl_keyboard_listener keyboard_listener =
 {
   keyboard_keymap,

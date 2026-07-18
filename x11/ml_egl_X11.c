@@ -27,6 +27,7 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include <X11/XF86keysym.h>
+#include <X11/XKBlib.h>
 #include <caml/misc.h>
 #include <caml/mlvalues.h>
 #include <caml/memory.h>
@@ -100,6 +101,8 @@ void init_platform_ressources(egl_context ctxt, const char* name) {
 	       VisibilityChangeMask|
 	       StructureNotifyMask|KeyPressMask|KeyReleaseMask|ExposureMask|
 	       ButtonPressMask|ButtonReleaseMask|PointerMotionMask) ;
+  XAutoRepeatOff(display);
+  XFlush(display);
   XMapWindow(display, ctxt->platform_window) ;
   XStoreName(display, ctxt->platform_window, name) ;
   display_entry *e = malloc(sizeof(*e));

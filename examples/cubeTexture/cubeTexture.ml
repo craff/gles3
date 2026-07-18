@@ -25,82 +25,12 @@ let _ =
   Printf.eprintf "GLSL Version: %s\n%!" (get_shading_language_version ());
   Printf.eprintf "Extensions: %s\n%!" (get_extensions ())
 
-(** we define our shaders, with the type expected by Shaders.compile.
-   the string are just use to report errors *)
-let light_shader =
-  ("light_shader",
-  [{ name = "vertex_main";
-     ty   = gl_vertex_shader;
-     src  = "
-   uniform mat4 ModelView,Projection;
-
-   uniform vec4 lightDiffuse,lightAmbient,color;
-   uniform vec3 lightPos;
-
-   in vec3 in_position;
-   in vec3 in_normal;
-
-   in vec2 in_tex_coordinates;
-   out vec2 tex_coordinates;
-   out vec4 diffuse,ambient,m_position;
-   out vec3 normal,halfVector;
-
-   void main()
-   {
-     tex_coordinates = in_tex_coordinates;
-     // only works for orthogonal matrices
-     mat3 NormalMatrix=mat3(ModelView[0].xyz,ModelView[1].xyz,ModelView[2].xyz);
-     /* first transform the normal into eye space and
-     normalize the result */
-     normal = normalize(NormalMatrix * in_normal);
-
-     /* pass the halfVector to the fragment shader */
-     m_position = ModelView * vec4(in_position,1.0);
-     halfVector = normalize(lightPos - 2.0 * m_position.xyz);
-
-     /* Compute the diffuse, ambient and globalAmbient terms */
-     diffuse = color * lightDiffuse;
-     ambient = color * lightAmbient;
-     gl_Position = Projection * m_position;
-   }"};
-   { name = "fragment_main";
-     ty   = gl_fragment_shader;
-     src  = "
-   uniform vec3 lightPos;
-   uniform float specular,shininess;
-   uniform sampler2D texture1;
-   in vec3 normal,halfVector;
-   in vec4 diffuse,ambient,m_position;
-   in vec2 tex_coordinates;
-   out vec4 FragColor;
-   void main()
-   {
-     vec3 n,halfV,lightDir;
-     float NdotL,NdotHV;
-
-     lightDir = normalize(lightPos - m_position.xyz);
-
-     /* The ambient term will always be present */
-     vec4 color = ambient;
-     /* a fragment shader can't write a varying variable, hence we need
-     a new variable to store the normalized interpolated normal */
-     n = normalize(normal);
-     /* compute the dot product between normal and ldir */
-
-     NdotL = dot(n,lightDir);
-     if (NdotL > 0.0) {
-        color += diffuse * NdotL;
-        halfV = normalize(halfVector);
-        NdotHV = max(dot(n,halfV),0.0);
-        color += specular * pow(NdotHV, shininess);
-     }
-
-     FragColor=texture(texture1,tex_coordinates)*color;
-    }"};
-  ])
-
-(** we compile the shader with Shaders.compile *)
-let prg = compile light_shader
+(* We load and compile our shaders. *)
+let prg : unit Shaders.program =
+  let open Shaders in
+  let vertex   = of_string gl_vertex_shader  Vertex_light.str  in
+  let fragment = of_string gl_fragment_shader Fragment_light.str in
+  compile ("light_shader", [vertex ; fragment])
 
 (** after compilation, prg : unit program ... It can only be used
    if we set all its uniform and atribute variables *)
@@ -126,14 +56,14 @@ let vertices = to_float_array_buffer gl_static_draw
     0.;1.;0.;
 
     0.;0.;1.;
-    1.;0.;1.;
-    1.;1.;1.;
     0.;1.;1.;
+    1.;1.;1.;
+    1.;0.;1.;
 
     0.;0.;0.;
-    1.;0.;0.;
-    1.;0.;1.;
     0.;0.;1.;
+    1.;0.;1.;
+    1.;0.;0.;
 
     0.;1.;0.;
     1.;1.;0.;
@@ -181,60 +111,78 @@ let normals = to_float_array_buffer gl_static_draw
 (** we set the normals vertices in the shader *)
 let prg = buffer_cst_attr prg "in_normal" normals
 
+(** a very simple 4x4 texture *)
+let texture2 = image_to_texture2d
+                 (build_image
+                    ~width:4 ~height:4 ~format:gl_luminance
+                    (to_ubyte_bigarray [|102;153;204;255;
+			                 153;204;255;102;
+			                 204;255;102;153;
+                                         255;102;153;204;
+                       |]))
+                 [texture_min_filter gl_nearest;
+		  texture_mag_filter gl_nearest;
+		  texture_wrap_s gl_repeat;
+		  texture_wrap_t gl_repeat]
+
+let texture1 =
+  (Freetype.texture_of_text
+    ~font:"/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf"
+    ~size:64 ~alignment:Justify
+    "Hello camllers!\n\n\
+     Gles3 bindings\n\
+     X11+WL backend\n\n\
+     By C. Raffalli")
+
+let x0, x1, y0, y1 =
+  if texture1.width > texture1.height then
+    let d = 0.5 *. (1. -. float texture1.width /. float texture1.height) in
+    (0.,  1., d, 1. -. d)
+  else
+    let d = 0.5 *. (1. -. float texture1.height /. float texture1.width) in
+    (d, 1. -. d, 0., 1.)
+
 (** we define the texture coordinates of each vertex
    above 1 is possible as we use repeat *)
 let tex_coordinates = to_float_array_buffer gl_static_draw
   [|
-    0.;0.;
-    0.;5.;
-    5.;5.;
-    5.;0.;
+    x1;y0;
+    x1;y1;
+    x0;y1;
+    x0;y0;
 
-    0.;5.;
-    5.;5.;
-    5.;0.;
-    0.;0.;
-
-    0.;0.;
-    0.;5.;
-    5.;5.;
-    5.;0.;
-
-    0.;5.;
-    5.;5.;
-    5.;0.;
-    0.;0.;
+    x0;y0;
+    x0;y1;
+    x1;y1;
+    x1;y0;
 
     0.;0.;
-    5.;0.;
-    5.;5.;
-    0.;5.;
+    0.;1.;
+    1.;1.;
+    1.;0.;
 
-    0.;5.;
-    5.;5.;
-    5.;0.;
     0.;0.;
+    0.;1.;
+    1.;1.;
+    1.;0.;
+
+    x0;y0;
+    x0;y1;
+    x1;y1;
+    x1;y0;
+
+    x1;y0;
+    x0;y0;
+    x0;y1;
+    x1;y1;
   |]
 
 (** we set the corresponding attribute variable in the shader *)
 let prg = buffer_cst_attr prg "in_tex_coordinates" tex_coordinates
 
-(** a very 4x4 texture *)
-let image = build_image
-    ~width:4 ~height:4 ~format:gl_luminance
-    ~data:(to_ubyte_bigarray [|128;128;255;255;
-			     128;128;255;255;
-			     255;255;128;128;
-			     255;255;128;128|])
-
-(** tranformed to a texture *)
-let texture = image_to_texture2d image [texture_min_filter gl_nearest;
-					texture_mag_filter gl_nearest;
-					texture_wrap_s gl_repeat;
-					texture_wrap_t gl_repeat]
-
 (** and associated to the corresponding variable *)
-let prg = texture_2d_cst_uniform prg "texture1" texture
+let prg = texture_2d_cst_uniform prg "texture1" texture1.texture
+let prg = texture_2d_cst_uniform prg "texture2" texture2
 
 (** we define the elements (here 12 triangles), as index in the above array *)
 let elements = to_uint_element_buffer gl_static_draw
@@ -268,7 +216,7 @@ let prg : (float array -> float array -> unit) program = float_mat4_uniform prg 
    the projection matrix comes before the modelView *)
 
 (** we se all the remaning uniform variables about lighting *)
-let prg = float4v_cst_uniform prg "color" [|0.0;0.0;1.0;1.0|]
+let prg = float4v_cst_uniform prg "color" [|0.3;0.3;1.0;1.0|]
 let prg = float1_cst_uniform prg "specular" 0.5
 let prg = float1_cst_uniform prg "shininess" 15.
 let prg = float3v_cst_uniform prg "lightPos" lightPos
@@ -291,7 +239,6 @@ let frames = ref 0
 (** the main drawing function, not mush to say, half of it
    if the computation of the frame rates *)
 let draw () =
-
   clear [ gl_color_buffer ; gl_depth_buffer];
   let t = Unix.gettimeofday () in
   dessine_cube t;

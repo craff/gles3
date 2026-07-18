@@ -40,7 +40,8 @@ type config = {
 (**  {b SETUP}                                                              *)
 (****************************************************************************)
 
-val initialize : ?config:config -> width:int -> height:int -> string -> egl_context
+val initialize : ?config:config -> ?es:bool ->
+                 width:int -> height:int -> string -> egl_context
 
 (** make the context current for GLes drawing *)
 val make_current : egl_context -> unit

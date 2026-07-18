@@ -1,10 +1,10 @@
 (rule
- (target cubeTexture_x11.ml)
- (action (write-file %{target} "include CubeTexture")))
+ (target windows_x11.ml)
+ (action (write-file %{target} "include Windows")))
 
 (rule
- (target cubeTexture_wayland.ml)
- (action (write-file %{target} "include CubeTexture")))
+ (target windows_wayland.ml)
+ (action (write-file %{target} "include Windows")))
 
 (rule
  (target fragment_light.ml)
@@ -21,17 +21,17 @@
    (run glsl_to_ml %{deps}))))
 
 (executable
- (name cubeTexture_x11)
- (public_name cubeTexture_x11)
- (modules cubeTexture_x11 cubeTexture fragment_light  vertex_light  )
+ (name windows_x11)
+ (public_name windows_x11)
+ (modules windows_x11 windows fragment_light  vertex_light  )
  (flags (:standard -w -6))
  (libraries gles3 gles3-x11)
  (package gles3))
 
 (executable
- (name cubeTexture_wayland)
- (public_name cubeTexture_wayland)
- (modules cubeTexture_wayland cubeTexture fragment_light  vertex_light  )
+ (name windows_wayland)
+ (public_name windows_wayland)
+ (modules windows_wayland windows fragment_light  vertex_light  )
  (flags (:standard -w -6))
  (libraries gles3 gles3-wayland)
  (package gles3))

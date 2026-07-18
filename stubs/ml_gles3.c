@@ -940,18 +940,6 @@ CAMLprim value ml_glActiveTexture(value vi)
   CAMLreturn(Val_unit) ;
 }
 
-static int pixel_bsize(GLenum format)
-{
-  switch(format) {
-  case GL_ALPHA: return 1 ;
-  case GL_RGB: return 3 ;
-  case GL_RGBA: return 4 ;
-  case GL_LUMINANCE: return 1 ;
-  case GL_LUMINANCE_ALPHA: return 2;
-  }
-  return 0 ;
-}
-
 static GLenum format_from_internal(GLenum format)
 {
   switch(format) {
@@ -1130,14 +1118,14 @@ CAMLprim value ml_glTexImage2D(value vt, value vl, value vimg)
   GLenum target = Int_val(vt) ;
   GLint level = Int_val(vl) ;
   GLint width = Int_val(Field(vimg, 0)) ;
-  GLint height = Int_val(Field(vimg, 1)) ;
-  GLenum internal_format = Int_val(Field(vimg, 2)) ;
+  GLint alignment = Int_val(Field(vimg, 1)) ;
+  GLint height = Int_val(Field(vimg, 2)) ;
+  GLenum internal_format = Int_val(Field(vimg, 3)) ;
   GLenum format = format_from_internal(internal_format);
   GLenum type = type_from_internal(internal_format);
-  ba = Field(vimg, 3) ;
-  if(Caml_ba_data_bsize_val(ba) < width * height * pixel_bsize(format))
-    GLES_FAIL("tex_image_2d: too few data bytes") ;
+  ba = Field(vimg, 4) ;
   void *data = Caml_ba_data_val(ba) ;
+  glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
   glTexImage2D(target, level, internal_format, width, height, 0,
 	       format, type, data) ;
   CAMLreturn(Val_unit) ;
@@ -1163,19 +1151,20 @@ CAMLprim value ml_glTexSubImage2D(value vt, value vl,
 {
   CAMLparam1(vimg) ;
   CAMLlocal1(ba) ;
+
   GLenum target = Int_val(vt) ;
   GLint level = Int_val(vl) ;
   GLint xoffset = Int_val(vx) ;
   GLint yoffset = Int_val(vy) ;
   GLint width = Int_val(Field(vimg, 0)) ;
-  GLint height = Int_val(Field(vimg, 1)) ;
-  GLenum internal_format = Int_val(Field(vimg, 2)) ;
+  GLint alignment = Int_val(Field(vimg, 1)) ;
+  GLint height = Int_val(Field(vimg, 2)) ;
+  GLenum internal_format = Int_val(Field(vimg, 3)) ;
   GLenum format = format_from_internal(internal_format);
   GLenum type = type_from_internal(internal_format);
-  ba = Field(vimg, 3) ;
-  if(Caml_ba_data_bsize_val(ba) < width * height * pixel_bsize(format))
-    GLES_FAIL("tex_image_2d: too few data bytes") ;
+  ba = Field(vimg, 4) ;
   void *data = Caml_ba_data_val(ba) ;
+  glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
   glTexSubImage2D(target, level, xoffset, yoffset, width, height,
 	       format, type, data) ;
   CAMLreturn(Val_unit) ;
@@ -1321,14 +1310,14 @@ CAMLprim value ml_glReadPixels(value vx, value vy, value vimg)
   GLint x = Int_val(vx) ;
   GLint y = Int_val(vy) ;
   GLint width = Int_val(Field(vimg, 0)) ;
-  GLint height = Int_val(Field(vimg, 1)) ;
-  GLenum internal_format = Int_val(Field(vimg, 2)) ;
+  GLint alignment = Int_val(Field(vimg, 1)) ;
+  GLint height = Int_val(Field(vimg, 2)) ;
+  GLenum internal_format = Int_val(Field(vimg, 3)) ;
   GLenum format = format_from_internal(internal_format);
   GLenum type = type_from_internal(internal_format);
-  ba = Field(vimg, 3) ;
-  if(Caml_ba_data_bsize_val(ba) < width * height * pixel_bsize(format))
-    GLES_FAIL("read_pixels: too few data bytes") ;
+  ba = Field(vimg, 4) ;
   void *data = Caml_ba_data_val(ba) ;
+  glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
   glReadPixels(x, y, width, height, format, type, data) ;
   CAMLreturn(Val_unit) ;
 }
@@ -1491,6 +1480,7 @@ CAMLprim value ml_glGetExtensions()
 {
   CAMLparam0() ;
   char *s = (char *)glGetString(GL_EXTENSIONS) ;
+  if (!s) s = "fail to get extensions";
   CAMLreturn(caml_copy_string(s)) ;
 }
 

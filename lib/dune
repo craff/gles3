@@ -14,6 +14,5 @@
  (wrapped false)
  (flags (:standard -w -6-27-32 -thread))
  (ocamlopt_flags (:standard -O3))
- (c_library_flags (:standard -lGLESv2 -lEGL))
  (virtual_modules backend)
  (libraries stdlib-shims str unix bigarray gles3-stubs))

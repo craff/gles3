@@ -282,6 +282,8 @@ module Type : sig
   val gl_func_add : blend_mode
   val gl_func_subtract : blend_mode
   val gl_func_reverse_subtract : blend_mode
+  val gl_max : blend_mode
+  val gl_min : blend_mode
 
   type 'a blend_func
   type dst_blend_func = unit blend_func
@@ -632,7 +634,7 @@ val gen_texture : unit -> texture
 val gen_textures : int -> texture array
 val delete_texture : texture -> unit
 val delete_textures : texture array -> unit
-val active_texture : texture -> unit
+val active_texture : int -> unit
 val bind_texture : target:texture_target -> texture -> unit
 val tex_parameter : target:texture_target -> 'a texture_parameter -> 'a texture_value -> unit
 val generate_mipmap : target:texture_target -> unit
@@ -643,15 +645,16 @@ val generate_mipmap : target:texture_target -> unit
 
 type ('a,'b,'c) image = private {
     width : int ;
+    alignment : int;
     height : int ;
     format : ('a, 'b, 'c) image_format ;
     data : ('b, 'c, c_layout) Genarray.t
   }
 
 (** raise [Failure "build_image: invalid size"] if the size of the image is incorrect *)
-val build_image : width:int -> height:int
+val build_image : width:int -> ?alignment:int -> height:int
                   -> format:([> `Image ] as 'a, 'b, 'c) image_format
-                  -> data:('b, 'c, c_layout) Genarray.t -> ('a, 'b, 'c) image
+                  -> ('b, 'c, c_layout) Genarray.t -> ('a, 'b, 'c) image
 
 val tex_image_2d :
     target:texture_image_target -> ?level:int -> (_,_,_) image -> unit

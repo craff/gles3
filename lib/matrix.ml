@@ -143,18 +143,20 @@ let inverse a =
   let get_b i j = b.(i*4+j) in
   let set_b i j x = b.(i*4+j) <- x in
   for i = 0 to 2 do
-    let k = ref 1 in
-    for j = i to 2 do
-      if abs_float (get_a i j) > abs_float (get_a i !k) then k := j
+    let k = ref i in
+    for j = i+1 to 3 do
+      if abs_float (get_a j i) > abs_float (get_a !k i) then k := j
     done;
     let k = !k in
-    for j = 0 to 3 do
-      let (x,y) = get_a i j, get_a k j in
-      set_a i j y; set_a k j x;
-      let (x,y) = get_b i j, get_b k j in
-      set_b i j y; set_b k j x;
-    done;
+    if i != k then
+      for j = 0 to 3 do
+        let (x,y) = get_a i j, get_a k j in
+        set_a i j y; set_a k j x;
+        let (x,y) = get_b i j, get_b k j in
+        set_b i j y; set_b k j x;
+      done;
     let x = get_a i i in
+    if abs_float x < 1e-12 then failwith "Matrix.inverse failed";
     for j = i+1 to 3 do
       let y = get_a j i in
       let z = y /. x in
@@ -185,10 +187,23 @@ let inverse a =
   b
 
 let normalMatrix m =
-  let m = inverse (transpose m) in
+  let m = transpose (inverse m) in
   [| m.(0); m.(1); m.(2);
      m.(4); m.(5); m.(6);
      m.(8); m.(9); m.(10) |]
+
+let print4 fmt m =
+  Format.fprintf fmt "[[%f %f %f %f][%f %f %f %f][%f %f %f %f][%f %f %f %f]]"
+    m.(0) m.(1) m.(2) m.(3)
+    m.(4) m.(5) m.(6) m.(7)
+    m.(8) m.(9) m.(10) m.(11)
+    m.(12) m.(13) m.(14) m.(15)
+
+let print3 fmt m =
+  Format.fprintf fmt "[[%f %f %f][%f %f %f][%f %f %f]]"
+    m.(0) m.(1) m.(2) m.(3)
+    m.(4) m.(5) m.(6) m.(7)
+    m.(8)
 
 (*
 let test1 () =
