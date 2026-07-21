@@ -161,8 +161,12 @@ val dummy_program : 'a program (** to initialize refs **)
 
     The position of the object (a matrix ?) can be passed as function
     parameter, transforming our "unit program" into a "(float_bigarray ->
-    unit)" program if your position uses floats.  *)
-val compile : ?version:string -> ?precision:string ->string * shader list
+    unit)" program if your position uses floats.
+
+    If debug is true, the produced shader will be printed to stderr.
+ *)
+val compile : ?debug:bool -> ?version:string -> ?precision:string
+              -> string * shader list
               -> unit program
 
 val set_debug : bool -> unit

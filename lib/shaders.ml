@@ -112,8 +112,8 @@ let error_replace (shaders:shader list) msg =
   snd (List.fold_left (fun (i,s) sh -> (i+1, try fn i (sh:shader).name s with _ -> s)) (1,msg) shaders)
 
 exception Compile_error
-let compile : ?version:string -> ?precision:string -> string * shader list -> unit program =
-  fun ?(version="320 es") ?(precision="highp") (prgname, shaders) ->
+let compile : ?debug:bool -> ?version:string -> ?precision:string -> string * shader list -> unit program =
+  fun ?(debug=false) ?(version="320 es") ?(precision="highp") (prgname, shaders) ->
   let prg = create_program () in
   let types = List.sort_uniq compare (List.map (fun s -> s.ty) shaders) in
   let grouped_shaders =
@@ -127,7 +127,8 @@ let compile : ?version:string -> ?precision:string -> string * shader list -> un
            List.mapi (fun i s ->
                Printf.sprintf "\n#line 1 %d\n" (i+1) ^ s.src) shaders)
     in
-    (*Array.iter (Printf.printf "%s\n%!") shader_srcs;*)
+    if debug then
+      Array.iter (Printf.eprintf "%s\n%!") shader_srcs;
 
     let shader = create_shader ty in
     let _ = shader_source shader shader_srcs in
