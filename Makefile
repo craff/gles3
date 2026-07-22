@@ -1,5 +1,11 @@
 VERSION = 20203112.alpha
 
+HAVE_X11 := $(shell pkg-config --exists x11 egl && echo true || echo false)
+HAVE_WAYLAND := $(shell pkg-config --exists wayland-client wayland-egl egl && echo true || echo false)
+
+export BUILD_X11_EXAMPLES := $(HAVE_X11)
+export BUILD_WAYLAND_EXAMPLES := $(HAVE_WAYLAND)
+
 all:
 	@dune build
 .PHONY: all
