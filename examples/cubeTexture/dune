@@ -26,6 +26,7 @@
  (modules cubeTexture_x11 cubeTexture fragment_light  vertex_light  )
  (flags (:standard -w -6))
  (libraries gles3 gles3-x11)
+ (enabled_if (= %{env:BUILD_X11_EXAMPLES=} "true"))
  (package gles3))
 
 (executable
@@ -34,4 +35,5 @@
  (modules cubeTexture_wayland cubeTexture fragment_light  vertex_light  )
  (flags (:standard -w -6))
  (libraries gles3 gles3-wayland)
+ (enabled_if (= %{env:BUILD_WAYLAND_EXAMPLES=} "true"))
  (package gles3))

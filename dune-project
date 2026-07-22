@@ -19,7 +19,7 @@
 
 (package
 	(name gles3)
-	(synopsis "OpenGL ES 3.0 bindings")
+	(synopsis "OpenGL ES 3.2 bindings")
 	(description
 	  "This project aims at providing a portable way to write OpenGL (more precisely\
  	   OpenGL ES) application in OCaml. It comes in three parts:\
