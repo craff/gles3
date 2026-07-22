@@ -11,15 +11,20 @@
 
 (rule
  (target xdg-shell-client-protocol.h)
- (deps /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml)
  (action
-  (run wayland-scanner client-header %{deps} %{target})))
+  (run sh -c
+   "wayland-scanner client-header \
+    $(pkg-config --variable=pkgdatadir wayland-protocols)/stable/xdg-shell/xdg-shell.xml \
+    %{target}")))
 
 (rule
  (target xdg-shell-protocol.c)
- (deps /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml)
  (action
-  (run wayland-scanner private-code %{deps} %{target})))
+  (run sh -c
+   "wayland-scanner private-code \
+    $(pkg-config --variable=pkgdatadir wayland-protocols)/stable/xdg-shell/xdg-shell.xml \
+    %{target}")))
+
 
 (library
  (name gles3_wayland)

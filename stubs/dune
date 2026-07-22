@@ -76,4 +76,4 @@
  (foreign_stubs
    (language c)
    (names ml_freetype)
-   (flags -I/usr/include/freetype2)))
+   (flags :standard -I/usr/include/freetype2)))

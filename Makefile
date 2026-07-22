@@ -7,7 +7,7 @@ export BUILD_X11_EXAMPLES := $(HAVE_X11)
 export BUILD_WAYLAND_EXAMPLES := $(HAVE_WAYLAND)
 
 all:
-	@dune build
+	@dune build @install
 .PHONY: all
 
 count:

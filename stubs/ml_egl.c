@@ -232,8 +232,11 @@ CAMLprim value ml_egl_terminate(value v)
 void init_fail(egl_context ctxt, const char* s) {
   free_resources(ctxt);
   char *msg;
-  asprintf(&msg, "Egl.initialize: %s", s);
-  caml_failwith(msg);
+  if (asprintf(&msg, "Egl.initialize: %s", s) >= 0) {
+    caml_failwith(msg);
+  } else {
+    caml_failwith("Fail to initialize EGL, and to produce a message!");
+  }
 }
 value malloc_egl_context() {
   egl_context ctxt = malloc(sizeof(struct egl_context_struct));

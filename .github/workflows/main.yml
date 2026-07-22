@@ -1,0 +1,164 @@
+name: build
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  schedule:
+    # Prime the caches every Monday
+    - cron: '0 1 * * MON'
+
+jobs:
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        os:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - ubuntu-22.04
+        ocaml-compiler:
+          - "5.2"
+          - "5.3"
+          - "5.4"
+          - "5.5"
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - run: sudo apt-get update
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Use OCaml ${{ matrix.ocaml-compiler }}
+        uses: avsm/setup-ocaml@v3
+        with:
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
+
+      - run: opam install . --deps-only --with-test
+
+      - run: opam exec -- make
+
+      - run: opam install gles3-stubs gles3 gles3-x11 gles3-wayland
+
+  build-arch:
+    runs-on: ubuntu-latest
+    container:
+      image: ocaml/opam:archlinux
+      options: --user root
+
+    steps:
+      - name: Install tools
+        run: |
+          sudo pacman -Sy --noconfirm nodejs npm git
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Fix permissions
+        run: |
+          chown -R opam:opam "$GITHUB_WORKSPACE"
+
+      - name: Opam init
+        run: |
+          su opam -c '
+            opam init --disable-sandboxing -y
+            opam switch create ocaml5.5 5.5.0
+            '
+
+      - name: Deps
+        run: |
+          su opam -c '
+            opam switch set ocaml5.5
+            cd "$GITHUB_WORKSPACE"
+            opam install . --deps-only --with-test
+            '
+
+      - name: Build
+        run: |
+          su opam -c '
+            opam switch set ocaml5.5
+            cd "$GITHUB_WORKSPACE"
+            opam exec -- make
+            '
+
+      - name: Pin
+        run: |
+          su opam -c '
+            opam switch set ocaml5.5
+            cd "$GITHUB_WORKSPACE"
+            opam pin add -y gles3-stubs .
+            opam pin add -y gles3 .
+            opam pin add -y gles3-x11 .
+            opam pin add -y gles3-wayland .
+            '
+
+      - name: Install
+        run: |
+          su opam -c '
+            opam switch set ocaml5.5
+            cd "$GITHUB_WORKSPACE"
+            opam install gles3-stubs gles3 gles3-x11 gles3-wayland
+            '
+
+  build-fedora:
+    runs-on: ubuntu-latest
+    container:
+      image: ocaml/opam:fedora
+      options: --user root
+
+    steps:
+      - name: Install tools
+        run: |
+          dnf install -y nodejs npm git
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Fix permissions
+        run: |
+          chown -R opam:opam "$GITHUB_WORKSPACE"
+
+      - name: Opam init
+        run: |
+          su opam -c '
+            opam init --disable-sandboxing -y
+            opam switch create ocaml5.5 5.5.0
+            '
+
+      - name: Deps
+        run: |
+          su opam -c '
+            opam switch set ocaml5.5
+            cd "$GITHUB_WORKSPACE"
+            opam install . --deps-only --with-test
+            '
+
+      - name: Build
+        run: |
+          su opam -c '
+            opam switch set ocaml5.5
+            cd "$GITHUB_WORKSPACE"
+            opam exec -- make
+            '
+
+      - name: Pin
+        run: |
+          su opam -c '
+            opam switch set ocaml5.5
+            cd "$GITHUB_WORKSPACE"
+            opam pin add -y gles3-stubs .
+            opam pin add -y gles3 .
+            opam pin add -y gles3-x11 .
+            opam pin add -y gles3-wayland .
+            '
+
+      - name: Install
+        run: |
+          su opam -c '
+            opam switch set ocaml5.5
+            cd "$GITHUB_WORKSPACE"
+            opam install gles3-stubs gles3 gles3-x11 gles3-wayland
+            '

@@ -15,4 +15,4 @@
  (flags (:standard -w -6-27-32 -thread))
  (ocamlopt_flags (:standard -O3))
  (virtual_modules backend)
- (libraries stdlib-shims str unix bigarray gles3-stubs))
+ (libraries str unix bigarray gles3-stubs))
