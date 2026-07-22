@@ -1,3 +1,19 @@
+type weight =
+  | Thin
+  | Light
+  | Regular
+  | Medium
+  | Bold
+  | Black
+
+type slant =
+  | Roman
+  | Italic
+  | Oblique
+
+val find_font : ?family:string -> ?weight:weight -> ?slant:slant ->
+                unit -> string
+
 type bitmap =
   (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout)
   Bigarray.Genarray.t

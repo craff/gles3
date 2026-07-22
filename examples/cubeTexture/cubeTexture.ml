@@ -126,8 +126,8 @@ let texture2 = image_to_texture2d
 		  texture_wrap_t gl_repeat]
 
 let texture1 =
-  (Freetype.texture_of_text
-    ~font:"/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf"
+  Freetype.(texture_of_text
+    ~font:(find_font ())
     ~size:64 ~alignment:Justify
     "Hello camllers!\n\n\
      Gles3 bindings\n\

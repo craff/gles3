@@ -70,9 +70,10 @@
  (wrapped false)
  (flags (:standard -w -6-27-32 -thread))
  (ocamlopt_flags (:standard -O3))
- (c_library_flags (:standard -lGLESv2 -lEGL -lfreetype))
+ (c_library_flags (:standard -lGLESv2 -lEGL -lfreetype -lfontconfig))
  (foreign_stubs (language c) (names ml_gles3))
  (foreign_stubs (language c) (names ml_egl))
+ (foreign_stubs (language c) (names ml_fontconfig))
  (foreign_stubs
    (language c)
    (names ml_freetype)

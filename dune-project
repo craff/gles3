@@ -49,7 +49,7 @@
  (version 1.0)
  (synopsis "OpenGL ES3, Commen Egl and Gles3 C stubs")
  (allow_empty)
- (depends (ocaml (>= 5.2.0)) conf-freetype conf-gles2))
+ (depends (ocaml (>= 5.2.0)) conf-freetype conf-gles2 conf-libfontconfig))
 
 (package
  (name gles3-x11)

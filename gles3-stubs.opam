@@ -13,6 +13,7 @@ depends: [
   "ocaml" {>= "5.2.0"}
   "conf-freetype"
   "conf-gles2"
+  "conf-libfontconfig"
   "odoc" {with-doc}
 ]
 build: [

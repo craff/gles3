@@ -22,6 +22,26 @@ type glyph =
   image : ([`Image | `Texture ], int, Bigarray.int8_unsigned_elt) Gles3.image;
 }
 
+type weight =
+  | Thin
+  | Light
+  | Regular
+  | Medium
+  | Bold
+  | Black
+
+type slant =
+  | Roman
+  | Italic
+  | Oblique
+
+external find_font_aux :
+  string -> weight -> slant -> string
+  = "caml_fontconfig_find_font"
+
+let find_font ?(family="sans") ?(weight=Regular) ?(slant=Roman) () =
+  find_font_aux family weight slant
+
 external init : unit -> unit
   = "ml_ft_init"
 
