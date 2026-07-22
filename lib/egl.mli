@@ -34,13 +34,17 @@ type config = {
     stencil_size : int ;
     samples : int
   }
-(** configuration of openGL window buffer *)
+(** configuration of openGL window buffer, may select a context with
+    greater or equal value *)
 
 (****************************************************************************)
 (**  {b SETUP}                                                              *)
 (****************************************************************************)
 
-val initialize : ?config:config -> ?es:bool ->
+(** initialize en new egl window with an openGL/GLES surface.
+   By default, use GlES 3.X, but one may try to use OpenGL 4.X
+   with [~gles:false] *)
+val initialize : ?config:config -> ?gles:bool ->
                  width:int -> height:int -> string -> egl_context
 
 (** make the context current for GLes drawing *)
@@ -64,11 +68,10 @@ val query_config : egl_context -> config
 (**  {b MAIN EVENT LOOP}                                                    *)
 (****************************************************************************)
 
-(* Enter the main event loop.  This function returns when either:
+(** Enter the main event loop.  This function returns when either:
    - The function [exit_loop] (see below) is called from a callback
    - The Window Manager requires the window deletion and there is
      no [delete_callback] to intercept it. *)
-
 val main_loop : egl_context -> unit
 
 (* Can only be called from a callback: *)

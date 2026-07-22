@@ -51,8 +51,8 @@ external initialize_aux :
 external make_current : egl_context -> unit = "ml_egl_make_current" [@@noalloc]
 external detach : egl_context -> unit = "ml_egl_detach" [@@noalloc]
 
-let initialize ?(config=default_config) ?(es=true) ~width ~height name =
-  initialize_aux config width height name es
+let initialize ?(config=default_config) ?(gles=true) ~width ~height name =
+  initialize_aux config width height name gles
 
 external terminate : egl_context -> unit = "ml_egl_terminate"
 
