@@ -37,7 +37,6 @@
 #include <caml/fail.h>
 #include <caml/threads.h>
 #include <caml/version.h>
-#include <uthash.h>
 
 #include "ml_egl.h"
 #include "ml_egl_platform.h"
@@ -53,32 +52,10 @@ platform_context malloc_platform_context(egl_context ctxt) {
 /*   X IO ERROR HANDLING                                                    */
 /****************************************************************************/
 
-typedef struct {
-    Display *display;      // key
-    egl_context context;         // your C object
-    UT_hash_handle hh;
-} display_entry;
-
-static display_entry *displays = NULL;
-
 static int IOErrorHandler(Display *dpy)
 {
   printf("IOErrorHandler \n"); fflush(stdout);
-  display_entry *e;
-
-  HASH_FIND_PTR(displays, &dpy, e);
-
-  /* If error came from another display, we call saved_IOErrorHandler */
-  if(e) {
-    /* X connection has been lost, we cannot free allocated resources.
-       Instead, we try to restore an uninitialized state. */
-
-    egl_context ctxt = e->context;
-    egl_platform_lost(ctxt);
-    ctxt->platform_window = None ;
-    ctxt->platform_display = NULL ;
-  }
-  return 0 ;
+  exit(1);
 }
 
 void init_platform_ressources(egl_context ctxt, const char* name) {
@@ -105,23 +82,10 @@ void init_platform_ressources(egl_context ctxt, const char* name) {
   XFlush(display);
   XMapWindow(display, ctxt->platform_window) ;
   XStoreName(display, ctxt->platform_window, name) ;
-  display_entry *e = malloc(sizeof(*e));
-
-  e->display = display;
-  e->context = ctxt;
-
-  HASH_ADD_PTR(displays, display, e);
   XSetIOErrorHandler(&IOErrorHandler) ;
 }
 
 void free_platform_ressources(egl_context ctxt) {
-  display_entry *e;
-  HASH_FIND_PTR(displays, &(ctxt->platform_display), e);
-
-  if (e) {
-    HASH_DEL(displays, e);
-    free(e);
-  }
   if(ctxt->platform_display != NULL) {
     if (ctxt->platform_window != None) {
       XDestroyWindow(ctxt->platform_display, ctxt->platform_window) ;

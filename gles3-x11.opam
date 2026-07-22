@@ -8,7 +8,7 @@ homepage: "https://raffalli.eu/gles3/"
 doc: "https://raffalli.eu/gles3"
 bug-reports: "https://github.com/craff/gles3/issues"
 depends: [
-  "dune" {>= "3.0"}
+  "dune" {>= "3.15"}
   "gles3" {= version}
   "conf-libx11"
   "odoc" {with-doc}
@@ -28,13 +28,3 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/craff/gles3.git"
-depexts: [
-  ["uthash-dev"] {os-family = "debian"}
-  ["uthash-devel"] {os-family = "fedora"}
-  ["uthash-devel"] {os-family = "rhel"}
-  ["uthash-devel"] {os-family = "centos"}
-  ["uthash"] {os-family = "arch"}
-  ["uthash-dev"] {os-family = "alpine"}
-  ["uthash-devel"] {os-family = "suse"}
-  ["uthash"] {os-family = "nixos"}
-]
