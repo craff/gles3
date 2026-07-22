@@ -18,22 +18,32 @@ OpenGL ES) application in OCaml. It comes in three parts:
   the shaders (uniform or attributes), either as constant or function and
   get an OCaml function to finally run the shaders.
 * A wrapper to open a window, start the main loop and interact. Currently
-  only EGL under X11 is supported, but we would like to support different
-  platforms in the future (Windows, Android, iOS, Wayland, ...) without
-  changing the interface.
+  the following framework are supported:
+  - X11+EGL
+  - Wayland+EGL
+
+  We would like to support different platforms in the future
+  (Windows, Android, iOS, ...) without changing the interface.
 
 ## Authors
 
-* [Alexandre Miquel](https://www.fing.edu.uy/~amiquel) (initial low level bindings for GLES 2)
-* [Christophe Raffalli](https://lama.univ-savoie.fr/~raffalli) (partial port to GLES 3.0, high-level bindings and examples)
-* [Rodolphe Lepigre](https://lepigre.fr) (maze example and port to the dune build system)
+* [Alexandre Miquel](https://www.fing.edu.uy/~amiquel) (initial low level
+  bindings for GLES 2)
+* [Christophe Raffalli](https://lama.univ-savoie.fr/~raffalli) (partial port
+  to GLES 3.0, high-level bindings and examples)
+* [Rodolphe Lepigre](https://lepigre.fr) (maze example and port to the dune
+  build system)
 
 ## Installation
 
 To install from source, clone the repository and run `make && make install`.
-Alternatively, you can pin the repository using the following command:
+Alternatively, you can pin the repository using the following commands (only
+one of latest two is useful):
 ```bash
+opam pin add gles3-stubs.dev https://github.com/craff/gles3.git
 opam pin add gles3.dev https://github.com/craff/gles3.git
+opam pin add gles3-x11.dev https://github.com/craff/gles3.git
+opam pin add gles3-wayland.dev https://github.com/craff/gles3.git
 ```
 
 ## Documentation
@@ -42,18 +52,25 @@ The OCaml documentation can be extracted to a webpage using `make doc`. The
 generate page is the placed at `_build/default/_doc/_html/index.html`).
 
 The repository also contains multiple examples:
-* `examples/testa/testa.ml`: a rotating cube.
-* `examples/testb/testb.ml`: a rotating cube with a texture.
-* `examples/testc/testc.ml`: 7 rotating cubes with simple shadow mapping.
-* `examples/testd/testd.ml`: 7 rotating cubes and 8 implicit surfaces with simple shadow mapping.
-* `examples/spheres/spheres.ml`: mainy boucing spheres, using `ancient` to run multicore (experimental).
-* `examples/maze/maze.ml`: a maze generator with a simple exploration camera.
-* `examples/fluid_cube/fluid_cube.ml`
-* `examples/curves/curves.ml`
+* `examples/flying_cube`: a rotating cube.
+* `examples/curves`: a wire-frame cube
+* `examples/exploding_cube`: the names says it all
+* `examples/cubeTexture`: a rotating cube with a texture (including a text).
+* `examples/cubesAndShapes`: rotating cubes and 8 implicit surfaces with
+  simple shadow mapping.
+* `examples/spheres`: many bouncing spheres, using `domain` to run multicore.
+* `examples/maze`: a maze generator with a simple exploration camera.
+* `examples/click`: illustrates how to use a shader to click on object and
+   get the ID of the object and the position of the clicked point in 3D.
+* `examples/window`: flying_cube in two distinct windows.
 
-**To run the examples:** to run an example, move to its directory and run the
-command `dune exec -- <name>`, where name is `testa` for the first example,
-and similarly for the others.
+**To run the examples:** to run an example, move to its directory and run one
+of the two following commands
+```BUILD_X11_EXAMPLES=true dune exec -- <name>_x11.exe
+   BUILD_WAYLAND_EXAMPLES=true dune exec -- <name>_wayland.exe
+```
+where name is the name of the file defining the example without extension.
+example: `flying_cube_x11.exe` for the first example.
 
 ## Contributing
 
@@ -63,7 +80,7 @@ Things to do:
 * Test a lot.
 * Write more documentation.
 * Complete the low-level bindings (see `PRIMITIVES`).
-* Imprive the high-level bindings guided by more examples.
+* Improve the high-level bindings guided by more examples.
 * Provide support for more platforms.
 * Find a way to support multiple version of GLES (at least 2.0, 3.0, 3.1, 3,2)
   with only one OCaml library, and possibly in a transparent way when using

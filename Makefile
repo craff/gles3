@@ -1,4 +1,4 @@
-VERSION = 20203112.alpha
+VERSION = 1.0
 
 HAVE_X11 := $(shell pkg-config --exists x11 egl && echo true || echo false)
 HAVE_WAYLAND := $(shell pkg-config --exists wayland-client wayland-egl egl && echo true || echo false)
