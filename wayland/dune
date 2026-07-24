@@ -1,6 +1,4 @@
 (rule
- (targets ml_egl.h ml_egl_platform.h key.h button.h modifier.h)
- (deps ../stubs/ml_egl.h ../stubs/ml_egl_platform.h)
  (action
   (progn
    (copy ../stubs/key.h key.h)
@@ -11,28 +9,31 @@
 
 (rule
  (target xdg-shell-client-protocol.h)
+ (enabled_if %{read:../config/has_wayland})
+ (deps (universe))
  (action
-  (run sh -c
+  (bash
    "wayland-scanner client-header \
     $(pkg-config --variable=pkgdatadir wayland-protocols)/stable/xdg-shell/xdg-shell.xml \
     %{target}")))
 
 (rule
  (target xdg-shell-protocol.c)
+ (enabled_if %{read:../config/has_wayland})
+ (deps (universe))
  (action
-  (run sh -c
+  (bash
    "wayland-scanner private-code \
     $(pkg-config --variable=pkgdatadir wayland-protocols)/stable/xdg-shell/xdg-shell.xml \
     %{target}")))
-
 
 (library
  (name gles3_wayland)
  (public_name gles3-wayland)
  (synopsis "OpenGL ES 3 bindings, Wayland platform")
- (modules :standard)
  (flags (:standard -w -6-27-32 -thread))
  (ocamlopt_flags (:standard -O3))
+ (enabled_if %{read:../config/has_wayland})
  (implements gles3)
  (c_library_flags (:standard -lwayland-client -lwayland-egl -lxkbcommon -lEGL))
  (foreign_stubs (language c) (names ml_egl_wayland))

@@ -1,0 +1,13 @@
+(rule
+ (deps (universe))
+ (action
+  (with-stdout-to has_wayland
+   (bash "(pkg-config --exists \
+           wayland-protocols wayland-egl wayland-client \
+           xkbcommon && printf true) || printf false"))))
+
+(rule
+ (deps (universe))
+ (action
+  (with-stdout-to has_x11
+   (bash "(pkg-config --exists x11 && printf true) || printf false"))))

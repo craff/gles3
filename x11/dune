@@ -1,6 +1,4 @@
 (rule
- (targets ml_egl.h ml_egl_platform.h key.h button.h modifier.h)
- (deps ../stubs/ml_egl.h ../stubs/ml_egl_platform.h)
  (action
   (progn
    (copy ../stubs/key.h key.h)
@@ -16,6 +14,7 @@
  (modules :standard)
  (flags (:standard -w -6-27-32 -thread))
  (ocamlopt_flags (:standard -O3))
+ (enabled_if %{read:../config/has_wayland})
  (c_library_flags (:standard -lX11 -lEGL))
  (implements gles3)
  (foreign_stubs (language c) (names ml_egl_X11)))
