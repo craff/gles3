@@ -14,7 +14,7 @@
  (modules :standard)
  (flags (:standard -w -6-27-32 -thread))
  (ocamlopt_flags (:standard -O3))
- (enabled_if %{read:../config/has_wayland})
+ (enabled_if %{read:../config/has_x11})
  (c_library_flags (:standard -lX11 -lEGL))
  (implements gles3)
  (foreign_stubs (language c) (names ml_egl_X11)))
