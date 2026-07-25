@@ -1,4 +1,4 @@
-(lang dune 3.15)
+(lang dune 3.18)
 (name gles3)
 (generate_opam_files true)
 

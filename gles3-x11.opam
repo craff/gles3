@@ -9,7 +9,7 @@ homepage: "https://raffalli.eu/gles3/"
 doc: "https://raffalli.eu/gles3"
 bug-reports: "https://github.com/craff/gles3/issues"
 depends: [
-  "dune" {>= "3.15"}
+  "dune" {>= "3.18"}
   "gles3" {= version}
   "conf-libX11"
   "conf-xkbcommon"
@@ -30,4 +30,5 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/craff/gles3.git"
+x-maintenance-intent: ["(latest)"]
 available: os != "win32"
