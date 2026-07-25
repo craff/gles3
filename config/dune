@@ -1,4 +1,5 @@
 (rule
+ (target has_wayland)
  (deps (universe))
  (action
   (with-stdout-to has_wayland
@@ -7,6 +8,7 @@
            xkbcommon && printf true) || printf false"))))
 
 (rule
+ (target has_x11)
  (deps (universe))
  (action
   (with-stdout-to has_x11
