@@ -6,8 +6,8 @@
    (bash
     "cpp -P key.h | sed -n '
       s/^KEY(\\(.*\\))$/  | \\1/p
-    ' > /tmp/key_tmp.ml && \
-    (echo \"type t =\"; cat /tmp/key_tmp.ml; echo \"\nlet name = function\"; \
+    ' > ./key_tmp.ml && \
+    (echo \"type t =\"; cat ./key_tmp.ml; echo \"\nlet name = function\"; \
      sed -n 's/^KEY(\\(.*\\))$/  | \\1 -> \\\"\\1\\\"/p' key.h)
    "))))
 
@@ -28,8 +28,8 @@
    (bash
     "cpp -P button.h | sed -n '
       s/^BUTTON(\\(.*\\))$/  | \\1/p
-    ' > /tmp/button_tmp.ml && \
-    (echo \"type t =\"; cat /tmp/button_tmp.ml; echo \"\nlet name = function\"; \
+    ' > ./button_tmp.ml && \
+    (echo \"type t =\"; cat ./button_tmp.ml; echo \"\nlet name = function\"; \
      sed -n 's/^BUTTON(\\(.*\\))$/  | \\1 -> \\\"\\1\\\"/p' button.h)
    "))))
 
