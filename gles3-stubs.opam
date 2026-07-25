@@ -33,6 +33,3 @@ build: [
 dev-repo: "git+https://github.com/craff/gles3.git"
 x-maintenance-intent: ["(latest)"]
 available: os != "win32"
-depexts: [
-  ["Mesa-libGLESv3-devel"] {os-family = "suse"}
-]

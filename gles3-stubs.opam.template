@@ -1,4 +1,1 @@
 available: os != "win32"
-depexts: [
-  ["Mesa-libGLESv3-devel"] {os-family = "suse"}
-]
