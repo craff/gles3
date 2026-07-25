@@ -41,6 +41,12 @@ jobs:
 
       - run: opam exec -- make
 
+      - run: |
+          opam pin add -y gles3-stubs .
+          opam pin add -y gles3 .
+          opam pin add -y gles3-x11 .
+          opam pin add -y gles3-wayland .
+
       - run: opam install gles3-stubs gles3 gles3-x11 gles3-wayland
 
   build-arch:
