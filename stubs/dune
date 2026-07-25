@@ -50,7 +50,8 @@
    (bash
     "cpp -P modifier.h | sed -E \
      -e '1i type t = int' \
-     -e 's/^MODIFIER\\(([A-Za-z0-9_]+),[[:space:]]*([0-9]+)\\)$/let \\L\\1 = (\\2 : t)/'"))))
+     -e 's/^MODIFIER\\(([A-Za-z0-9_]+),[[:space:]]*([0-9]+)\\)$/let \\1 = (\\2 : t)/' |
+     awk '{print tolower($0)}'"))))
 
 (rule
  (targets modifier.mli)
@@ -60,7 +61,8 @@
    (bash
     "cpp -P modifier.h | sed -E \
      -e '1i type t = private int' \
-     -e 's/^MODIFIER\\(([A-Za-z0-9_]+),[[:space:]]*([0-9]+)\\)$/val \\L\\1 : t/'"))))
+     -e 's/^MODIFIER\\(([A-Za-z0-9_]+),[[:space:]]*([0-9]+)\\)$/val \\1 : t/' |
+     awk '{print tolower($0)}'"))))
 
 (library
  (name gles3_stubs)
