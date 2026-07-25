@@ -19,7 +19,7 @@
 
 (package
 	(name gles3)
-	(version 1.0)
+	(version 20260725)
 	(synopsis "OpenGL ES 3.2 bindings")
 	(description
 	  "This project aims at providing a portable way to write OpenGL (more precisely\
@@ -46,21 +46,21 @@
 
 (package
  (name gles3-stubs)
- (version 1.0)
+ (version 20260725)
  (synopsis "OpenGL ES3, Commen Egl and Gles3 C stubs")
  (allow_empty)
  (depends (ocaml (>= 5.2.0)) conf-freetype conf-gles2 conf-libfontconfig))
 
 (package
  (name gles3-x11)
- (version 1.0)
+ (version 20260725)
  (synopsis "OpenGL ES3 X11 backend")
  (allow_empty)
  (depends (gles3 (= :version)) conf-libX11 conf-xkbcommon))
 
 (package
  (name gles3-wayland)
- (version 1.0)
+ (version 20260725)
  (synopsis "OpenGL ES3 Wayland backend")
  (allow_empty)
  (depends (gles3 (= :version)) conf-libwayland conf-wayland-protocols conf-xkbcommon))
