@@ -7,7 +7,7 @@ license: "MIT"
 bug-reports: "https://github.com/ocaml/opam-repository/issues"
 build: [
   ["pkg-config" "--exists" "glesv2"]
-    {os != "macos" & os != "openbsd"}
+    {os != "macos" & os != "openbsd" & os != "win32"}
 ]
 depends: [
   "conf-pkg-config"
@@ -26,6 +26,10 @@ depexts: [
   # OpenBSD includes it in xbase.tgz
   ["MesaLib"] {os = "netbsd"}
   ["mesa"] {os = "macos"}
+  ["mesa"] {os = "win32" & os-distribution = "cygwin"}
+  ["mesa"] {os = "win32" & os-distribution = "cygwinports"}
+  ["mingw-w64-x86_64-mesa"] {os = "win32" & os-distribution = "msys2" & arch = "x86_64" }
+  ["mingw-w64-clang-aarch64-mesa"] {os = "win32" & os-distribution = "msys2" & arch = "arm64" }
 ]
 synopsis: "Virtual package relying on a OpenGL ES 2 system installation"
 flags: conf
