@@ -47,7 +47,12 @@ typedef struct platform_context_struct {
 } *platform_context ;
 
 platform_context malloc_platform_context(egl_context ctxt) {
-  return NULL;
+  platform_context res = (platform_context) malloc(sizeof(struct platform_context_struct));
+  if (!res) {
+    printf("Alloc platform_context failed\n"); fflush(stdout);
+    exit(1);
+  }
+  return res;
 }
 
 /****************************************************************************/
@@ -69,35 +74,36 @@ void init_platform_ressources(egl_context ctxt, const char* name) {
     init_fail(ctxt, "cannot open X display") ;
 
   ctxt->platform->display = display;
-  ctxt->platform_display = eglGetPlatformDisplay(EGL_PLATFORM_X11_KHR,
-						 (void *)display,
-						 NULL);
+  ctxt->display = eglGetPlatformDisplay(EGL_PLATFORM_X11_KHR,
+					(void *)display,
+					NULL);
   /* Open X Window */
-  ctxt->platform_window = (EGLNativeWindowType)
+  ctxt->window = (EGLNativeWindowType)
     XCreateSimpleWindow(display,
 			DefaultRootWindow(display),
 			0, 0, ctxt->width, ctxt->height, 0, 0, 0) ;
-  if(ctxt->platform_window == None)
+  if(ctxt->window == None)
     init_fail(ctxt, "cannot create X window") ;
-  XSelectInput(display, (Window) ctxt->platform_window,
+  XSelectInput(display, (Window) ctxt->window,
 	       VisibilityChangeMask|
 	       StructureNotifyMask|KeyPressMask|KeyReleaseMask|ExposureMask|
 	       ButtonPressMask|ButtonReleaseMask|PointerMotionMask) ;
   XAutoRepeatOff(display);
   XFlush(display);
-  XMapWindow(display, (Window) ctxt->platform_window) ;
-  XStoreName(display, (Window) ctxt->platform_window, name) ;
+  XMapWindow(display, (Window) ctxt->window) ;
+  XStoreName(display, (Window) ctxt->window, name) ;
   XSetIOErrorHandler(&IOErrorHandler) ;
 }
 
 void free_platform_ressources(egl_context ctxt) {
   if(ctxt->platform->display != NULL) {
-    if (ctxt->platform_window != None) {
+    if (ctxt->window != None) {
       XDestroyWindow(ctxt->platform->display,
-		     (Window) ctxt->platform_window) ;
-      ctxt->platform_window = None ;
+		     (Window) ctxt->window) ;
+      ctxt->window = None ;
       XCloseDisplay(ctxt->platform->display) ;
-      ctxt->platform_display = NULL ;
+      ctxt->platform->display = NULL ;
+      free(ctxt->platform);
     }
   }
 }
@@ -405,7 +411,7 @@ CAMLprim value ml_egl_main_loop(value vc)
 
   XEvent event ;
   Display *display = (Display*) ctxt->platform->display;
-  Window window = (Window) ctxt->platform_window;
+  Window window = (Window) ctxt->window;
   Atom wmDeleteMessage = XInternAtom(display, "WM_DELETE_WINDOW", False);
   int window_visible = 0;
   XSetWMProtocols(display, window, &wmDeleteMessage, 1);

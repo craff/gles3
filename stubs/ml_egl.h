@@ -28,9 +28,8 @@
 typedef struct platform_context_struct *platform_context;
 
 typedef struct egl_context_struct {
-  EGLNativeDisplayType platform_display;
-  EGLNativeWindowType  platform_window;
   EGLDisplay display;
+  EGLNativeWindowType window;
   EGLConfig config ;
   EGLSurface surface;
   EGLContext context;

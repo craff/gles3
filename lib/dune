@@ -4,7 +4,7 @@
  (action
   (with-stdout-to gles3_type.ml
   (ignore-stderr
-  (bash "cpp -P gles3_type.mlc | grep -A 1000 '(\\*BEGIN\\*)'")))))
+  (bash "cpp -P gles3_type.mlc | grep -F -A 1000 '(*BEGIN*)'")))))
 
 (library
  (name gles3)

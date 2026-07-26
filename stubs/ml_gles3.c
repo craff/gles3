@@ -558,19 +558,20 @@ CAMLprim value ml_glValidateProgram(value vp)
   CAMLreturn(Val_bool(status)) ;
 }
 
+#define BUFSIZE 1024
+
 CAMLprim value ml_glGetActiveAttribs(value vp)
 {
   CAMLparam0() ;
   CAMLlocal3(list, cons, triple) ;
   GLuint prog = Int_val(vp) ;
-  const int bufsiz = 256 ;
-  char buffer[bufsiz] ;
+  char buffer[BUFSIZ] ;
   GLint i, num, size ;
   GLenum type ;
   list = Val_unit ;
   glGetProgramiv(prog, GL_ACTIVE_ATTRIBUTES, &num) ;
   for(i = num - 1; i >= 0; i--) {
-    glGetActiveAttrib(prog, i, bufsiz, NULL, &size, &type, buffer) ;
+    glGetActiveAttrib(prog, i, BUFSIZ, NULL, &size, &type, buffer) ;
     int j = glGetAttribLocation(prog,buffer);
     triple = caml_alloc_tuple(4) ;
     Store_field(triple, 0, caml_copy_string(buffer)) ;
@@ -595,14 +596,13 @@ CAMLprim value ml_glGetActiveUniforms(value vp)
   CAMLparam0() ;
   CAMLlocal4(list, cons, triple,ut) ;
   GLuint prog = Int_val(vp) ;
-  const int bufsiz = 256 ;
-  char buffer[bufsiz] ;
+  char buffer[BUFSIZ] ;
   GLint i, num, size ;
   GLenum type ;
   list = Val_unit ;
   glGetProgramiv(prog, GL_ACTIVE_UNIFORMS, &num) ;
   for(i = num - 1; i >= 0; i--) {
-    glGetActiveUniform(prog, i, bufsiz, NULL, &size, &type, buffer) ;
+    glGetActiveUniform(prog, i, BUFSIZ, NULL, &size, &type, buffer) ;
     int j = glGetUniformLocation(prog,buffer);
     triple = caml_alloc_tuple(4) ;
     ut     = caml_alloc(1,0) ;

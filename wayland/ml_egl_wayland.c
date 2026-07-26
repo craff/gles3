@@ -33,6 +33,8 @@
 /* ========================= */
 
 typedef struct platform_context_struct {
+  struct wl_display *wl_display;
+
   struct wl_registry   *wl_registry;
   struct wl_compositor *wl_compositor;
   struct wl_surface    *wl_surface;
@@ -574,7 +576,7 @@ static void xdg_toplevel_configure(void *data,
 
       ctxt->width  = new_width;
       ctxt->height = new_height;
-      wl_egl_window_resize(ctxt->platform_window,
+      wl_egl_window_resize(ctxt->window,
 			   ctxt->width,
 			   ctxt->height,
 			   0, 0);
@@ -620,26 +622,28 @@ static const struct xdg_toplevel_listener xdg_toplevel_listener =
 
 void init_platform_ressources(egl_context ctxt, const char* name)
 {
-  ctxt->platform_display = wl_display_connect(NULL);
-  if (!ctxt->platform_display || !ctxt->platform)
+  ctxt->platform->wl_display = wl_display_connect(NULL);
+  ctxt->display = eglGetDisplay(ctxt->platform->wl_display);
+
+  if (!ctxt->platform->wl_display || !ctxt->display)
     init_fail(ctxt, "wayland connect failed");
 
   platform_context pctxt = ctxt->platform;
 
-  pctxt->wl_registry = wl_display_get_registry(ctxt->platform_display);
+  pctxt->wl_registry = wl_display_get_registry(ctxt->platform->wl_display);
   wl_registry_add_listener(pctxt->wl_registry,
                            &registry_listener, (void *) ctxt);
 
-  wl_display_roundtrip(ctxt->platform_display);
+  wl_display_roundtrip(ctxt->platform->wl_display);
 
   if (!pctxt->wl_compositor || !pctxt->wl_seat || !pctxt->xdg_wm_base)
     init_fail(ctxt, "missing compositor/seat/xdg_wm_base");
 
   pctxt->wl_surface = wl_compositor_create_surface(pctxt->wl_compositor);
 
-  ctxt->platform_window = wl_egl_window_create(pctxt->wl_surface,
-					       ctxt->width, ctxt->height);
-  if (!ctxt->platform_window)
+  ctxt->window = wl_egl_window_create(pctxt->wl_surface,
+				      ctxt->width, ctxt->height);
+  if (!ctxt->window)
     init_fail(ctxt,"egl window failed");
 
   pctxt->xkb_ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
@@ -663,8 +667,8 @@ void init_platform_ressources(egl_context ctxt, const char* name)
 			    &xdg_toplevel_listener,
 			    ctxt);
   wl_surface_commit(pctxt->wl_surface);
-  wl_display_flush(ctxt->platform_display);
-  wl_display_roundtrip(ctxt->platform_display);
+  wl_display_flush(ctxt->platform->wl_display);
+  wl_display_roundtrip(ctxt->platform->wl_display);
 
 }
 
@@ -680,7 +684,7 @@ void free_platform_ressources(egl_context ctxt)
     if (pctxt->xdg_toplevel) xdg_toplevel_destroy(pctxt->xdg_toplevel);
     if (pctxt->xdg_surface) xdg_surface_destroy(pctxt->xdg_surface);
     if (pctxt->xkb_ctx) xkb_context_unref(pctxt->xkb_ctx);
-    if (ctxt->platform_window) wl_egl_window_destroy(ctxt->platform_window);
+    if (ctxt->window) wl_egl_window_destroy(ctxt->window);
     if (pctxt->wl_surface) wl_surface_destroy(pctxt->wl_surface);
     if (pctxt->wl_pointer) wl_pointer_destroy(pctxt->wl_pointer);
     if (pctxt->xkb_state) xkb_state_unref(pctxt->xkb_state);
@@ -690,7 +694,7 @@ void free_platform_ressources(egl_context ctxt)
     if (pctxt->wl_compositor) wl_compositor_destroy(pctxt->wl_compositor);
     if (pctxt->wl_seat) wl_seat_destroy(pctxt->wl_seat);
     if (pctxt->wl_registry) wl_registry_destroy(pctxt->wl_registry);
-    if (ctxt->platform_display) wl_display_disconnect(ctxt->platform_display);
+    if (ctxt->platform->wl_display) wl_display_disconnect(ctxt->platform->wl_display);
 
     free(pctxt);
     ctxt->platform = NULL;
@@ -742,9 +746,9 @@ CAMLprim value ml_egl_main_loop(value vc)
 			   &frame_listener,
 			   ctxt);
   wl_surface_commit(pctxt->wl_surface);
-  wl_display_flush(ctxt->platform_display);
+  wl_display_flush(ctxt->platform->wl_display);
   while (ctxt->main_loop_continue) {
-    wl_display_dispatch(ctxt->platform_display);
+    wl_display_dispatch(ctxt->platform->wl_display);
   }
   caml_acquire_runtime_system();
   atomic_store(&ctxt->main_loop_reentrant, 0) ;

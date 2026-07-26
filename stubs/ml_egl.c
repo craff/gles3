@@ -304,10 +304,6 @@ CAMLprim value ml_egl_initialize(value vc, value vw, value vh, value vn, value v
   init_platform_ressources(ctxt, String_val(vn));
   int use_es = Bool_val(ve);
 
-  /* Open EGL Display */
-  if((ctxt->display = eglGetDisplay(ctxt->platform_display)) == EGL_NO_DISPLAY)
-    init_fail(ctxt, "cannot open EGL display") ;
-
   /* Initialize EGL Display */
   if(!eglInitialize(ctxt->display, NULL, NULL))
     init_fail(ctxt, "Egl.initialize: cannot initialize EGL display") ;
@@ -359,7 +355,7 @@ CAMLprim value ml_egl_initialize(value vc, value vw, value vh, value vn, value v
   /* Create EGL Surface */
   ctxt->surface = eglCreateWindowSurface(ctxt->display,
 					 ctxt->config,
-					 ctxt->platform_window,
+					 ctxt->window,
 					 NULL) ;
   if(ctxt->surface == EGL_NO_SURFACE)
     init_fail(ctxt,"cannot create EGL surface") ;
