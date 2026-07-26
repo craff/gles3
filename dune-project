@@ -45,18 +45,15 @@
 	   (ocaml (>= 5.2.0))))
 
 (package
- (name conf-gles3)
- (version 3.0)
- (allow_empty)
- (depends conf-pkg-config)
- (synopsis "OpenGL ES3, Commen Egl conf package"))
+ (name conf-gles2)
+ (allow_empty))
 
 (package
  (name gles3-stubs)
  (version 20260725)
  (synopsis "OpenGL ES3, Commen Egl and Gles3 C stubs")
  (allow_empty)
- (depends (ocaml (>= 5.2.0)) conf-freetype conf-gles3 conf-libfontconfig))
+ (depends (ocaml (>= 5.2.0)) conf-freetype (conf-gles2 (>= 3.0)) conf-libfontconfig))
 
 (package
  (name gles3-x11)

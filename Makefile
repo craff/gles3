@@ -7,27 +7,34 @@ export BUILD_X11_EXAMPLES := $(HAVE_X11)
 export BUILD_WAYLAND_EXAMPLES := $(HAVE_WAYLAND)
 
 all:
-	@dune build @install
+	dune build @install
+	sed -i.bak \
+	  -e '/^doc:/d' \
+	  -e '/^dev-repo:/d' \
+	  -e '/^x-maintenance-intent:/d' \
+	  conf-gles2.opam
+	rm conf-gles2.opam.bak
+
 .PHONY: all
 
 count:
-	@wc -l lib/*.mlc lib/*.ml lib/*.mli lib/*.c | sort -n
+	wc -l lib/*.mlc lib/*.ml lib/*.mli lib/*.c | sort -n
 .PHONY: count
 
 clean:
-	@dune clean
+	dune clean
 .PHONY: clean
 
 install:
-	@dune install
+	dune install
 .PHONY: install
 
 uninstall:
-	@dune uninstall
+	dune uninstall
 .PHONY: uninstall
 
 doc:
-	@dune build @doc
+	dune build @doc
 
 .PHONY: release
 release: distclean

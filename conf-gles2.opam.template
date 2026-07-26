@@ -1,3 +1,18 @@
+opam-version: "2.0"
+version:"3.0"
+maintainer: "Frédéric Bour <frederic.bour@lakaban.net>"
+authors: ["ARB"]
+homepage: "https://www.khronos.org/opengles"
+license: "MIT"
+bug-reports: "https://github.com/ocaml/opam-repository/issues"
+build: [
+  ["pkg-config" "--exists" "glesv2"]
+    {os != "macos" & os != "openbsd"}
+]
+depends: [
+  "conf-pkg-config"
+    {build & os != "macos" & os != "openbsd"}
+]
 depexts: [
   ["libgles2-mesa-dev"] {os-family = "debian"}
   ["libgles2-mesa-dev"] {os-family = "ubuntu"}
@@ -12,3 +27,5 @@ depexts: [
   ["MesaLib"] {os = "netbsd"}
   ["mesa"] {os = "macos"}
 ]
+synopsis: "Virtual package relying on a OpenGL ES 2 system installation"
+flags: conf
