@@ -27,14 +27,31 @@
     $(pkg-config --variable=pkgdatadir wayland-protocols)/stable/xdg-shell/xdg-shell.xml \
     %{target}")))
 
+(rule
+ (target c_flags.sexp)
+ (action
+  (with-stdout-to %{target}
+    (bash
+     "pkg-config --cflags wayland-client wayland-egl egl xkbcommon |
+      awk 'BEGIN { printf \"(\" } { for(i=1;i<=NF;i++) printf \"\\\"%s\\\" \", $i } END { printf \")\\n\" }'"))))
+
+(rule
+ (target l_flags.sexp)
+ (action
+  (with-stdout-to %{target}
+    (bash
+     "pkg-config --libs wayland-client wayland-egl egl xkbcommon |
+      awk 'BEGIN { printf \"(\" } { for(i=1;i<=NF;i++) printf \"\\\"%s\\\" \", $i } END { printf \")\\n\" }'"))))
+
 (library
  (name gles3_wayland)
  (public_name gles3-wayland)
+ (implements gles3)
  (synopsis "OpenGL ES 3 bindings, Wayland platform")
  (flags (:standard -w -6-27-32 -thread))
  (ocamlopt_flags (:standard -O3))
  (enabled_if %{read:../config/has_wayland})
- (implements gles3)
- (c_library_flags (:standard -lwayland-client -lwayland-egl -lxkbcommon -lEGL))
- (foreign_stubs (language c) (names ml_egl_wayland))
- (foreign_stubs (language c) (names xdg-shell-protocol)))
+ (c_library_flags (:standard (:include l_flags.sexp)))
+ (foreign_stubs (language c)
+   (names ml_egl_wayland xdg-shell-protocol)
+   (flags (:standard (:include c_flags.sexp)))))

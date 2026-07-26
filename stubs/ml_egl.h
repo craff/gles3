@@ -20,6 +20,8 @@
 #define ML_EGL_H
 
 #include <EGL/egl.h>
+#define EGL_EGLEXT_PROTOTYPES
+#include <EGL/eglext.h>
 #include <caml/memory.h>
 #include <stdatomic.h>
 

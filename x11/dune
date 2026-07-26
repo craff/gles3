@@ -7,6 +7,24 @@
    (copy ../stubs/ml_egl.h ml_egl.h)
    (copy ../stubs/ml_egl_platform.h ml_egl_platform.h))))
 
+(rule
+ (target c_flags.sexp)
+ (action
+  (with-stdout-to %{target}
+    (bash
+     "egl=$(pkg-config --exists egl && echo egl || echo '');
+      pkg-config --cflags x11 $egl |
+      awk 'BEGIN { printf \"(\" } { for(i=1;i<=NF;i++) printf \"\\\"%s\\\" \", $i } END { printf \")\\n\" }'"))))
+
+(rule
+ (target l_flags.sexp)
+ (action
+  (with-stdout-to %{target}
+    (bash
+     "egl=$(pkg-config --exists egl && echo egl || echo '');
+      pkg-config --libs x11 $egl |
+      awk 'BEGIN { printf \"(\" } { for(i=1;i<=NF;i++) printf \"\\\"%s\\\" \", $i } END { printf \")\\n\" }'"))))
+
 (library
  (name gles3_x11)
  (public_name gles3-x11)
@@ -15,6 +33,8 @@
  (flags (:standard -w -6-27-32 -thread))
  (ocamlopt_flags (:standard -O3))
  (enabled_if %{read:../config/has_x11})
- (c_library_flags (:standard -lX11 -lEGL))
+ (c_library_flags (:standard (:include l_flags.sexp)))
  (implements gles3)
- (foreign_stubs (language c) (names ml_egl_X11)))
+ (foreign_stubs (language c)
+   (names ml_egl_X11)
+   (flags (:standard -Wall (:include c_flags.sexp)))))

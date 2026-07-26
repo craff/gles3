@@ -16,7 +16,8 @@
  (deps key.h)
  (action
   (with-stdout-to key.mli
-   (bash "cpp -P key.h | sed -e 's/^KEY(\\(.*\\))/  | \\1/' -e '1i type t ='; \
+   (bash "cpp -P key.h | sed -e 's/^KEY(\\(.*\\))/  | \\1/' -e '1i\\
+          type t ='; \
           echo '' ; \
    	  echo 'val name : t -> string'"))))
 
@@ -38,7 +39,8 @@
  (deps button.h)
  (action
   (with-stdout-to button.mli
-   (bash "cpp -P button.h | sed -e 's/^BUTTON(\\(.*\\))/  | \\1/' -e '1i type t ='; \
+   (bash "cpp -P button.h | sed -e 's/^BUTTON(\\(.*\\))/  | \\1/' -e '1i\\
+          type t ='; \
           echo '' ; \
    	  echo 'val name : t -> string'"))))
 
@@ -49,7 +51,8 @@
   (with-stdout-to modifier.ml
    (bash
     "cpp -P modifier.h | sed -E \
-     -e '1i type t = int' \
+     -e '1i\\
+         type t = int' \
      -e 's/^MODIFIER\\(([A-Za-z0-9_]+),[[:space:]]*([0-9]+)\\)$/let \\1 = (\\2 : t)/' |
      awk '{print tolower($0)}'"))))
 
@@ -60,9 +63,30 @@
   (with-stdout-to modifier.mli
    (bash
     "cpp -P modifier.h | sed -E \
-     -e '1i type t = private int' \
+     -e '1i\\
+         type t = private int' \
      -e 's/^MODIFIER\\(([A-Za-z0-9_]+),[[:space:]]*([0-9]+)\\)$/val \\1 : t/' |
      awk '{print tolower($0)}'"))))
+
+(rule
+ (target c_flags.sexp)
+ (action
+  (with-stdout-to %{target}
+    (bash
+     "gles=$(pkg-config --exists glesv3 && echo glesv2 || echo '')
+      egl=$(pkg-config --exists egl && echo egl || echo '');
+      pkg-config --cflags $gles $egl fontconfig freetype2 |
+      awk 'BEGIN { printf \"(\" } { for(i=1;i<=NF;i++) printf \"\\\"%s\\\" \", $i } END { printf \")\\n\" }'"))))
+
+(rule
+ (target l_flags.sexp)
+ (action
+  (with-stdout-to %{target}
+    (bash
+     "gles=$(pkg-config --exists glesv2 && echo glesv2 || echo '')
+      egl=$(pkg-config --exists egl && echo egl || echo '');
+      pkg-config --libs $gles $egl fontconfig freetype2 |
+      awk 'BEGIN { printf \"(\" } { for(i=1;i<=NF;i++) printf \"\\\"%s\\\" \", $i } END { printf \")\\n\" }'"))))
 
 (library
  (name gles3_stubs)
@@ -72,11 +96,7 @@
  (wrapped false)
  (flags (:standard -w -6-27-32 -thread))
  (ocamlopt_flags (:standard -O3))
- (c_library_flags (:standard -lGLESv2 -lEGL -lfreetype -lfontconfig))
- (foreign_stubs (language c) (names ml_gles3))
- (foreign_stubs (language c) (names ml_egl))
- (foreign_stubs (language c) (names ml_fontconfig))
- (foreign_stubs
-   (language c)
-   (names ml_freetype)
-   (flags :standard -I/usr/include/freetype2)))
+ (c_library_flags (:standard (:include l_flags.sexp)))
+ (foreign_stubs (language c)
+   (names ml_gles3 ml_egl ml_fontconfig ml_freetype)
+   (flags (:standard (:include c_flags.sexp)))))

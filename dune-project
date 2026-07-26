@@ -1,4 +1,4 @@
-(lang dune 3.18)
+(lang dune 3.20)
 (name gles3)
 (generate_opam_files true)
 
@@ -45,11 +45,18 @@
 	   (ocaml (>= 5.2.0))))
 
 (package
+ (name conf-gles3)
+ (version 3.0)
+ (allow_empty)
+ (depends conf-pkg-config)
+ (synopsis "OpenGL ES3, Commen Egl conf package"))
+
+(package
  (name gles3-stubs)
  (version 20260725)
  (synopsis "OpenGL ES3, Commen Egl and Gles3 C stubs")
  (allow_empty)
- (depends (ocaml (>= 5.2.0)) conf-freetype conf-gles2 conf-libfontconfig))
+ (depends (ocaml (>= 5.2.0)) conf-freetype conf-gles3 conf-libfontconfig))
 
 (package
  (name gles3-x11)
