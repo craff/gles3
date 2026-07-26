@@ -45,7 +45,7 @@ jobs:
       - name: Deps
         run: |
           opam install . --deps-only --with-test
-          opam pin add -y conf-gles3 .
+          opam pin add -y conf-gles2 .
 
       - run: opam exec -- make
 
@@ -115,7 +115,7 @@ jobs:
           su opam -c '
             opam switch set ocaml5.5
             cd "$GITHUB_WORKSPACE"
-            opam pin add -y conf-gles3 .
+            opam pin add -y conf-gles2 .
             opam install . --deps-only --with-test
             '
 
