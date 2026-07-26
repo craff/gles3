@@ -53,9 +53,15 @@ jobs:
           opam pin add -y gles3-stubs .
           opam pin add -y gles3 .
           opam pin add -y gles3-x11 .
-          opam pin add -y gles3-wayland .
+          if [ "${{ matrix.os }}" != "macos-latest" ]; then
+            opam pin add -y gles3-wayland .
+          fi
 
-      - run: opam install gles3-stubs gles3 gles3-x11 gles3-wayland
+      - run: |
+          opam install gles3-stubs gles3 gles3-x11
+          if [ "${{ matrix.os }}" != "macos-latest" ]; then
+            opam install gles3-wayland
+          fi
 
   build-container:
     runs-on: ubuntu-latest

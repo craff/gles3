@@ -28,7 +28,7 @@ let gl_uint5999r = GL_UNSIGNED_INT_5_9_9_9_REV
 let gl_uint248r = GL_UNSIGNED_INT_24_8
 let gl_float32_uint248r = GL_FLOAT_32_UNSIGNED_INT_24_8_REV
 
-type (_,_) eq_type = True : ('a,'a) eq_type | False : ('a,'b) eq_type
+type (_,_) eq_type = True : ('"'a,'"'a) eq_type | False : ('"'a,'"'b) eq_type
 
 type gl_bool = int
 let gl_true = GL_TRUE
@@ -39,7 +39,7 @@ let gl_static_draw = GL_STATIC_DRAW
 let gl_stream_draw = GL_STREAM_DRAW
 let gl_dynamic_draw = GL_DYNAMIC_DRAW
 
-type 'a buffer_target = int
+type '"'a buffer_target = int
 type array_buffer_t
 type element_array_buffer_t
 let gl_array_buffer  : array_buffer_t buffer_target
@@ -55,7 +55,7 @@ let gl_tess_control_shader = GL_TESS_CONTROL_SHADER
 let gl_tess_evaluation_shader = GL_TESS_EVALUATION_SHADER
 let gl_geometry_shader = GL_GEOMETRY_SHADER
 
-type 'a gl_type = int
+type '"'a gl_type = int
 type sampler
 type int_type = int gl_type
 type bool_type = bool gl_type
@@ -63,7 +63,7 @@ type float_type = float gl_type
 type sampler_type = sampler gl_type
 type attribute_type = float_type
 
-type uniform_type = UT : 'a gl_type -> uniform_type [@@boxed]
+type uniform_type = UT : '"'a gl_type -> uniform_type [@@boxed]
 
 let sh_int      : int_type = GL_INT
 let sh_int_vec2 : int_type = GL_INT_VEC2
@@ -92,7 +92,7 @@ let sh_sampler_2d        : sampler_type = GL_SAMPLER_2D
 let sh_sampler_2d_shadow : sampler_type = GL_SAMPLER_2D_SHADOW
 let sh_sampler_cube      : sampler_type = GL_SAMPLER_CUBE
 
-let tysize : 'a gl_type -> int = function
+let tysize : '"'a gl_type -> int = function
   | x when x = sh_int -> 1
   | x when x = sh_uint -> 1
   | x when x = sh_float -> 1
@@ -153,10 +153,10 @@ let gl_texture_cube_map_negative_y = GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
 let gl_texture_cube_map_positive_z = GL_TEXTURE_CUBE_MAP_POSITIVE_Z
 let gl_texture_cube_map_negative_z = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
 
-type ('a, 'b, 'c) format = int
-type ('a, 'b, 'c) texture_format = ([> `Texture] as 'a, 'b, 'c) format
-type ('a, 'b, 'c) image_format = ([> `Image] as 'a, 'b, 'c) format
-type ('a, 'b, 'c) renderbuffer_format = ([> `Buffer] as 'a, 'b, 'c) format
+type ('"'a, '"'b, '"'c) format = int
+type ('"'a, '"'b, '"'c) texture_format = ([> `Texture] as '"'a, '"'b, '"'c) format
+type ('"'a, '"'b, '"'c) image_format = ([> `Image] as '"'a, '"'b, '"'c) format
+type ('"'a, '"'b, '"'c) renderbuffer_format = ([> `Buffer] as '"'a, '"'b, '"'c) format
 
 
 let gl_depth_component16 = GL_DEPTH_COMPONENT16
@@ -261,7 +261,7 @@ let gl_func_reverse_subtract = GL_FUNC_REVERSE_SUBTRACT
 let gl_max = GL_MAX
 let gl_min = GL_MIN
 
-type 'a blend_func = int
+type '"'a blend_func = int
 type dst_blend_func = unit blend_func
 type src
 type src_blend_func = src blend_func
@@ -295,19 +295,19 @@ let gl_read_framebuffer = GL_READ_FRAMEBUFFER
 let gl_draw_framebuffer = GL_DRAW_FRAMEBUFFER
 
 type wrap_mode
-type 'a filter
+type '"'a filter
 type min
 type mag
 type min_filter = min filter
 type mag_filter = mag filter
-type 'a texture_value = int
+type '"'a texture_value = int
 
 let gl_repeat : wrap_mode texture_value = GL_REPEAT
 let gl_clamp_to_edge : wrap_mode texture_value = GL_CLAMP_TO_EDGE
 
-let gl_linear  : 'a filter texture_value
+let gl_linear  : '"'a filter texture_value
   = GL_LINEAR
-let gl_nearest : 'a filter texture_value
+let gl_nearest : '"'a filter texture_value
   = GL_NEAREST
 let gl_nearest_mipmap_nearest : min_filter texture_value = GL_NEAREST_MIPMAP_NEAREST
 let gl_nearest_mipmap_linear : min_filter texture_value = GL_NEAREST_MIPMAP_LINEAR
@@ -318,7 +318,7 @@ type compare_mode
 let gl_compare_none : compare_mode texture_value = GL_NONE
 let gl_compare_ref_to_texture : compare_mode texture_value = GL_COMPARE_REF_TO_TEXTURE
 
-type 'a texture_parameter = int
+type '"'a texture_parameter = int
 let gl_texture_wrap_s : wrap_mode texture_parameter = GL_TEXTURE_WRAP_S
 let gl_texture_wrap_t : wrap_mode texture_parameter = GL_TEXTURE_WRAP_T
 let gl_texture_min_filter : min_filter texture_parameter = GL_TEXTURE_MIN_FILTER
@@ -326,10 +326,10 @@ let gl_texture_mag_filter : mag_filter texture_parameter = GL_TEXTURE_MAG_FILTER
 let gl_texture_compare_mode : compare_mode texture_parameter = GL_TEXTURE_COMPARE_MODE
 
 let eq_tex_parameter
-    : 'a texture_parameter -> 'b texture_parameter -> ('a,'b) eq_type
+    : '"'a texture_parameter -> '"'b texture_parameter -> ('"'a,'"'b) eq_type
   = fun x y -> if x = y then Obj.magic True else False
 
-type 'a attachment = int
+type '"'a attachment = int
 type buffer_at
 type frame_at
 type buffer_attachment = buffer_at attachment

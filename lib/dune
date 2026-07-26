@@ -1,10 +1,17 @@
 (rule
+ (target c_flags.sexp)
+ (action
+  (with-stdout-to %{target}
+    (bash
+     "pkg-config --cflags glesv2 |
+      awk 'BEGIN { printf \"(\" } { for(i=1;i<=NF;i++) printf \"\\\"%s\\\" \", $i } END { printf \")\\n\" }'"))))
+
+(rule
  (targets gles3_type.ml)
- (deps gles3_type.mlc)
+ (deps gles3_type.mlc c_flags.sexp)
  (action
   (with-stdout-to gles3_type.ml
-  (ignore-stderr
-  (bash "cpp -P gles3_type.mlc | grep -F -A 1000 '(*BEGIN*)'")))))
+  (bash "cpp $(sed 's/[()\\\"]//g' c_flags.sexp) -P %{dep:gles3_type.mlc} | grep -F -A 1000 '(*BEGIN*)' | sed \"s/'\\\"'/'/g\""))))
 
 (library
  (name gles3)
