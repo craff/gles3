@@ -38,24 +38,21 @@ jobs:
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
 
-      - if: runner.os == 'macOS'
-        run: |
-          rm -f gles3-wayland.opam
-
       - name: Deps
         run: |
-          opam install . --deps-only --with-test
           opam pin add -y conf-gles2 .
-
-      - run: opam exec -- make
-
-      - run: |
           opam pin add -y gles3-stubs .
+          opam install ./gles3-stubs.opam --deps-only --with-test
           opam pin add -y gles3 .
+          opam install ./gles3.opam --deps-only --with-test
           opam pin add -y gles3-x11 .
+          opam install ./gles3-x11.opam --deps-only --with-test
           if [ "${{ matrix.os }}" != "macos-latest" ]; then
             opam pin add -y gles3-wayland .
+            opam install ./gles3-wayland.opam --deps-only --with-test
           fi
+
+      - run: opam exec -- make
 
       - run: |
           opam install gles3-stubs gles3 gles3-x11
