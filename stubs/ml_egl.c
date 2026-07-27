@@ -335,18 +335,24 @@ CAMLprim value ml_egl_initialize(value vc, value vw, value vh, value vn, value v
   if(!eglChooseConfig(ctxt->display, attribs, configs, nconf, &nconf) || nconf < 1)
     init_fail(ctxt, "cannot choose EGL config") ;
   int best_i = 0;
-  EGLint best_depth, best_samples;
-  eglGetConfigAttrib(ctxt->display, configs[0], EGL_DEPTH_SIZE, &best_depth) ;
-  eglGetConfigAttrib(ctxt->display, configs[0], EGL_SAMPLES, &best_samples) ;
+  EGLint depth, samples, red, green, blue, alpha, total, best_total;
+  eglGetConfigAttrib(ctxt->display, configs[0], EGL_DEPTH_SIZE, &depth) ;
+  eglGetConfigAttrib(ctxt->display, configs[0], EGL_SAMPLES, &samples) ;
+  eglGetConfigAttrib(ctxt->display, configs[0], EGL_RED_SIZE, &red) ;
+  eglGetConfigAttrib(ctxt->display, configs[0], EGL_GREEN_SIZE, &green) ;
+  eglGetConfigAttrib(ctxt->display, configs[0], EGL_BLUE_SIZE, &blue) ;
+  eglGetConfigAttrib(ctxt->display, configs[0], EGL_ALPHA_SIZE, &alpha) ;
+  best_total = depth + samples + green + blue + alpha;
   for(int i=1;i<nconf;i++) {
-    EGLint depth, samples;
     eglGetConfigAttrib(ctxt->display, configs[i], EGL_DEPTH_SIZE, &depth) ;
     eglGetConfigAttrib(ctxt->display, configs[i], EGL_SAMPLES, &samples) ;
-    if (depth > best_depth) {
-      best_i = i; best_depth = depth; best_samples = samples;
-    }
-    else if (depth == best_depth && samples > best_samples) {
-      best_i = i; best_samples = samples;
+    eglGetConfigAttrib(ctxt->display, configs[i], EGL_RED_SIZE, &red) ;
+    eglGetConfigAttrib(ctxt->display, configs[i], EGL_GREEN_SIZE, &green) ;
+    eglGetConfigAttrib(ctxt->display, configs[i], EGL_BLUE_SIZE, &blue) ;
+    eglGetConfigAttrib(ctxt->display, configs[i], EGL_ALPHA_SIZE, &alpha) ;
+    total = depth + samples + green + blue + alpha;
+    if (total < best_total) {
+      best_i = i; best_total = total;
     }
   }
 
