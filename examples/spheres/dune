@@ -74,7 +74,7 @@
  (public_name spheres_x11)
  (modules spheres_x11 spheres fragment_implicit_shadow  fragment_light_implicit_with_shadow  fragment_light_with_shadow  fragment_shadow  sphere  sphere_shadow  vertex_implicit_shadow  vertex_light_with_shadow  vertex_shadow  )
  (flags (:standard -w -6))
- (enabled_if (= %{env:BUILD_X11_EXAMPLES=} "true"))
+ (optional)
  (libraries gles3 gles3-x11)
  (package gles3-x11))
 
@@ -83,6 +83,6 @@
  (public_name spheres_wayland)
  (modules spheres_wayland spheres fragment_implicit_shadow  fragment_light_implicit_with_shadow  fragment_light_with_shadow  fragment_shadow  sphere  sphere_shadow  vertex_implicit_shadow  vertex_light_with_shadow  vertex_shadow  )
  (flags (:standard -w -6))
- (enabled_if (= %{env:BUILD_WAYLAND_EXAMPLES=} "true"))
+ (optional)
  (libraries gles3 gles3-wayland)
  (package gles3-wayland))

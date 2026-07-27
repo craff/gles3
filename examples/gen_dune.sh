@@ -49,14 +49,16 @@ cat >> ${DEST} <<EOF
  (public_name ${NAME}_x11)
  (modules ${NAME}_x11 ${NAME} $(for s in shaders/*.glsl; do [ -f "$s" ] && echo -n $(basename ${s%.*}) " "; done))
  (flags (:standard -w -6))
+ (optional)
  (libraries gles3 gles3-x11)
- (package gles3))
+ (package gles3-x11))
 
 (executable
  (name ${NAME}_wayland)
  (public_name ${NAME}_wayland)
  (modules ${NAME}_wayland ${NAME} $(for s in shaders/*.glsl; do [ -f "$s" ] && echo -n $(basename ${s%.*}) " "; done))
  (flags (:standard -w -6))
+ (optional)
  (libraries gles3 gles3-wayland)
- (package gles3))
+ (package gles3-wayland))
 EOF

@@ -37,17 +37,17 @@
 (executable
  (name click_x11)
  (public_name click_x11)
- (modules click_x11 click fragment_index  fragment_light  vertex_index  vertex_light  )
+ (modules click_x11 click fragment_index  fragment_light  vertex_index  vertex_light)
  (flags (:standard -w -6))
- (enabled_if (= %{env:BUILD_X11_EXAMPLES=} "true"))
+ (optional)
  (libraries gles3 gles3-x11)
  (package gles3-x11))
 
 (executable
  (name click_wayland)
  (public_name click_wayland)
- (modules click_wayland click fragment_index  fragment_light  vertex_index  vertex_light  )
+ (modules click_wayland click fragment_index  fragment_light  vertex_index  vertex_light)
  (flags (:standard -w -6))
- (enabled_if (= %{env:BUILD_WAYLAND_EXAMPLES=} "true"))
+ (optional)
  (libraries gles3 gles3-wayland)
  (package gles3-wayland))

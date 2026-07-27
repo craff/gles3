@@ -32,7 +32,7 @@
  (public_name exploding_cube_x11)
  (modules exploding_cube_x11 exploding_cube fragment_light  geometry_shader  vertex_light  )
  (flags (:standard -w -6))
- (enabled_if (= %{env:BUILD_X11_EXAMPLES=} "true"))
+ (optional)
  (libraries gles3 gles3-x11)
  (package gles3-x11))
 
@@ -41,6 +41,6 @@
  (public_name exploding_cube_wayland)
  (modules exploding_cube_wayland exploding_cube fragment_light  geometry_shader  vertex_light  )
  (flags (:standard -w -6))
- (enabled_if (= %{env:BUILD_WAYLAND_EXAMPLES=} "true"))
+ (optional)
  (libraries gles3 gles3-wayland)
  (package gles3-wayland))
