@@ -9,7 +9,7 @@ homepage: "https://raffalli.eu/gles3/"
 doc: "https://raffalli.eu/gles3"
 bug-reports: "https://github.com/craff/gles3/issues"
 depends: [
-  "dune" {>= "3.20"}
+  "dune" {>= "3.23"}
   "ocaml" {>= "5.2.0"}
   "conf-freetype"
   "conf-gles2" {>= "3.0"}
