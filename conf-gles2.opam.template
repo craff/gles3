@@ -7,7 +7,7 @@ license: "MIT"
 bug-reports: "https://github.com/ocaml/opam-repository/issues"
 build: [
   ["pkg-config" "--exists" "glesv2"]
-    {os != "macos" & os != "openbsd" & os != "win32"}
+    {os != "macos" & os != "openbsd" & os != "win32" & os != "freebsd"}
 ]
 depends: [
   "conf-pkg-config"

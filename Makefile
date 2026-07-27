@@ -5,12 +5,6 @@ HAVE_WAYLAND := $(shell pkg-config --exists wayland-client wayland-egl egl && ec
 
 all:
 	dune build @install
-	sed -i.bak \
-	  -e '/^doc:/d' \
-	  -e '/^dev-repo:/d' \
-	  -e '/^x-maintenance-intent:/d' \
-	  conf-gles2.opam
-	rm conf-gles2.opam.bak
 
 .PHONY: all
 
