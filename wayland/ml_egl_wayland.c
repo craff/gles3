@@ -8,8 +8,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <linux/input-event-codes.h>
-
 #include <wayland-client.h>
 #include <wayland-egl.h>
 #include <EGL/egl.h>
@@ -27,6 +25,14 @@
 
 #include "ml_egl.h"
 #include "ml_egl_platform.h"
+
+#ifndef BTN_LEFT
+#define BTN_LEFT    0x110
+#define BTN_RIGHT   0x111
+#define BTN_MIDDLE  0x112
+#define BTN_SIDE    0x113
+#define BTN_EXTRA   0x114
+#endif
 
 /* ========================= */
 /* Platform globals          */
