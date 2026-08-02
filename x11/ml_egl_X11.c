@@ -162,57 +162,84 @@ egl_key x11_keysym_to_egl(KeySym ks)
     /* contrôle                 */
     /* ========================= */
 
-    case XK_Escape:   return EGL_KEY_Escape;
-    case XK_Return:    return EGL_KEY_Return;
-    case XK_Tab:       return EGL_KEY_Tab;
     case XK_BackSpace: return EGL_KEY_Backspace;
+    case XK_Tab:       return EGL_KEY_Tab;
+    case XK_Linefeed:  return EGL_KEY_Linefeed;
+    case XK_Clear:     return EGL_KEY_Clear;
+    case XK_Return:    return EGL_KEY_Return;
+    case XK_Pause:     return EGL_KEY_Pause;
+    case XK_Scroll_Lock: return EGL_KEY_ScrollLock;
+    case XK_Sys_Req:   return EGL_KEY_SysReq;
+    case XK_Escape:    return EGL_KEY_Escape;
     case XK_Delete:    return EGL_KEY_Delete;
-    case XK_Insert:    return EGL_KEY_Insert;
 
     /* ========================= */
     /* espace / ponctuation     */
     /* ========================= */
 
     case XK_space:      return EGL_KEY_Space;
-    case XK_minus:      return EGL_KEY_Minus;
-    case XK_equal:      return EGL_KEY_Equal;
-
-    case XK_bracketleft:  return EGL_KEY_LeftBracket;
-    case XK_bracketright: return EGL_KEY_RightBracket;
-
-    case XK_backslash:  return EGL_KEY_Backslash;
-
-    case XK_semicolon:  return EGL_KEY_Semicolon;
+    case XK_exclam:     return EGL_KEY_Exclam;
+    case XK_quotedbl:   return EGL_KEY_QuoteDbl;
+    case XK_numbersign: return EGL_KEY_NumberSign;
+    case XK_dollar:     return EGL_KEY_Dollar;
+    case XK_percent:    return EGL_KEY_Percent;
+    case XK_ampersand:  return EGL_KEY_Ampersand;
     case XK_apostrophe: return EGL_KEY_Apostrophe;
-
+    case XK_parenleft:  return EGL_KEY_ParenLeft;
+    case XK_parenright: return EGL_KEY_ParenRight;
+    case XK_asterisk:   return EGL_KEY_Asterisk;
+    case XK_plus:       return EGL_KEY_Plus;
     case XK_comma:      return EGL_KEY_Comma;
+    case XK_minus:      return EGL_KEY_Minus;
     case XK_period:     return EGL_KEY_Period;
     case XK_slash:      return EGL_KEY_Slash;
-
+    case XK_colon:      return EGL_KEY_Colon;
+    case XK_semicolon:  return EGL_KEY_Semicolon;
+    case XK_less:       return EGL_KEY_Less;
+    case XK_equal:      return EGL_KEY_Equal;
+    case XK_greater:    return EGL_KEY_Greater;
+    case XK_question:   return EGL_KEY_Question;
+    case XK_at:         return EGL_KEY_At;
+    case XK_bracketleft:return EGL_KEY_BracketLeft;
+    case XK_backslash:  return EGL_KEY_Backslash;
+    case XK_bracketright:return EGL_KEY_BracketRight;
+    case XK_asciicircum:return EGL_KEY_AsciiCircum;
+    case XK_underscore: return EGL_KEY_Underscore;
     case XK_grave:      return EGL_KEY_Grave;
+    case XK_braceleft:  return EGL_KEY_BraceLeft;
+    case XK_bar:        return EGL_KEY_Bar;
+    case XK_braceright: return EGL_KEY_BraceRight;
+    case XK_asciitilde: return EGL_KEY_AsciiTilde;
 
-    /* ========================= */
-    /* système                  */
-    /* ========================= */
-
-    case XK_Print:     return EGL_KEY_PrintScreen;
-    case XK_Scroll_Lock: return EGL_KEY_ScrollLock;
-    case XK_Pause:     return EGL_KEY_Pause;
-    case XK_Menu:      return EGL_KEY_Menu;
 
     /* ========================= */
     /* navigation               */
     /* ========================= */
 
     case XK_Home:      return EGL_KEY_Home;
-    case XK_End:       return EGL_KEY_End;
-    case XK_Page_Up:   return EGL_KEY_PageUp;
-    case XK_Page_Down: return EGL_KEY_PageDown;
-
     case XK_Left:      return EGL_KEY_Left;
-    case XK_Right:     return EGL_KEY_Right;
     case XK_Up:        return EGL_KEY_Up;
+    case XK_Right:     return EGL_KEY_Right;
     case XK_Down:      return EGL_KEY_Down;
+    case XK_Prior:     return EGL_KEY_Prior;
+    case XK_Next:      return EGL_KEY_Next;
+    case XK_End:       return EGL_KEY_End;
+    case XK_Begin:     return EGL_KEY_Begin;
+
+
+    case XK_Select:    return EGL_KEY_Select;
+    case XK_Print:     return EGL_KEY_Print;
+    case XK_Execute:   return EGL_KEY_Execute;
+    case XK_Insert:    return EGL_KEY_Insert;
+    case XK_Undo:      return EGL_KEY_Undo;
+    case XK_Redo:      return EGL_KEY_Redo;
+    case XK_Menu:      return EGL_KEY_Menu;
+    case XK_Find:      return EGL_KEY_Menu;
+    case XK_Cancel:    return EGL_KEY_Menu;
+    case XK_Help:      return EGL_KEY_Menu;
+    case XK_Break:     return EGL_KEY_Menu;
+    case XK_Mode_switch: return EGL_KEY_ModeSwitch;
+    case XK_Num_Lock:   return EGL_KEY_NumLock;
 
     /* ========================= */
     /* fonctions F1–F24        */
@@ -230,7 +257,6 @@ egl_key x11_keysym_to_egl(KeySym ks)
     case XK_F10: return EGL_KEY_F10;
     case XK_F11: return EGL_KEY_F11;
     case XK_F12: return EGL_KEY_F12;
-
     case XK_F13: return EGL_KEY_F13;
     case XK_F14: return EGL_KEY_F14;
     case XK_F15: return EGL_KEY_F15;
@@ -243,25 +269,38 @@ egl_key x11_keysym_to_egl(KeySym ks)
     case XK_F22: return EGL_KEY_F22;
     case XK_F23: return EGL_KEY_F23;
     case XK_F24: return EGL_KEY_F24;
+    case XK_F25: return EGL_KEY_F25;
+    case XK_F26: return EGL_KEY_F26;
+    case XK_F27: return EGL_KEY_F27;
+    case XK_F28: return EGL_KEY_F28;
+    case XK_F29: return EGL_KEY_F29;
+    case XK_F30: return EGL_KEY_F30;
+    case XK_F31: return EGL_KEY_F31;
+    case XK_F32: return EGL_KEY_F32;
+    case XK_F33: return EGL_KEY_F33;
+    case XK_F34: return EGL_KEY_F34;
+    case XK_F35: return EGL_KEY_F35;
 
     /* ========================= */
     /* modifiers (touches)      */
     /* ========================= */
 
-    case XK_Shift_L:   return EGL_KEY_ShiftLeft;
-    case XK_Shift_R:   return EGL_KEY_ShiftRight;
-
+    case XK_Shift_L:    return EGL_KEY_ShiftLeft;
+    case XK_Shift_R:    return EGL_KEY_ShiftRight;
     case XK_Control_L:  return EGL_KEY_ControlLeft;
     case XK_Control_R:  return EGL_KEY_ControlRight;
+    case XK_Caps_Lock:  return EGL_KEY_CapsLock;
+    case XK_Shift_Lock: return EGL_KEY_ShiftLock;
 
+    case XK_Meta_L:     return EGL_KEY_MetaLeft;
+    case XK_Meta_R:     return EGL_KEY_MetaRight;
     case XK_Alt_L:      return EGL_KEY_AltLeft;
     case XK_Alt_R:      return EGL_KEY_AltRight;
-
     case XK_Super_L:    return EGL_KEY_SuperLeft;
     case XK_Super_R:    return EGL_KEY_SuperRight;
+    case XK_Hyper_L:    return EGL_KEY_HyperLeft;
+    case XK_Hyper_R:    return EGL_KEY_HyperRight;
 
-    case XK_Caps_Lock:  return EGL_KEY_CapsLock;
-    case XK_Num_Lock:   return EGL_KEY_NumLock;
 
     /* ========================= */
     /* keypad                   */
@@ -278,13 +317,31 @@ egl_key x11_keysym_to_egl(KeySym ks)
     case XK_KP_8: return EGL_KEY_Keypad8;
     case XK_KP_9: return EGL_KEY_Keypad9;
 
+    case XK_KP_Space:    return EGL_KEY_KeypadSpace;
+    case XK_KP_Tab:      return EGL_KEY_KeypadTab;
+    case XK_KP_Enter:    return EGL_KEY_KeypadEnter;
+    case XK_KP_F1:       return EGL_KEY_KeypadF1;
+    case XK_KP_F2:       return EGL_KEY_KeypadF2;
+    case XK_KP_F3:       return EGL_KEY_KeypadF3;
+    case XK_KP_F4:       return EGL_KEY_KeypadF4;
+    case XK_KP_Home:     return EGL_KEY_KeypadHome;
+    case XK_KP_Left:     return EGL_KEY_KeypadLeft;
+    case XK_KP_Up:       return EGL_KEY_KeypadUp;
+    case XK_KP_Right:    return EGL_KEY_KeypadRight;
+    case XK_KP_Down:     return EGL_KEY_KeypadDown;
+    case XK_KP_Prior:    return EGL_KEY_KeypadPrior;
+    case XK_KP_Next:     return EGL_KEY_KeypadNext;
+    case XK_KP_End:      return EGL_KEY_KeypadEnd;
+    case XK_KP_Begin:    return EGL_KEY_KeypadBegin;
+    case XK_KP_Insert:   return EGL_KEY_KeypadInsert;
+    case XK_KP_Delete:   return EGL_KEY_KeypadDelete;
+    case XK_KP_Equal:    return EGL_KEY_KeypadEqual;
+    case XK_KP_Multiply: return EGL_KEY_KeypadMultiply;
+    case XK_KP_Add:      return EGL_KEY_KeypadAdd;
+    case XK_KP_Separator:return EGL_KEY_KeypadSeparator;
+    case XK_KP_Subtract: return EGL_KEY_KeypadSubtract;
     case XK_KP_Decimal:  return EGL_KEY_KeypadDecimal;
     case XK_KP_Divide:   return EGL_KEY_KeypadDivide;
-    case XK_KP_Multiply: return EGL_KEY_KeypadMultiply;
-    case XK_KP_Subtract: return EGL_KEY_KeypadSubtract;
-    case XK_KP_Add:      return EGL_KEY_KeypadAdd;
-    case XK_KP_Enter:    return EGL_KEY_KeypadEnter;
-    case XK_KP_Equal:    return EGL_KEY_KeypadEqual;
 
     /* ========================= */
     /* multimedia               */

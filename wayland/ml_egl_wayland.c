@@ -162,57 +162,85 @@ static egl_key xkb_to_egl(xkb_keysym_t sym)
     /* contrôle                 */
     /* ========================= */
 
-    case XKB_KEY_Escape:   return EGL_KEY_Escape;
-    case XKB_KEY_Return:    return EGL_KEY_Return;
-    case XKB_KEY_Tab:       return EGL_KEY_Tab;
     case XKB_KEY_BackSpace: return EGL_KEY_Backspace;
+    case XKB_KEY_Tab:       return EGL_KEY_Tab;
+    case XKB_KEY_Linefeed:  return EGL_KEY_Linefeed;
+    case XKB_KEY_Clear:     return EGL_KEY_Clear;
+    case XKB_KEY_Return:    return EGL_KEY_Return;
+    case XKB_KEY_Pause:     return EGL_KEY_Pause;
+    case XKB_KEY_Scroll_Lock: return EGL_KEY_ScrollLock;
+    case XKB_KEY_Sys_Req:   return EGL_KEY_SysReq;
+    case XKB_KEY_Escape:    return EGL_KEY_Escape;
     case XKB_KEY_Delete:    return EGL_KEY_Delete;
-    case XKB_KEY_Insert:    return EGL_KEY_Insert;
 
     /* ========================= */
     /* espace / ponctuation     */
     /* ========================= */
 
     case XKB_KEY_space:      return EGL_KEY_Space;
-    case XKB_KEY_minus:      return EGL_KEY_Minus;
-    case XKB_KEY_equal:      return EGL_KEY_Equal;
-
-    case XKB_KEY_bracketleft:  return EGL_KEY_LeftBracket;
-    case XKB_KEY_bracketright: return EGL_KEY_RightBracket;
-
-    case XKB_KEY_backslash:  return EGL_KEY_Backslash;
-
-    case XKB_KEY_semicolon:  return EGL_KEY_Semicolon;
+    case XKB_KEY_exclam:     return EGL_KEY_Exclam;
+    case XKB_KEY_quotedbl:   return EGL_KEY_QuoteDbl;
+    case XKB_KEY_numbersign: return EGL_KEY_NumberSign;
+    case XKB_KEY_dollar:     return EGL_KEY_Dollar;
+    case XKB_KEY_percent:    return EGL_KEY_Percent;
+    case XKB_KEY_ampersand:  return EGL_KEY_Ampersand;
     case XKB_KEY_apostrophe: return EGL_KEY_Apostrophe;
-
+    case XKB_KEY_parenleft:  return EGL_KEY_ParenLeft;
+    case XKB_KEY_parenright: return EGL_KEY_ParenRight;
+    case XKB_KEY_plus:       return EGL_KEY_Plus;
     case XKB_KEY_comma:      return EGL_KEY_Comma;
+    case XKB_KEY_minus:      return EGL_KEY_Minus;
     case XKB_KEY_period:     return EGL_KEY_Period;
     case XKB_KEY_slash:      return EGL_KEY_Slash;
-
+    case XKB_KEY_colon:      return EGL_KEY_Colon;
+    case XKB_KEY_semicolon:  return EGL_KEY_Semicolon;
+    case XKB_KEY_less:       return EGL_KEY_Less;
+    case XKB_KEY_equal:      return EGL_KEY_Equal;
+    case XKB_KEY_greater:    return EGL_KEY_Greater;
+    case XKB_KEY_question:   return EGL_KEY_Question;
+    case XKB_KEY_at:         return EGL_KEY_At;
+    case XKB_KEY_bracketleft:return EGL_KEY_BracketLeft;
+    case XKB_KEY_backslash:  return EGL_KEY_Backslash;
+    case XKB_KEY_bracketright:return EGL_KEY_BracketRight;
+    case XKB_KEY_asciicircum:return EGL_KEY_AsciiCircum;
+    case XKB_KEY_underscore: return EGL_KEY_Underscore;
     case XKB_KEY_grave:      return EGL_KEY_Grave;
-
-    /* ========================= */
-    /* système                  */
-    /* ========================= */
-
-    case XKB_KEY_Print:     return EGL_KEY_PrintScreen;
-    case XKB_KEY_Scroll_Lock: return EGL_KEY_ScrollLock;
-    case XKB_KEY_Pause:     return EGL_KEY_Pause;
-    case XKB_KEY_Menu:      return EGL_KEY_Menu;
+    case XKB_KEY_braceleft:  return EGL_KEY_BraceLeft;
+    case XKB_KEY_bar:        return EGL_KEY_Bar;
+    case XKB_KEY_braceright: return EGL_KEY_BraceRight;
+    case XKB_KEY_asciitilde: return EGL_KEY_AsciiTilde;
 
     /* ========================= */
     /* navigation               */
     /* ========================= */
 
     case XKB_KEY_Home:      return EGL_KEY_Home;
-    case XKB_KEY_End:       return EGL_KEY_End;
-    case XKB_KEY_Page_Up:   return EGL_KEY_PageUp;
-    case XKB_KEY_Page_Down: return EGL_KEY_PageDown;
-
     case XKB_KEY_Left:      return EGL_KEY_Left;
-    case XKB_KEY_Right:     return EGL_KEY_Right;
     case XKB_KEY_Up:        return EGL_KEY_Up;
+    case XKB_KEY_Right:     return EGL_KEY_Right;
     case XKB_KEY_Down:      return EGL_KEY_Down;
+    case XKB_KEY_Prior:     return EGL_KEY_Prior;
+    case XKB_KEY_Next:      return EGL_KEY_Next;
+    case XKB_KEY_End:       return EGL_KEY_End;
+    case XKB_KEY_Begin:     return EGL_KEY_Begin;
+
+    /* ========================= */
+    /* système                  */
+    /* ========================= */
+
+    case XKB_KEY_Select:    return EGL_KEY_Select;
+    case XKB_KEY_Print:     return EGL_KEY_Print;
+    case XKB_KEY_Execute:   return EGL_KEY_Execute;
+    case XKB_KEY_Insert:    return EGL_KEY_Insert;
+    case XKB_KEY_Undo:      return EGL_KEY_Undo;
+    case XKB_KEY_Redo:      return EGL_KEY_Redo;
+    case XKB_KEY_Menu:      return EGL_KEY_Menu;
+    case XKB_KEY_Find:      return EGL_KEY_Find;
+    case XKB_KEY_Cancel:    return EGL_KEY_Cancel;
+    case XKB_KEY_Help:      return EGL_KEY_Help;
+    case XKB_KEY_Break:     return EGL_KEY_Break;
+    case XKB_KEY_Mode_switch: return EGL_KEY_ModeSwitch;
+    case XKB_KEY_Num_Lock:   return EGL_KEY_NumLock;
 
     /* ========================= */
     /* fonctions F1–F24        */
@@ -230,7 +258,6 @@ static egl_key xkb_to_egl(xkb_keysym_t sym)
     case XKB_KEY_F10: return EGL_KEY_F10;
     case XKB_KEY_F11: return EGL_KEY_F11;
     case XKB_KEY_F12: return EGL_KEY_F12;
-
     case XKB_KEY_F13: return EGL_KEY_F13;
     case XKB_KEY_F14: return EGL_KEY_F14;
     case XKB_KEY_F15: return EGL_KEY_F15;
@@ -243,25 +270,38 @@ static egl_key xkb_to_egl(xkb_keysym_t sym)
     case XKB_KEY_F22: return EGL_KEY_F22;
     case XKB_KEY_F23: return EGL_KEY_F23;
     case XKB_KEY_F24: return EGL_KEY_F24;
+    case XKB_KEY_F25: return EGL_KEY_F25;
+    case XKB_KEY_F26: return EGL_KEY_F26;
+    case XKB_KEY_F27: return EGL_KEY_F27;
+    case XKB_KEY_F28: return EGL_KEY_F28;
+    case XKB_KEY_F29: return EGL_KEY_F29;
+    case XKB_KEY_F30: return EGL_KEY_F30;
+    case XKB_KEY_F31: return EGL_KEY_F31;
+    case XKB_KEY_F32: return EGL_KEY_F32;
+    case XKB_KEY_F33: return EGL_KEY_F33;
+    case XKB_KEY_F34: return EGL_KEY_F34;
+    case XKB_KEY_F35: return EGL_KEY_F35;
 
     /* ========================= */
     /* modifiers (touches)      */
     /* ========================= */
 
-    case XKB_KEY_Shift_L:   return EGL_KEY_ShiftLeft;
-    case XKB_KEY_Shift_R:   return EGL_KEY_ShiftRight;
-
+    case XKB_KEY_Shift_L:    return EGL_KEY_ShiftLeft;
+    case XKB_KEY_Shift_R:    return EGL_KEY_ShiftRight;
     case XKB_KEY_Control_L:  return EGL_KEY_ControlLeft;
     case XKB_KEY_Control_R:  return EGL_KEY_ControlRight;
+    case XKB_KEY_Caps_Lock:  return EGL_KEY_CapsLock;
+    case XKB_KEY_Shift_Lock: return EGL_KEY_ShiftLock;
 
+    case XKB_KEY_Meta_L:     return EGL_KEY_MetaLeft;
+    case XKB_KEY_Meta_R:     return EGL_KEY_MetaRight;
     case XKB_KEY_Alt_L:      return EGL_KEY_AltLeft;
     case XKB_KEY_Alt_R:      return EGL_KEY_AltRight;
-
     case XKB_KEY_Super_L:    return EGL_KEY_SuperLeft;
     case XKB_KEY_Super_R:    return EGL_KEY_SuperRight;
+    case XKB_KEY_Hyper_L:    return EGL_KEY_HyperLeft;
+    case XKB_KEY_Hyper_R:    return EGL_KEY_HyperRight;
 
-    case XKB_KEY_Caps_Lock:  return EGL_KEY_CapsLock;
-    case XKB_KEY_Num_Lock:   return EGL_KEY_NumLock;
 
     /* ========================= */
     /* keypad                   */
@@ -278,13 +318,31 @@ static egl_key xkb_to_egl(xkb_keysym_t sym)
     case XKB_KEY_KP_8: return EGL_KEY_Keypad8;
     case XKB_KEY_KP_9: return EGL_KEY_Keypad9;
 
+    case XKB_KEY_KP_Space:    return EGL_KEY_KeypadSpace;
+    case XKB_KEY_KP_Tab:      return EGL_KEY_KeypadTab;
+    case XKB_KEY_KP_Enter:    return EGL_KEY_KeypadEnter;
+    case XKB_KEY_KP_F1:       return EGL_KEY_KeypadF1;
+    case XKB_KEY_KP_F2:       return EGL_KEY_KeypadF2;
+    case XKB_KEY_KP_F3:       return EGL_KEY_KeypadF3;
+    case XKB_KEY_KP_F4:       return EGL_KEY_KeypadF4;
+    case XKB_KEY_KP_Home:     return EGL_KEY_KeypadHome;
+    case XKB_KEY_KP_Left:     return EGL_KEY_KeypadLeft;
+    case XKB_KEY_KP_Up:       return EGL_KEY_KeypadUp;
+    case XKB_KEY_KP_Right:    return EGL_KEY_KeypadRight;
+    case XKB_KEY_KP_Down:     return EGL_KEY_KeypadDown;
+    case XKB_KEY_KP_Prior:    return EGL_KEY_KeypadPrior;
+    case XKB_KEY_KP_Next:     return EGL_KEY_KeypadNext;
+    case XKB_KEY_KP_End:      return EGL_KEY_KeypadEnd;
+    case XKB_KEY_KP_Begin:    return EGL_KEY_KeypadBegin;
+    case XKB_KEY_KP_Insert:   return EGL_KEY_KeypadInsert;
+    case XKB_KEY_KP_Delete:   return EGL_KEY_KeypadDelete;
+    case XKB_KEY_KP_Equal:    return EGL_KEY_KeypadEqual;
+    case XKB_KEY_KP_Multiply: return EGL_KEY_KeypadMultiply;
+    case XKB_KEY_KP_Add:      return EGL_KEY_KeypadAdd;
+    case XKB_KEY_KP_Separator:return EGL_KEY_KeypadSeparator;
+    case XKB_KEY_KP_Subtract: return EGL_KEY_KeypadSubtract;
     case XKB_KEY_KP_Decimal:  return EGL_KEY_KeypadDecimal;
     case XKB_KEY_KP_Divide:   return EGL_KEY_KeypadDivide;
-    case XKB_KEY_KP_Multiply: return EGL_KEY_KeypadMultiply;
-    case XKB_KEY_KP_Subtract: return EGL_KEY_KeypadSubtract;
-    case XKB_KEY_KP_Add:      return EGL_KEY_KeypadAdd;
-    case XKB_KEY_KP_Enter:    return EGL_KEY_KeypadEnter;
-    case XKB_KEY_KP_Equal:    return EGL_KEY_KeypadEqual;
 
     /* ========================= */
     /* multimedia               */
