@@ -56,6 +56,7 @@ typedef struct platform_context_struct {
   struct xkb_context *xkb_ctx;
   struct xkb_keymap   *xkb_keymap;
   struct xkb_state    *xkb_state;
+  struct xkb_state    *xkb_text_state;
   int   mouse_x;
   int   mouse_y;
   int   window_visible;
@@ -113,52 +114,6 @@ static egl_key xkb_to_egl(xkb_keysym_t sym)
   switch(sym)
   {
     /* ========================= */
-    /* lettres (lower/upper safe) */
-    /* ========================= */
-
-    case XKB_KEY_A: case XKB_KEY_a: return EGL_KEY_A;
-    case XKB_KEY_B: case XKB_KEY_b: return EGL_KEY_B;
-    case XKB_KEY_C: case XKB_KEY_c: return EGL_KEY_C;
-    case XKB_KEY_D: case XKB_KEY_d: return EGL_KEY_D;
-    case XKB_KEY_E: case XKB_KEY_e: return EGL_KEY_E;
-    case XKB_KEY_F: case XKB_KEY_f: return EGL_KEY_F;
-    case XKB_KEY_G: case XKB_KEY_g: return EGL_KEY_G;
-    case XKB_KEY_H: case XKB_KEY_h: return EGL_KEY_H;
-    case XKB_KEY_I: case XKB_KEY_i: return EGL_KEY_I;
-    case XKB_KEY_J: case XKB_KEY_j: return EGL_KEY_J;
-    case XKB_KEY_K: case XKB_KEY_k: return EGL_KEY_K;
-    case XKB_KEY_L: case XKB_KEY_l: return EGL_KEY_L;
-    case XKB_KEY_M: case XKB_KEY_m: return EGL_KEY_M;
-    case XKB_KEY_N: case XKB_KEY_n: return EGL_KEY_N;
-    case XKB_KEY_O: case XKB_KEY_o: return EGL_KEY_O;
-    case XKB_KEY_P: case XKB_KEY_p: return EGL_KEY_P;
-    case XKB_KEY_Q: case XKB_KEY_q: return EGL_KEY_Q;
-    case XKB_KEY_R: case XKB_KEY_r: return EGL_KEY_R;
-    case XKB_KEY_S: case XKB_KEY_s: return EGL_KEY_S;
-    case XKB_KEY_T: case XKB_KEY_t: return EGL_KEY_T;
-    case XKB_KEY_U: case XKB_KEY_u: return EGL_KEY_U;
-    case XKB_KEY_V: case XKB_KEY_v: return EGL_KEY_V;
-    case XKB_KEY_W: case XKB_KEY_w: return EGL_KEY_W;
-    case XKB_KEY_X: case XKB_KEY_x: return EGL_KEY_X;
-    case XKB_KEY_Y: case XKB_KEY_y: return EGL_KEY_Y;
-    case XKB_KEY_Z: case XKB_KEY_z: return EGL_KEY_Z;
-
-    /* ========================= */
-    /* chiffres (haut clavier)   */
-    /* ========================= */
-
-    case XKB_KEY_0: return EGL_KEY_Num0;
-    case XKB_KEY_1: return EGL_KEY_Num1;
-    case XKB_KEY_2: return EGL_KEY_Num2;
-    case XKB_KEY_3: return EGL_KEY_Num3;
-    case XKB_KEY_4: return EGL_KEY_Num4;
-    case XKB_KEY_5: return EGL_KEY_Num5;
-    case XKB_KEY_6: return EGL_KEY_Num6;
-    case XKB_KEY_7: return EGL_KEY_Num7;
-    case XKB_KEY_8: return EGL_KEY_Num8;
-    case XKB_KEY_9: return EGL_KEY_Num9;
-
-    /* ========================= */
     /* contrôle                 */
     /* ========================= */
 
@@ -172,43 +127,6 @@ static egl_key xkb_to_egl(xkb_keysym_t sym)
     case XKB_KEY_Sys_Req:   return EGL_KEY_SysReq;
     case XKB_KEY_Escape:    return EGL_KEY_Escape;
     case XKB_KEY_Delete:    return EGL_KEY_Delete;
-
-    /* ========================= */
-    /* espace / ponctuation     */
-    /* ========================= */
-
-    case XKB_KEY_space:      return EGL_KEY_Space;
-    case XKB_KEY_exclam:     return EGL_KEY_Exclam;
-    case XKB_KEY_quotedbl:   return EGL_KEY_QuoteDbl;
-    case XKB_KEY_numbersign: return EGL_KEY_NumberSign;
-    case XKB_KEY_dollar:     return EGL_KEY_Dollar;
-    case XKB_KEY_percent:    return EGL_KEY_Percent;
-    case XKB_KEY_ampersand:  return EGL_KEY_Ampersand;
-    case XKB_KEY_apostrophe: return EGL_KEY_Apostrophe;
-    case XKB_KEY_parenleft:  return EGL_KEY_ParenLeft;
-    case XKB_KEY_parenright: return EGL_KEY_ParenRight;
-    case XKB_KEY_plus:       return EGL_KEY_Plus;
-    case XKB_KEY_comma:      return EGL_KEY_Comma;
-    case XKB_KEY_minus:      return EGL_KEY_Minus;
-    case XKB_KEY_period:     return EGL_KEY_Period;
-    case XKB_KEY_slash:      return EGL_KEY_Slash;
-    case XKB_KEY_colon:      return EGL_KEY_Colon;
-    case XKB_KEY_semicolon:  return EGL_KEY_Semicolon;
-    case XKB_KEY_less:       return EGL_KEY_Less;
-    case XKB_KEY_equal:      return EGL_KEY_Equal;
-    case XKB_KEY_greater:    return EGL_KEY_Greater;
-    case XKB_KEY_question:   return EGL_KEY_Question;
-    case XKB_KEY_at:         return EGL_KEY_At;
-    case XKB_KEY_bracketleft:return EGL_KEY_BracketLeft;
-    case XKB_KEY_backslash:  return EGL_KEY_Backslash;
-    case XKB_KEY_bracketright:return EGL_KEY_BracketRight;
-    case XKB_KEY_asciicircum:return EGL_KEY_AsciiCircum;
-    case XKB_KEY_underscore: return EGL_KEY_Underscore;
-    case XKB_KEY_grave:      return EGL_KEY_Grave;
-    case XKB_KEY_braceleft:  return EGL_KEY_BraceLeft;
-    case XKB_KEY_bar:        return EGL_KEY_Bar;
-    case XKB_KEY_braceright: return EGL_KEY_BraceRight;
-    case XKB_KEY_asciitilde: return EGL_KEY_AsciiTilde;
 
     /* ========================= */
     /* navigation               */
@@ -415,6 +333,7 @@ static void keyboard_keymap(void *data,
   close(fd);
 
   pctxt->xkb_state = xkb_state_new(pctxt->xkb_keymap);
+  pctxt->xkb_text_state = xkb_state_new(pctxt->xkb_keymap);
 }
 static void keyboard_enter(void *, struct wl_keyboard *, uint32_t,  struct wl_surface *, struct wl_array *) {}
 static void keyboard_leave(void *, struct wl_keyboard *, uint32_t,  struct wl_surface *) {}
@@ -430,24 +349,35 @@ static void keyboard_key(void *data,
 
   uint32_t code = key + 8;
 
-  xkb_keysym_t sym = xkb_state_key_get_one_sym(pctxt->xkb_state, code);
+  char utf8[64];
+  int n = xkb_state_key_get_utf8(pctxt->xkb_text_state,
+				 code, utf8, sizeof(utf8));
+	  value ml_keysym = Val_int(0), ml_str = Val_int(0);
+  caml_acquire_runtime_system();
+  CAMLparam2(ml_keysym, ml_str);
+  if (n > 1 || (n == 1 && utf8[0] >= 32)) {
+    ml_str = caml_copy_string(utf8);
+    ml_keysym = caml_alloc_small(1, 0);  /* tag 0 = premier constructeur */
+    Field(ml_keysym, 0) = ml_str;
+  } else {
+    xkb_keysym_t sym = xkb_state_key_get_one_sym(pctxt->xkb_state, code);
+    egl_key k = xkb_to_egl(sym);
+    ml_keysym = Val_int(k);
+  }
 
-  egl_key k = xkb_to_egl(sym);
   egl_mod m = xkb_mod_to_egl(pctxt->xkb_state);
-  char name[64];
-  xkb_keysym_get_name(sym, name, sizeof(name));
-  value vk = Val_int(k);
   value vm = Val_int(m);
   value vx = Val_int(pctxt->mouse_x);
   value vy = Val_int(pctxt->mouse_y);
-
+  CAMLlocalN(tmp,4);
+  tmp[0] = ml_keysym; tmp[1]=vm; tmp[2]=vx; tmp[3]=vy ;
   if (state == WL_KEYBOARD_KEY_STATE_PRESSED &&
       ctxt->key_press_callback != Val_unit)
-    protect_callback4("key press",
-		      &(ctxt->key_press_callback), &vk, &vm, &vx, &vy);
+     caml_callbackN_exn(ctxt->key_press_callback, 4, tmp);
   else if (ctxt->key_release_callback != Val_unit)
-    protect_callback4("key release",
-		      &(ctxt->key_release_callback), &vk, &vm, &vx, &vy);
+     caml_callbackN_exn(ctxt->key_release_callback, 4, tmp);
+  CAMLdrop;
+  caml_release_runtime_system();
 }
 static void keyboard_modifiers(void *data,
                                struct wl_keyboard *kbd,
@@ -467,6 +397,17 @@ static void keyboard_modifiers(void *data,
                         mods_depressed,
                         mods_latched,
                         mods_locked,
+                        0,
+                        0,
+                        group);
+  uint32_t ignored =
+    (1u << xkb_keymap_mod_get_index(pctxt->xkb_keymap, "Control")) |
+    (1u << xkb_keymap_mod_get_index(pctxt->xkb_keymap, "Mod1")) |
+    (1u << xkb_keymap_mod_get_index(pctxt->xkb_keymap, "Mod4"));
+  xkb_state_update_mask(pctxt->xkb_text_state,
+                        mods_depressed & ~ignored,
+                        mods_latched & ~ignored,
+                        mods_locked & ~ignored,
                         0,
                         0,
                         group);
@@ -752,6 +693,7 @@ void free_platform_ressources(egl_context ctxt)
     if (pctxt->wl_surface) wl_surface_destroy(pctxt->wl_surface);
     if (pctxt->wl_pointer) wl_pointer_destroy(pctxt->wl_pointer);
     if (pctxt->xkb_state) xkb_state_unref(pctxt->xkb_state);
+    if (pctxt->xkb_text_state) xkb_state_unref(pctxt->xkb_text_state);
     if (pctxt->xkb_keymap) xkb_keymap_unref(pctxt->xkb_keymap);
     if (pctxt->wl_keyboard) wl_keyboard_destroy(pctxt->wl_keyboard);
     if (pctxt->xdg_wm_base) xdg_wm_base_destroy(pctxt->xdg_wm_base);

@@ -329,8 +329,8 @@ let _ =
     | (Right, _) -> camera.r_speed <- -0.4
     | (Up, _) -> camera.u_speed <-  -0.4
     | (Down, _) -> camera.u_speed <- 0.4
-    | (Space, s) when s = shift -> camera.speed   <-  -0.4
-    | (Space, _) -> camera.speed   <-  0.4
+    | (Char " ", s) when s = shift -> camera.speed   <-  -0.4
+    | (Char " ", _) -> camera.speed   <-  0.4
     | (_    , _) -> Printf.printf "unset key: %s state: %d x:%d y:%d\n%!"
                       (Key.name key) (state:>int) x y
   in
@@ -347,7 +347,7 @@ let _ =
     | (Right, _) -> camera.r_speed <- 0.0
     | (Up, _) -> camera.u_speed <- 0.0
     | (Down, _) -> camera.u_speed <- 0.0
-    | (Space, _) -> camera.speed   <- 0.0
+    | (Char " ", _) -> camera.speed   <- 0.0
     | (_       ) -> ()
   in
   Egl.set_key_release_callback ctxt handle_key_release

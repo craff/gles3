@@ -374,7 +374,7 @@ let _ =
 (** call back for key and mouse, just for testing *)
 let _ = set_key_press_callback ctxt (fun ~key ~state ~x ~y ->
   if key = Key.Escape then exit_loop ctxt;
-  if key = Key.S then
+  if key = Key.Char "s" then
     dessine_shadow := not !dessine_shadow;
   Printf.printf "key: %s state: %d x:%d y:%d\n%!"
     (Key.name key) (state :> int) x y)

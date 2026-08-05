@@ -61,13 +61,12 @@ extern void protect_callback3(char *name, value *f, value *v1,
 			      value *v2, value *v3);
 extern void protect_callback4(char *name, value *f, value *v1,
 			value *v2, value *v3, value *v4);
-
+extern value caml_uchar_of_utf8(const char *);
 
 typedef enum {
 #define KEY(x) EGL_KEY_##x,
 #include "key.h"
 #undef KEY
-
     EGL_KEY_COUNT
 } egl_key;
 

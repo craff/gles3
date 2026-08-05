@@ -44,6 +44,8 @@
 
 typedef struct platform_context_struct {
   Display *display;
+  XIM xim;
+  XIC xic;
 } *platform_context ;
 
 platform_context malloc_platform_context(egl_context ctxt) {
@@ -74,6 +76,14 @@ void init_platform_ressources(egl_context ctxt, const char* name) {
     init_fail(ctxt, "cannot open X display") ;
 
   ctxt->platform->display = display;
+
+  XIM xim = XOpenIM(display, NULL, NULL, NULL);
+
+  if (!xim)
+    init_fail(ctxt, "cannot create X input method") ;
+
+  ctxt->platform->xim     = xim;
+
   ctxt->display = eglGetPlatformDisplay(EGL_PLATFORM_X11_KHR,
 					(void *)display,
 					NULL);
@@ -84,6 +94,18 @@ void init_platform_ressources(egl_context ctxt, const char* name) {
 			0, 0, ctxt->width, ctxt->height, 0, 0, 0) ;
   if(ctxt->window == None)
     init_fail(ctxt, "cannot create X window") ;
+
+  XIC xic = XCreateIC(xim,
+		 XNInputStyle,   XIMPreeditNothing | XIMStatusNothing,
+		 XNClientWindow, ctxt->window,
+		 XNFocusWindow,  ctxt->window,
+		 NULL);
+
+  if (!xic)
+    init_fail(ctxt, "cannot create X input context") ;
+
+  ctxt->platform->xic     = xic;
+
   XSelectInput(display, (Window) ctxt->window,
 	       VisibilityChangeMask|
 	       StructureNotifyMask|KeyPressMask|KeyReleaseMask|ExposureMask|
@@ -101,6 +123,8 @@ void free_platform_ressources(egl_context ctxt) {
       XDestroyWindow(ctxt->platform->display,
 		     (Window) ctxt->window) ;
       ctxt->window = None ;
+      XDestroyIC(ctxt->platform->xic) ;
+      XCloseIM(ctxt->platform->xim) ;
       XCloseDisplay(ctxt->platform->display) ;
       ctxt->platform->display = NULL ;
       free(ctxt->platform);
@@ -112,52 +136,6 @@ egl_key x11_keysym_to_egl(KeySym ks)
 {
   switch (ks)
   {
-    /* ========================= */
-    /* lettres (lower/upper safe) */
-    /* ========================= */
-
-    case XK_A: case XK_a: return EGL_KEY_A;
-    case XK_B: case XK_b: return EGL_KEY_B;
-    case XK_C: case XK_c: return EGL_KEY_C;
-    case XK_D: case XK_d: return EGL_KEY_D;
-    case XK_E: case XK_e: return EGL_KEY_E;
-    case XK_F: case XK_f: return EGL_KEY_F;
-    case XK_G: case XK_g: return EGL_KEY_G;
-    case XK_H: case XK_h: return EGL_KEY_H;
-    case XK_I: case XK_i: return EGL_KEY_I;
-    case XK_J: case XK_j: return EGL_KEY_J;
-    case XK_K: case XK_k: return EGL_KEY_K;
-    case XK_L: case XK_l: return EGL_KEY_L;
-    case XK_M: case XK_m: return EGL_KEY_M;
-    case XK_N: case XK_n: return EGL_KEY_N;
-    case XK_O: case XK_o: return EGL_KEY_O;
-    case XK_P: case XK_p: return EGL_KEY_P;
-    case XK_Q: case XK_q: return EGL_KEY_Q;
-    case XK_R: case XK_r: return EGL_KEY_R;
-    case XK_S: case XK_s: return EGL_KEY_S;
-    case XK_T: case XK_t: return EGL_KEY_T;
-    case XK_U: case XK_u: return EGL_KEY_U;
-    case XK_V: case XK_v: return EGL_KEY_V;
-    case XK_W: case XK_w: return EGL_KEY_W;
-    case XK_X: case XK_x: return EGL_KEY_X;
-    case XK_Y: case XK_y: return EGL_KEY_Y;
-    case XK_Z: case XK_z: return EGL_KEY_Z;
-
-    /* ========================= */
-    /* chiffres (haut clavier)   */
-    /* ========================= */
-
-    case XK_0: return EGL_KEY_Num0;
-    case XK_1: return EGL_KEY_Num1;
-    case XK_2: return EGL_KEY_Num2;
-    case XK_3: return EGL_KEY_Num3;
-    case XK_4: return EGL_KEY_Num4;
-    case XK_5: return EGL_KEY_Num5;
-    case XK_6: return EGL_KEY_Num6;
-    case XK_7: return EGL_KEY_Num7;
-    case XK_8: return EGL_KEY_Num8;
-    case XK_9: return EGL_KEY_Num9;
-
     /* ========================= */
     /* contrôle                 */
     /* ========================= */
@@ -172,45 +150,6 @@ egl_key x11_keysym_to_egl(KeySym ks)
     case XK_Sys_Req:   return EGL_KEY_SysReq;
     case XK_Escape:    return EGL_KEY_Escape;
     case XK_Delete:    return EGL_KEY_Delete;
-
-    /* ========================= */
-    /* espace / ponctuation     */
-    /* ========================= */
-
-    case XK_space:      return EGL_KEY_Space;
-    case XK_exclam:     return EGL_KEY_Exclam;
-    case XK_quotedbl:   return EGL_KEY_QuoteDbl;
-    case XK_numbersign: return EGL_KEY_NumberSign;
-    case XK_dollar:     return EGL_KEY_Dollar;
-    case XK_percent:    return EGL_KEY_Percent;
-    case XK_ampersand:  return EGL_KEY_Ampersand;
-    case XK_apostrophe: return EGL_KEY_Apostrophe;
-    case XK_parenleft:  return EGL_KEY_ParenLeft;
-    case XK_parenright: return EGL_KEY_ParenRight;
-    case XK_asterisk:   return EGL_KEY_Asterisk;
-    case XK_plus:       return EGL_KEY_Plus;
-    case XK_comma:      return EGL_KEY_Comma;
-    case XK_minus:      return EGL_KEY_Minus;
-    case XK_period:     return EGL_KEY_Period;
-    case XK_slash:      return EGL_KEY_Slash;
-    case XK_colon:      return EGL_KEY_Colon;
-    case XK_semicolon:  return EGL_KEY_Semicolon;
-    case XK_less:       return EGL_KEY_Less;
-    case XK_equal:      return EGL_KEY_Equal;
-    case XK_greater:    return EGL_KEY_Greater;
-    case XK_question:   return EGL_KEY_Question;
-    case XK_at:         return EGL_KEY_At;
-    case XK_bracketleft:return EGL_KEY_BracketLeft;
-    case XK_backslash:  return EGL_KEY_Backslash;
-    case XK_bracketright:return EGL_KEY_BracketRight;
-    case XK_asciicircum:return EGL_KEY_AsciiCircum;
-    case XK_underscore: return EGL_KEY_Underscore;
-    case XK_grave:      return EGL_KEY_Grave;
-    case XK_braceleft:  return EGL_KEY_BraceLeft;
-    case XK_bar:        return EGL_KEY_Bar;
-    case XK_braceright: return EGL_KEY_BraceRight;
-    case XK_asciitilde: return EGL_KEY_AsciiTilde;
-
 
     /* ========================= */
     /* navigation               */
@@ -546,17 +485,34 @@ CAMLprim value ml_egl_main_loop(value vc)
 	 event.xkey.window == window &&
 	 ctxt->key_press_callback != Val_unit)
 	{
-	  KeySym keysym ;
-	  XLookupString(&(event.xkey), NULL, 0, &keysym, NULL) ;
-	  egl_key eglkey = x11_keysym_to_egl(keysym);
-	  egl_mod eglmod = x11_state_to_egl(event.xkey.state);
+	  char utf8[64];
+	  KeySym keysym;
+	  XKeyEvent ev = event.xkey;
+	  ev.state &= ~(ControlMask | Mod1Mask | Mod4Mask);
 
-	  value ml_keysym = Val_int(eglkey);
+	  int n = Xutf8LookupString(ctxt->platform->xic,
+				    &ev,
+				    utf8, sizeof(utf8), &keysym, NULL);
+	  value ml_keysym = Val_int(0), ml_str = Val_int(0);
+	  caml_acquire_runtime_system();
+	  CAMLparam2(ml_keysym, ml_str);
+	  if (n > 1 || (n == 1 && utf8[0] >= 32)) {
+	    ml_str = caml_copy_string(utf8);
+	    ml_keysym = caml_alloc_small(1, 0);  /* tag 0 = premier constructeur */
+	    Field(ml_keysym, 0) = ml_str;
+	  } else {
+	    egl_key eglkey = x11_keysym_to_egl(keysym);
+	    ml_keysym = Val_int(eglkey);
+	  }
+	  egl_mod eglmod = x11_state_to_egl(event.xkey.state);
 	  value ml_state = Val_int(eglmod);
 	  value ml_x = Val_int(event.xkey.x);
 	  value ml_y = Val_int(event.xkey.y);
-	  protect_callback4("key press callback", &(ctxt->key_press_callback),
-			    &ml_keysym, &ml_state, &ml_x, &ml_y);
+	  CAMLlocalN(tmp,4);
+	  tmp[0] = ml_keysym; tmp[1]=ml_state; tmp[2]=ml_x; tmp[3]=ml_y ;
+	  caml_callbackN_exn(ctxt->key_press_callback, 4, tmp);
+	  CAMLdrop;
+	  caml_release_runtime_system();
 	}
       break ;
     case KeyRelease:
@@ -564,17 +520,35 @@ CAMLprim value ml_egl_main_loop(value vc)
 	 event.xkey.window == window &&
 	 ctxt->key_release_callback != Val_unit)
 	{
-	  KeySym keysym ;
-	  XLookupString(&(event.xkey), NULL, 0, &keysym, NULL) ;
-	  egl_key eglkey = x11_keysym_to_egl(keysym);
-	  egl_mod eglmod = x11_state_to_egl(event.xkey.state);
+	  char utf8[64];
+	  KeySym keysym;
+	  XKeyEvent ev = event.xkey;
+	  ev.type = KeyPress;
+	  ev.state &= ~(ControlMask | Mod1Mask | Mod4Mask);
 
-	  value ml_keysym = Val_int(eglkey);
+	  int n = Xutf8LookupString(ctxt->platform->xic,
+				    &ev,
+				    utf8, sizeof(utf8), &keysym, NULL);
+	  value ml_keysym = Val_int(0), ml_str = Val_int(0);
+	  caml_acquire_runtime_system();
+	  CAMLparam2(ml_keysym, ml_str);
+	  if (n > 1 || (n == 1 && utf8[0] >= 32)) {
+	    ml_str = caml_copy_string(utf8);
+	    ml_keysym = caml_alloc_small(1, 0);  /* tag 0 = premier constructeur */
+	    Field(ml_keysym, 0) = ml_str;
+	  } else {
+	    egl_key eglkey = x11_keysym_to_egl(keysym);
+	    ml_keysym = Val_int(eglkey);
+	  }
+	  egl_mod eglmod = x11_state_to_egl(event.xkey.state);
 	  value ml_state = Val_int(eglmod);
 	  value ml_x = Val_int(event.xkey.x);
 	  value ml_y = Val_int(event.xkey.y);
-	  protect_callback4("key release callback", &(ctxt->key_release_callback),
-			    &ml_keysym, &ml_state, &ml_x, &ml_y);
+	  CAMLlocalN(tmp,4);
+	  tmp[0] = ml_keysym; tmp[1]=ml_state; tmp[2]=ml_x; tmp[3]=ml_y ;
+	  caml_callbackN_exn(ctxt->key_release_callback, 4, tmp);
+	  CAMLdrop;
+	  caml_release_runtime_system();
 	}
       break ;
     case ButtonPress:

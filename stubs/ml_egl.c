@@ -120,6 +120,31 @@ void protect_callback4(char *name, value *f, value *v1,
   caml_release_runtime_system();
 }
 
+value caml_uchar_of_utf8(const char *s)
+{
+    unsigned int c;
+
+    if ((s[0] & 0x80) == 0) {
+        c = (unsigned char)s[0];
+    }
+    else if ((s[0] & 0xE0) == 0xC0) {
+        c = ((s[0] & 0x1F) << 6)
+          | (s[1] & 0x3F);
+    }
+    else if ((s[0] & 0xF0) == 0xE0) {
+        c = ((s[0] & 0x0F) << 12)
+          | ((s[1] & 0x3F) << 6)
+          | (s[2] & 0x3F);
+    }
+    else {
+        c = ((s[0] & 0x07) << 18)
+          | ((s[1] & 0x3F) << 12)
+          | ((s[2] & 0x3F) << 6)
+          | (s[3] & 0x3F);
+    }
+
+    return Val_int(c);
+}
 
 void egl_platform_lost(egl_context ctxt) {
   if(ctxt->delete_callback != Val_unit) {
